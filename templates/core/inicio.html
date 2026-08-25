@@ -1,18 +1,18 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block titulo %}Club carnaval Oruro{% endblock %}
+{% block titulo %}Club Carnaval Oruro | Sistema Registro Integral Danzarín{% endblock %}
 
 {% block seo %}
 <meta name="description" content="Club Carnaval de Oruro: comunidad para disfrutar el Carnaval, la cultura, el folklore, las tradiciones, la música y las danzas de Oruro.">
-<meta name="keywords" content="Club Carnaval Oruro, Carnaval de Oruro, folklore boliviano, cultura de Oruro, tradiciones de Bolivia">
+<meta name="keywords" content="Club Carnaval Oruro, Carnaval de Oruro, folklore boliviano, danzarines, danzas de Oruro, diablada, morenada, caporales">
 <meta name="robots" content="index, follow">
 <link rel="canonical" href="https://carnavaldeoruro.club/">
 <link rel="preload" as="image" href="{% static 'img/LogoCarnavalOruroClub.webp' %}" type="image/webp" fetchpriority="high">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Club Carnaval Oruro">
-<meta property="og:title" content="Club Carnaval Oruro | Carnaval, cultura y folklore">
-<meta property="og:description" content="Una comunidad para quienes disfrutan del Carnaval, la cultura y el folklore de Oruro.">
+<meta property="og:title" content="Club Carnaval Oruro | Pasión, Cultura y Tradición">
+<meta property="og:description" content="Una comunidad integral para danzarines y amantes del Carnaval, la cultura y el folklore de Oruro.">
 <meta property="og:url" content="https://carnavaldeoruro.club/">
 <meta property="og:image" content="https://carnavaldeoruro.club/static/img/LogoCarnavalOruroClub.webp">
 <meta property="og:image:alt" content="Logo del Club Carnaval Oruro">
@@ -27,7 +27,7 @@
     "name": "Club Carnaval Oruro",
     "url": "https://carnavaldeoruro.club/",
     "logo": "https://carnavaldeoruro.club/static/img/LogoCarnavalOruroClub.webp",
-    "description": "Comunidad para quienes disfrutan del Carnaval, la cultura y el folklore de Oruro.",
+    "description": "Comunidad integral para danzarines y devotos del Carnaval de Oruro.",
     "sameAs": [
         "https://www.facebook.com/carnavaldeoruroclub",
         "https://www.instagram.com/carnavaldeoruroclub/",
@@ -46,340 +46,605 @@
 {% block contenido %}
 {% include 'componentes/navbar-inicio.html' %}
 
-<section class="hero-portada" id="inicio">
-    <div class="hero-portada-overlay"></div>
-    <div class="hero-portada-inner">
-        <div class="container py-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8 text-white">
-                    <span class="hero-kicker hero-anim hero-anim-1"><i class="fas fa-hands-helping"></i> Bienvenido al Club</span>
-                    <h1 class="hero-portada-title hero-anim hero-anim-2">Una comunidad para quienes disfrutan del Carnaval, la cultura y el folklore de Oruro.</h1>
-                    <div class="hero-portada-desc hero-anim hero-anim-3">
-                        <p>Club Carnaval de Oruro reúne a personas que comparten el gusto por nuestras tradiciones, nuestra música, nuestras danzas y las expresiones culturales que hacen del Carnaval de Oruro una celebración única.</p>
-                        <p>Ser parte del Club significa participar, descubrir, disfrutar y acceder a experiencias pensadas para quienes viven y siguen el Carnaval de Oruro.</p>
-                    </div>
-                    <div class="hero-actions hero-anim hero-anim-5">
-                        <a href="{% url 'core:login' %}" class="btn btn-primary btn-lg mt-3 hero-btn-glow">
-                            <i class="fas fa-right-to-bracket mr-2"></i>Ingresar al sistema
-                        </a>
-                        <a href="#beneficios" class="btn btn-outline-light btn-lg mt-3 ml-2 hero-btn-float">Ver beneficios</a>
-                    </div>
+<!-- =====================================================
+     HERO SECTION
+===================================================== -->
+<section class="hero" id="inicio">
+    <div class="container hero-container">
+        <div class="hero-content">
+            <div class="hero-tag">
+                <span></span>
+                <span>BIENVENIDO AL CLUB</span>
+            </div>
+            <h1>
+                Pasión, Cultura y 
+                <span>Tradición Viva</span>
+            </h1>
+            <p>
+                Club Carnaval de Oruro reúne a danzarines, devotos y apasionados del folklore en un espacio único de integración, gestión de membresías, souvenirs y experiencias que celebran nuestra máxima fiesta.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="{% url 'core:login' %}" class="btn btn-primary">
+                    <i class="fas fa-right-to-bracket mr-2"></i>Ingresar al sistema
+                </a>
+                <a href="#danzas" class="btn btn-outline">
+                    <i class="fas fa-masks-theater mr-2"></i>Danzas y Secciones
+                </a>
+                <button type="button" class="btn btn-outline" data-toggle="modal" data-target="#modalInscripcion">
+                    <i class="fas fa-id-card mr-2"></i>Membresía
+                </button>
+            </div>
+
+            <div class="hero-stats">
+                <div class="stat">
+                    <strong>500+</strong>
+                    <span>Socios Registrados</span>
                 </div>
-                <div class="col-lg-4 hero-brand-visual hero-anim hero-anim-5">
-                    <img src="{% static 'img/LogoCarnavalOruroClub.webp' %}" alt="Logo Club Carnaval Oruro" class="hero-brand-logo" width="1000" height="1000" fetchpriority="high" decoding="async">
+                <div class="stat">
+                    <strong>18+</strong>
+                    <span>Especialidades y Danzas</span>
+                </div>
+                <div class="stat">
+                    <strong>100%</strong>
+                    <span>Orgullo Boliviano</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="hero-circle"></div>
+            
+            <div class="hero-image">
+                <img src="{% static 'img/LogoCarnavalOruroClub.webp' %}" alt="Logo Club Carnaval Oruro" class="hero-main-logo" width="380" height="380" fetchpriority="high">
+            </div>
+
+            <div class="floating-card card-top">
+                <div class="floating-icon">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <div>
+                    <strong>Patrimonio Mundial</strong>
+                    <small>UNESCO • Carnaval de Oruro</small>
+                </div>
+            </div>
+
+            <div class="floating-card card-bottom">
+                <div class="avatar-group">
+                    <span><i class="fas fa-user"></i></span>
+                    <span><i class="fas fa-user-check"></i></span>
+                    <span><i class="fas fa-users"></i></span>
+                </div>
+                <div>
+                    <strong>Comunidad Activa</strong>
+                    <small>Unidos por la devoción</small>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-{% comment %} El registro público fue retirado: los socios son creados por administración. {% endcomment %}
-{% comment %}
-<div class="modal fade modern-inscripcion-modal" id="modalInscripcion" tabindex="-1" role="dialog" aria-labelledby="modalInscripcionTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-        <div class="modal-content">
+<!-- =====================================================
+     MARQUEE CINTA FOLKLÓRICA
+===================================================== -->
+<div class="marquee">
+    <div class="marquee-track">
+        <span>CARNAVAL DE ORURO</span>
+        <i class="fas fa-star"></i>
+        <span>OBRA MAESTRA</span>
+        <i class="fas fa-star"></i>
+        <span>DIABLADA</span>
+        <i class="fas fa-star"></i>
+        <span>MORENADA</span>
+        <i class="fas fa-star"></i>
+        <span>CAPORALES</span>
+        <i class="fas fa-star"></i>
+        <span>TOBAS</span>
+        <i class="fas fa-star"></i>
+        <span>TINKUS</span>
+        <i class="fas fa-star"></i>
+        <span>CULTURA Y TRADICIÓN</span>
+        <i class="fas fa-star"></i>
+        <span>CARNAVAL DE ORURO</span>
+        <i class="fas fa-star"></i>
+        <span>OBRA MAESTRA</span>
+        <i class="fas fa-star"></i>
+        <span>DIABLADA</span>
+        <i class="fas fa-star"></i>
+        <span>MORENADA</span>
+        <i class="fas fa-star"></i>
+        <span>CAPORALES</span>
+        <i class="fas fa-star"></i>
+    </div>
+</div>
+
+<!-- =====================================================
+     SECCIÓN SOBRE NOSOTROS
+===================================================== -->
+<section class="section about" id="nosotros">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-images">
+                <div class="about-main-image">
+                    <div class="image-box text-center p-4">
+                        <i class="fas fa-heart-pulse mb-3" style="font-size: 3.5rem; color: var(--secondary);"></i>
+                        <h4 class="text-white font-weight-bold">Espíritu Carnavalero</h4>
+                        <p class="text-white-50" style="font-size: 0.9rem;">Pasión que trasciende fronteras y une generaciones en devoción a la Virgen del Socavón.</p>
+                    </div>
+                </div>
+
+                <div class="about-small-image">
+                    <div class="image-box text-center p-3">
+                        <i class="fas fa-award mb-2" style="font-size: 2.2rem; color: var(--primary);"></i>
+                        <h6 class="font-weight-bold" style="color: var(--dark);">Excelencia</h6>
+                        <small style="color: var(--gray);">Gestión y confraternidad</small>
+                    </div>
+                </div>
+
+                <div class="experience-badge">
+                    <strong>100%</strong>
+                    <span>FOLKLORE</span>
+                </div>
+            </div>
+
+            <div class="about-content">
+                <div class="section-tag">
+                    <span></span>
+                    <span>NUESTRA ESENCIA</span>
+                </div>
+                <h2>Más que un club, una <span>gran familia folklórica</span></h2>
+                <p>
+                    Somos un espacio que reúne a las personas que viven, sienten y disfrutan la magia del Carnaval de Oruro. Nacimos con la convicción de que el Carnaval no solo está presente en las calles durante la entrada, sino también en cada experiencia, recuerdo y emoción que une a sus danzarines.
+                </p>
+
+                <div class="features">
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div>
+                            <h4>Misión</h4>
+                            <p>Construir una comunidad sólida y unida donde cada socio disfrute de experiencias y actividades inolvidables.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon feature-icon-alt">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div>
+                            <h4>Visión</h4>
+                            <p>Ser el club social y cultural líder, reconocido por su calidez humana y excelencia en cada actividad.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon feature-icon-alt">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div>
+                            <h4>Souvenirs y Reconocimientos</h4>
+                            <p>Entrega de detalles exclusivos, distintivos y reconocimientos oficiales para miembros.</p>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div>
+                            <h4>Convenios y Beneficios</h4>
+                            <p>Alianzas estratégicas con empresas y comercios aliados para el beneficio de los socios.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN DANZAS Y ESPECIALIDADES
+===================================================== -->
+<section class="section disciplines" id="danzas">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <div class="section-tag">
+                    <span></span>
+                    <span>EXPRESIONES CULTURALES</span>
+                </div>
+                <h2>Danzas y <span>Especialidades</span></h2>
+            </div>
+            <a href="#contacto" class="text-link">
+                <span>Conoce todas las fraternidades</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="discipline-grid">
+            <div class="discipline-card theme-card-1">
+                <span class="card-number">01</span>
+                <div class="discipline-icon">
+                    <i class="fas fa-fire"></i>
+                </div>
+                <h3>La Diablada</h3>
+                <p>Danza cumbre del Carnaval de Oruro. Representación de la lucha entre el bien y el mal con máscaras majestuosas y ritmo marcial.</p>
+                <a href="#contacto">
+                    <span>Más información</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="discipline-card theme-card-2">
+                <span class="card-number">02</span>
+                <div class="discipline-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3>La Morenada</h3>
+                <p>Elegancia, compás pausado y trajes pesados bordados en plata y pedrería. La danza pesada más representativa del folklore.</p>
+                <a href="#contacto">
+                    <span>Más información</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="discipline-card theme-card-3">
+                <span class="card-number">03</span>
+                <div class="discipline-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Los Caporales</h3>
+                <p>Fuerza, agilidad, saltos espectaculares y cascabeles al compás de la música criolla. Juventud y energía desbordante.</p>
+                <a href="#contacto">
+                    <span>Más información</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
+            <div class="discipline-card theme-card-4">
+                <span class="card-number">04</span>
+                <div class="discipline-icon">
+                    <i class="fas fa-feather"></i>
+                </div>
+                <h3>Tobas y Guerreros</h3>
+                <p>Agilidad sobrehumana, pasos acrobáticos y plumajes imponentes que rinden tributo a los pueblos originarios del oriente y chaco.</p>
+                <a href="#contacto">
+                    <span>Más información</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN BENEFICIOS DE SOCIO
+===================================================== -->
+<section class="section benefits" id="beneficios">
+    <div class="container">
+        <div class="section-heading center">
+            <div class="section-tag">
+                <span></span>
+                <span>MEMBRESÍA EXCLUSIVA</span>
+            </div>
+            <h2>¿Por qué ser parte de <span>nuestro Club</span>?</h2>
+            <p>Accede a ventajas diseñadas para vivir el folklore y el Carnaval de Oruro al máximo nivel.</p>
+        </div>
+
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-id-badge"></i>
+                </div>
+                <h4>Carnet Digital Oficial</h4>
+                <p>Credencial digital personalizada con código QR único para validación de membresía y acceso a eventos.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-tags"></i>
+                </div>
+                <h4>Descuentos y Convenios</h4>
+                <p>Tarifas preferenciales en comercios, hoteles, trajes, bordadores y servicios aliados del club.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h4>Souvenirs Anuales</h4>
+                <p>Recibe recuerdos exclusivos, poleras, distintivos y material conmemorativo por cada gestión.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h4>Eventos y Convivencias</h4>
+                <p>Participación en ensayos generales, veladas en honor a la Virgen del Socavón y encuentros de confraternidad.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN HORARIOS Y ACTIVIDADES
+===================================================== -->
+<section class="section schedule" id="horarios">
+    <div class="container">
+        <div class="section-heading">
+            <div>
+                <div class="section-tag">
+                    <span></span>
+                    <span>PLANIFICACIÓN</span>
+                </div>
+                <h2>Horarios de <span>Ensayos y Actividades</span></h2>
+            </div>
+            <a href="https://wa.me/59171930074" target="_blank" rel="noopener noreferrer" class="text-link">
+                <span>Consultar grupos especiales</span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="schedule-table">
+            <div class="schedule-row schedule-header">
+                <div>Día</div>
+                <div>Actividad / Especialidad</div>
+                <div>Horario</div>
+                <div>Nivel / Grupo</div>
+                <div>Acción</div>
+            </div>
+
+            <div class="schedule-row">
+                <div class="day">Viernes</div>
+                <div class="class-name">
+                    <div class="mini-icon"><i class="fas fa-fire"></i></div>
+                    <span>Ensayo General de Diablada</span>
+                </div>
+                <div>19:30 - 21:30</div>
+                <div><span class="level intermediate">Todos los bloques</span></div>
+                <div>
+                    <a href="https://wa.me/59171930074?text=Consulta%20ensayo%20Diablada" target="_blank" rel="noopener noreferrer" class="schedule-btn">Consultar</a>
+                </div>
+            </div>
+
+            <div class="schedule-row">
+                <div class="day">Sábado</div>
+                <div class="class-name">
+                    <div class="mini-icon"><i class="fas fa-gem"></i></div>
+                    <span>Práctica de Morenada y Paso Pesado</span>
+                </div>
+                <div>16:00 - 18:30</div>
+                <div><span class="level beginner">Socios y Nuevos</span></div>
+                <div>
+                    <a href="https://wa.me/59171930074?text=Consulta%20ensayo%20Morenada" target="_blank" rel="noopener noreferrer" class="schedule-btn">Consultar</a>
+                </div>
+            </div>
+
+            <div class="schedule-row">
+                <div class="day">Sábado</div>
+                <div class="class-name">
+                    <div class="mini-icon"><i class="fas fa-bolt"></i></div>
+                    <span>Taller de Coreografía y Pasos de Caporal</span>
+                </div>
+                <div>18:30 - 20:30</div>
+                <div><span class="level advanced">Bloque Juvenil</span></div>
+                <div>
+                    <a href="https://wa.me/59171930074?text=Consulta%20ensayo%20Caporales" target="_blank" rel="noopener noreferrer" class="schedule-btn">Consultar</a>
+                </div>
+            </div>
+
+            <div class="schedule-row">
+                <div class="day">Domingo</div>
+                <div class="class-name">
+                    <div class="mini-icon"><i class="fas fa-hands-praying"></i></div>
+                    <span>Velada y Encuentro de Confraternidad</span>
+                </div>
+                <div>17:00 - 19:00</div>
+                <div><span class="level intermediate">General del Club</span></div>
+                <div>
+                    <a href="https://wa.me/59171930074?text=Consulta%20Veladas%20Club" target="_blank" rel="noopener noreferrer" class="schedule-btn">Consultar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN EVENTO DESTACADO
+===================================================== -->
+<section class="event-section" id="eventos">
+    <div class="container">
+        <div class="event-content">
+            <span class="event-label"><i class="fas fa-calendar-star mr-1"></i> EVENTO PRINCIPAL</span>
+            <h2>Gran Peregrinación y <span>Entrada de Carnaval</span></h2>
+            <p>
+                El momento cumbre donde miles de danzarines bailan con devoción a los pies de la Virgen del Socavón. Sé parte de la fiesta cultural más grande de Bolivia.
+            </p>
+
+            <div class="event-info">
+                <div>
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Sábado de Carnaval</span>
+                </div>
+                <div>
+                    <i class="fas fa-location-dot"></i>
+                    <span>Oruro, Bolivia</span>
+                </div>
+                <div>
+                    <i class="fas fa-users"></i>
+                    <span>Comunidad Club Carnaval</span>
+                </div>
+            </div>
+
+            <div>
+                <a href="{% url 'core:login' %}" class="btn btn-light mr-2">
+                    <i class="fas fa-right-to-bracket mr-2"></i>Ingresar al Sistema
+                </a>
+                <a href="https://wa.me/59171930074?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20eventos..." target="_blank" rel="noopener noreferrer" class="btn btn-outline text-white" style="border-color: rgba(255,255,255,0.6);">
+                    <i class="fab fa-whatsapp mr-2"></i>Coordinar por WhatsApp
+                </a>
+            </div>
+        </div>
+
+        <div class="event-decoration">
+            <div class="event-circle">
+                <i class="fas fa-music"></i>
+            </div>
+            <i class="fas fa-drum music-note note-1"></i>
+            <i class="fas fa-guitar music-note note-2"></i>
+            <i class="fas fa-star music-note note-3"></i>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN TESTIMONIOS
+===================================================== -->
+<section class="section testimonials" id="testimonios">
+    <div class="container">
+        <div class="section-heading center">
+            <div class="section-tag">
+                <span></span>
+                <span>COMUNIDAD</span>
+            </div>
+            <h2>Opiniones de <span>Nuestros Socios</span></h2>
+            <p>Testimonios de quienes forman parte de nuestra comunidad folklórica.</p>
+        </div>
+
+        <div class="testimonial-grid">
+            <div class="testimonial-card">
+                <div class="quote"><i class="fas fa-quote-left"></i></div>
+                <p>"Ser socia me permitió acceder a eventos únicos, tener un registro claro de mis participaciones y sentirme parte de una comunidad muy unida y organizada."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">M</div>
+                    <div>
+                        <strong>María Flores</strong>
+                        <span>Socia Activa • Diablada</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="quote"><i class="fas fa-quote-left"></i></div>
+                <p>"La gestión mediante el sistema es súper rápida y eficiente. Puedo ver el estado de mis credenciales y recibir información directa de las actividades."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">J</div>
+                    <div>
+                        <strong>Juan Carlos Pérez</strong>
+                        <span>Socio Activo • Morenada</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="testimonial-card">
+                <div class="quote"><i class="fas fa-quote-left"></i></div>
+                <p>"Los recuerdos, souvenirs y la calidez del grupo marcan una gran diferencia. Recomiendo totalmente sumarse a este club del Carnaval."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">A</div>
+                    <div>
+                        <strong>Ana Morales</strong>
+                        <span>Socia Activa • Caporales</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     SECCIÓN CTA / SOLICITUD
+===================================================== -->
+<section class="cta" id="contacto">
+    <div class="container cta-container">
+        <div>
+            <div class="section-tag light-tag">
+                <span></span>
+                <span>¿QUIERES SER PARTE?</span>
+            </div>
+            <h2>Únete al <span>Club Carnaval de Oruro</span></h2>
+            <p>La administración gestiona y coordina las nuevas solicitudes para brindarte una bienvenida personalizada.</p>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+            <button type="button" class="btn btn-light" data-toggle="modal" data-target="#modalInscripcion">
+                <i class="fas fa-id-card mr-2"></i>Cómo inscribirme
+            </button>
+            <a href="{% url 'core:login' %}" class="btn btn-outline text-white ml-md-2 mt-2 mt-md-0" style="border-color: rgba(255,255,255,0.7);">
+                <i class="fas fa-right-to-bracket mr-2"></i>Acceso al Sistema
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- =====================================================
+     MODAL DE INSCRIPCIÓN / INFO
+===================================================== -->
+<div class="modal fade" id="modalInscripcion" tabindex="-1" role="dialog" aria-labelledby="modalInscripcionTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modal-inscripcion-custom">
             <div class="modal-header">
                 <div>
-                    <h3 class="modal-title" id="modalInscripcionTitle"><i class="fas fa-user-plus mr-2"></i>Solicita tu membresía</h3>
-                    <p class="modal-subtitle">Completa tus datos y se parte del club del Carnaval de oruro.</p>
+                    <h5 class="modal-title font-weight-bold" id="modalInscripcionTitle">
+                        <i class="fas fa-id-card mr-2" style="color: var(--secondary);"></i>Membresía del Club
+                    </h5>
+                    <small class="text-muted">Pasos para formar parte de la comunidad</small>
                 </div>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <form id="formInscripcion" method="post" action="#">
-                    {% csrf_token %}
-                    <div class="row">
-                        <div class="col-md-4 form-group">
-                            <label for="nombre">Nombres</label>
-                            <input type="text" id="nombre" name="nombre" class="form-control" placeholder="Tu nombre" required>
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <label for="apellido_paterno">Apellido paterno</label>
-                            <input type="text" id="apellido_paterno" name="apellido_paterno" class="form-control" placeholder="Apellido paterno" required>
-                        </div>
-                        <div class="col-md-4 form-group">
-                            <label for="apellido_materno">Apellido materno</label>
-                            <input type="text" id="apellido_materno" name="apellido_materno" class="form-control" placeholder="Apellido materno">
+            <div class="modal-body p-4">
+                <p class="mb-3" style="color: var(--gray); font-size: 0.95rem;">
+                    El registro de nuevos socios es coordinado y procesado directamente por la <strong>Administración del Club Carnaval Oruro</strong> para asignar tu fraternidad y grupo correspondiente.
+                </p>
+
+                <div class="modal-steps-list">
+                    <div class="modal-step-item">
+                        <div class="step-num">1</div>
+                        <div>
+                            <strong style="color: var(--dark);">Contacto Inicial</strong>
+                            <p style="color: var(--gray); font-size: 0.85rem; margin: 0;">Escríbenos por WhatsApp para coordinar tu membresía.</p>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label for="email">Correo electrónico</label>
-                        <input type="email" id="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group position-relative">
-                            <label for="fecha_nacimiento">Fecha de nacimiento</label>
-                            <div class="input-group">
-                                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" class="form-control fecha-nacimiento-date">
-                                <input type="text" id="fecha_nacimiento_manual" class="form-control fecha-nacimiento-text d-none" placeholder="dd/mm/aaaa" autocomplete="bday" inputmode="numeric" aria-label="Fecha de nacimiento manual">
-                                <button type="button" class="btn btn-outline-secondary d-none" id="fechaNacimientoBtn" title="Seleccionar fecha">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </button>
-                            </div>
-                            <div class="invalid-feedback" id="fechaNacimientoError" style="display:none;">Ingresa una fecha válida en formato dd/mm/aaaa.</div>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="telefono">Teléfono</label>
-                            <input type="text" id="telefono" name="telefono" class="form-control" placeholder="Tu número">
+                    <div class="modal-step-item">
+                        <div class="step-num">2</div>
+                        <div>
+                            <strong style="color: var(--dark);">Alta y Credenciales</strong>
+                            <p style="color: var(--gray); font-size: 0.85rem; margin: 0;">Se registran tus datos y se te asignan tus accesos al sistema.</p>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group">
-                            <label for="carnet_ci">Carnet / CI</label>
-                            <input type="text" id="carnet_ci" name="carnet_ci" class="form-control" placeholder="Número de carnet" required>
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="carnet_complemento">Complemento (opcional)</label>
-                            <input type="text" id="carnet_complemento" name="carnet_complemento" class="form-control" placeholder="-1A, -2B (opcional)">
+                    <div class="modal-step-item">
+                        <div class="step-num">3</div>
+                        <div>
+                            <strong style="color: var(--dark);">Disfruta tus Beneficios</strong>
+                            <p style="color: var(--gray); font-size: 0.85rem; margin: 0;">Accede a tu carnet digital, souvenirs, ensayos y actividades.</p>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 form-group">
-                            <label for="ciudad">Ciudad</label>
-                            <input type="text" id="ciudad" name="ciudad" class="form-control" placeholder="Ciudad">
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label for="direccion">Dirección</label>
-                            <input type="text" id="direccion" name="direccion" class="form-control" placeholder="Dirección">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="razon">¿Por qué quieres unirte al club?</label>
-                        <textarea id="razon" name="razon" class="form-control" rows="4" placeholder="Cuéntanos un poco más sobre ti... (Opcional)"></textarea>
-                    </div>
-                    <div class="modal-actions">
-                        <button class="btn btn-outline-secondary" type="button" data-dismiss="modal">Cancelar</button>
-                        <button class="btn btn-primary" type="submit">Enviar solicitud</button>
-                    </div>
-                </form>
+                </div>
+
+                <div class="mt-4 pt-2 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline" data-dismiss="modal">Cerrar</button>
+                    <a href="https://wa.me/59171930074?text=Hola%2C%20quiero%20solicitar%20mi%20membres%C3%ADa%20al%20Club%20Carnaval%20de%20Oruro..." target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        <i class="fab fa-whatsapp mr-2"></i>Escribir a Administración
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 </div>
-{% endcomment %}
 
-<section class="sobre-club-section py-5">
-    <div class="container">
-        <div class="row align-items-center gy-4">
-            <div class="col-lg-6">
-                <div class="sobre-club-card p-4 shadow-sm reveal">
-                    <div class="mb-4">
-                        <h2 class="section-title-animate"><i class="fas fa-heart-pulse"></i> Sobre el Club</h2>
-                        <p class="text-animate">Somos un espacio que reúne a las personas que viven, sienten y disfrutan la magia del Carnaval de Oruro.
-Nacimos con la convicción de que el Carnaval de Oruro no solo está presente en las calles durante la entrada, sino también en cada experiencia, recuerdo y emoción que une a quienes forman parte de él.</p>
-                    </div>
-                    <div class="sobre-club-item mb-4 reveal">
-                        <div class="sobre-club-feature hover-lift">
-                            <span class="sobre-club-icon icon-pulse"><i class="fas fa-bullseye"></i></span>
-                            <div>
-                                <h5>Misión</h5>
-                                <p>Construir una comunidad sólida y unida donde cada socio se sienta parte de algo especial. Creamos espacios y experiencias memorables que fortalecen los vínculos de amistad, impulsan el desarrollo integral y generan un impacto positivo en la vida de cada miembro.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="sobre-club-item mb-4 reveal">
-                        <div class="sobre-club-feature hover-lift">
-                            <span class="sobre-club-icon icon-pulse"><i class="fas fa-eye"></i></span>
-                            <div>
-                                <h5>Visión</h5>
-                                <p>Ser el club social líder y referente a nivel nacional, reconocido por nuestra calidez humana, la excelencia en cada actividad y la fuerte unión entre nuestros socios. Queremos ser el lugar donde la amistad se convierte en familia y cada miembro se siente orgulloso de pertenecer.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="sobre-club-media reveal">
-                    <div class="sobre-club-card p-4 shadow-sm mt-3 border-0">
-                        <div class="d-flex align-items-center mb-4">
-                            <span class="sobre-club-icon icon-pulse" style="font-size: 2.5rem; min-width: 60px;"><i class="fas fa-list-check"></i></span>
-                            <h5 style="margin: 0 0 0 1.5rem; font-size: 1.5rem;">Objetivos</h5>
-                        </div>
-                        <ul class="sobre-club-list w-100">
-                            <li><i class="fas fa-check-circle objetivo-check mr-2"></i>Organizar eventos sociales, recreativos y culturales que inspiren y fortalezcan la convivencia.</li>
-                            <li><i class="fas fa-check-circle objetivo-check mr-2"></i>Fomentar espacios de integración donde cada socio pueda conectar y crear amistades genuinas.</li>
-                            <li><i class="fas fa-check-circle objetivo-check mr-2"></i>Ofrecer beneficios exclusivos, souvenirs y reconocimientos que valoren tu pertenencia al club.</li>
-                            <li><i class="fas fa-check-circle objetivo-check mr-2"></i>Impulsar el crecimiento personal a través de talleres, charlas y actividades enriquecedoras.</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<div class="container py-5">
-    <section id="beneficios" class="mb-5">
-        <div class="section-heading reveal">
-            <span class="section-eyebrow"><i class="fas fa-gem"></i> Beneficios</span>
-            <h2>¿Por qué unirte a nosotros?</h2>
-        </div>
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4">
-                <div class="card p-4 h-100 shadow-sm border-0 servicio-card-modern reveal">
-                    <div class="servicio-icono"><i class="fas fa-hand-holding-heart"></i></div>
-                    <h4>Acceso exclusivo</h4>
-                    <p>Eventos especiales, actividades y experiencias reservadas para nuestros socios.</p>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card p-4 h-100 shadow-sm border-0 servicio-card-modern reveal">
-                    <div class="servicio-icono"><i class="fas fa-tags"></i></div>
-                    <h4>Beneficios y convenios</h4>
-                    <p>Descuentos y promociones exclusivas gracias a nuestros convenios con empresas y comercios aliados.</p>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card p-4 h-100 shadow-sm border-0 servicio-card-modern reveal">
-                    <div class="servicio-icono"><i class="fas fa-gift"></i></div>
-                    <h4>Detalles para socios</h4>
-                    <p>Recibe souvenirs y detalles especiales como parte de tu membresía.</p>
-                </div>
-            </div>
-            <div class="col-lg-6 mb-4">
-                <div class="card p-4 h-100 shadow-sm border-0 servicio-card-modern reveal">
-                    <div class="servicio-icono"><i class="fas fa-users"></i></div>
-                    <h4>Participa y conecta</h4>
-                    <p>Forma parte de las iniciativas del club, comparte con otros miembros y sé parte de una comunidad activa.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {% comment %} <section id="faq" class="mb-5">
-        <div class="section-heading mb-4">
-            <h2>Preguntas frecuentes</h2>
-            <p class="text-muted">Respuestas claras para ayudarte a empezar con tu membresía.</p>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="card p-4 h-100 shadow-sm border-0">
-                    <h4>¿Cómo me hago socio?</h4>
-                    <p>Completa el formulario de solicitud en la página principal. Nuestro equipo revisará tus datos y te contactará pronto.</p>
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="card p-4 h-100 shadow-sm border-0">
-                    <h4>¿Cuánto tarda la aprobación?</h4>
-                    <p>Generalmente respondemos en 24 a 48 horas hábiles. Recibirás un correo con el estado de tu solicitud.</p>
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="card p-4 h-100 shadow-sm border-0">
-                    <h4>¿Qué beneficios obtengo?</h4>
-                    <p>Acceso a eventos exclusivos, descuentos especiales, souvenirs y comunicación prioritaria con el club.</p>
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="card p-4 h-100 shadow-sm border-0">
-                    <h4>¿Puedo actualizar mis datos?</h4>
-                    <p>Sí, los socios activos pueden solicitar modificaciones de su información a través del panel administrativo.</p>
-                </div>
-            </div>
-        </div>
-    </section> {% endcomment %}
-
-    <section class="inicio-section" aria-hidden="false">
-        <div class="row">
-            <div class="col-12">
-                <h2 class="mb-3 inicio-subtitulo"><i class="fas fa-user-friends"></i> Opiniones de socios</h2>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <div class="inicio-testimonio h-100 shadow-sm">
-                    <div class="testimonio-head d-flex align-items-center mb-2">
-                        <div>
-                            <div class="inicio-testimonio-nombre">María</div>
-                            <div class="inicio-testimonio-rol">Socio</div>
-                        </div>
-                    </div>
-                    <p class="inicio-testimonio-txt">Ser socio me permitió asistir a eventos únicos y sentirme parte de una comunidad cercana.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <div class="inicio-testimonio h-100 shadow-sm">
-                    <div class="testimonio-head d-flex align-items-center mb-2">
-                        <div>
-                            <div class="inicio-testimonio-nombre">Juan</div>
-                            <div class="inicio-testimonio-rol">Socio</div>
-                        </div>
-                    </div>
-                    <p class="inicio-testimonio-txt">La atención es rápida y el seguimiento de mi membresía siempre fue claro y amable.</p>
-                </div>
-            </div>
-            <div class="col-lg-4 mb-3">
-                <div class="inicio-testimonio h-100 shadow-sm">
-                    <div class="testimonio-head d-flex align-items-center mb-2">
-                        <div>
-                            <div class="inicio-testimonio-nombre">Ana</div>
-                            <div class="inicio-testimonio-rol">Socio</div>
-                        </div>
-                    </div>
-                    <p class="inicio-testimonio-txt">Los souvenirs y reconocimientos son un plus excelente. Me hacen sentir valorado como miembro.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    {% comment %} <section class="inicio-section gallery-section" aria-hidden="false">
-        <div class="section-heading reveal">
-            <span class="section-eyebrow"><i class="fas fa-images"></i> Galería</span>
-            <h2>Momentos del Club de Amigos</h2>
-        </div>
-        <div class="gallery-grid">
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen1.png' %}" alt="Galería 1" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen2.png' %}" alt="Galería 2" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen3.png' %}" alt="Galería 3" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen4.png' %}" alt="Galería 4" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen5.png' %}" alt="Galería 5" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen6.png' %}" alt="Galería 6" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen7.png' %}" alt="Galería 7" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen8.png' %}" alt="Galería 8" loading="lazy">
-            </figure>
-            <figure class="inicio-galeria-card reveal">
-                <img class="inicio-galeria-img img-fall" src="{% static 'img/galeria/imagen9.png' %}" alt="Galería 9" loading="lazy">
-            </figure>
-        </div>
-    </section> {% endcomment %}
-</div>
-
-<a href="https://wa.me/59171930074?text=Hola%2C%20vengo%20desde%20su%20p%C3%A1gina%20y%20quiero%20consultar%20sobre%20el%20club%20y%20mis%20membres%C3%ADas..." class="floating-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+<!-- =====================================================
+     BOTÓN FLOTANTE WHATSAPP & BOTÓN VOLVER ARRIBA
+===================================================== -->
+<a href="https://wa.me/59171930074?text=Hola%2C%20vengo%20desde%20su%20p%C3%A1gina%20y%20quiero%20consultar%20sobre%20el%20Club%20Carnaval%20de%20Oruro..." class="floating-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp"></i>
 </a>
 
-<!-- Modal de confirmación con efecto de explosión -->
-<div class="modal fade" id="modalConfirmacion" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
-        <div class="modal-content modal-confirmacion">
-            <div class="modal-body text-center p-4">
-                <div class="confirm-icon">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h4 class="confirm-title">¡Solicitud enviada!</h4>
-                <p class="confirm-message">Tu solicitud fue registrada correctamente. Pronto nos contactaremos contigo.</p>
-                <button type="button" class="btn btn-primary btn-confirm" data-dismiss="modal">
-                    <i class="fas fa-thumbs-up mr-2"></i>¡Genial!
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<button class="back-top" id="backTop" aria-label="Volver arriba">
+    <i class="fas fa-arrow-up"></i>
+</button>
 
 {% if not user.is_authenticated %}
     {% include 'componentes/footer-inicio.html' %}
