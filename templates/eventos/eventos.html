@@ -1,0 +1,134 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Gestión de Eventos{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/eventos/eventos.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4">
+    <div class="page-header mb-4">
+        <div class="page-header-content">
+            <h1 class="page-title"><i class="fas fa-calendar-check"></i> Gestión de Eventos</h1>
+            <p class="page-subtitle">Administra los eventos donde se entregan los souvenirs.</p>
+        </div>
+        <div class="page-header-actions">
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearEvento">Nuevo evento</button>
+        </div>
+    </div>
+
+    <div class="card card-filtros mb-3">
+        <div class="card-body py-3">
+            <form method="get" class="filtros-eventos-form" id="eventosFiltrosForm">
+                <div class="filtros-eventos-linea">
+                    <div class="filtro-busqueda">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input id="inputEventoBusqueda" type="text" name="q" class="form-control form-control-sm border-left-0" value="{{ q }}" placeholder="Buscar por nombre, descripción o lugar">
+                        </div>
+                    </div>
+                    <div class="filtro-item">
+                        <select id="selectEventoActivo" name="activo" class="form-control form-control-sm">
+                            <option value="">Activo / Inactivo</option>
+                            <option value="si" {% if activo == 'si' %}selected{% endif %}>Activo</option>
+                            <option value="no" {% if activo == 'no' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-tabla">
+        <div class="table-responsive">
+            <table class="table table-sm tabla-gestion mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Fecha</th>
+                        <th>Lugar</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for evento in page_obj.object_list %}
+                    <tr>
+                        <td>{{ evento.nombre }}</td>
+                        <td>{{ evento.fecha_evento|date:'d/m/Y' }}</td>
+                        <td>{{ evento.lugar|default:'-' }}</td>
+                        <td>
+                            <span class="badge-estado {% if evento.activo %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {{ evento.activo|yesno:'Activo,Inactivo' }}
+                            </span>
+                        </td>
+                        <td class="text-center acciones-col">
+                            <button type="button" class="btn btn-info btn-sm btn-ver-evento" data-toggle="modal" data-target="#modalVerEvento"
+                                data-nombre="{{ evento.nombre|escapejs }}"
+                                data-descripcion="{{ evento.descripcion|escapejs }}"
+                                data-fecha="{{ evento.fecha_evento|date:'d/m/Y' }}"
+                                data-lugar="{{ evento.lugar|escapejs }}"
+                                data-activo="{{ evento.activo|yesno:'Activo,Inactivo' }}"
+                                data-creado="{{ evento.creado|date:'d/m/Y H:i' }}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm btn-editar-evento" data-toggle="modal" data-target="#modalEditarEvento"
+                                data-id="{{ evento.pk }}"
+                                data-nombre="{{ evento.nombre|escapejs }}"
+                                data-descripcion="{{ evento.descripcion|escapejs }}"
+                                data-fecha="{{ evento.fecha_evento|date:'Y-m-d' }}"
+                                data-lugar="{{ evento.lugar|escapejs }}"
+                                data-activo="{{ evento.activo }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form method="post" action="{% url 'eventos:cambiar_estado_evento' evento.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if evento.activo %}btn-secondary{% else %}btn-success{% endif %} btn-sm" title="{% if evento.activo %}Desactivar evento{% else %}Activar evento{% endif %}">
+                                    <i class="fas {% if evento.activo %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
+                                </button>
+                            </form>
+                            {% if not evento.souvenirs.exists %}
+                            <button type="button" class="btn btn-danger btn-sm btn-eliminar-evento" data-toggle="modal" data-target="#modalEliminarEvento"
+                                data-id="{{ evento.pk }}"
+                                data-nombre="{{ evento.nombre|escapejs }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-4">No hay eventos registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% include 'eventos/modals/crear.html' %}
+    {% include 'eventos/modals/ver.html' %}
+    {% include 'eventos/modals/editar.html' %}
+    {% include 'eventos/modals/eliminar.html' %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/eventos/eventos.js' %}"></script>
+{% endblock %}

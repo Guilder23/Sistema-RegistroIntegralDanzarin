@@ -1,0 +1,68 @@
+.souvenir-delivery-card { max-width: 820px; margin: 0 auto; }
+
+.event-badge {
+    display: inline-block;
+    padding: 0.2rem 0.45rem;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #334155;
+    font-size: 0.78rem;
+    line-height: 1.25;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.autocomplete-group {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    border: 1px solid #cbd5e1;
+    border-top: none;
+    background: #ffffff;
+    max-height: 240px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    display: none;
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+}
+
+.autocomplete-suggestions.visible {
+    display: block;
+}
+
+.autocomplete-item,
+.autocomplete-no-match {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    cursor: pointer;
+    color: #0f172a;
+    font-size: 0.93rem;
+    border: none;
+    background: transparent;
+}
+
+.autocomplete-item:hover {
+    background: #f8fafc;
+}
+
+.autocomplete-item:focus {
+    outline: none;
+    background: #e2e8f0;
+}
+
+.autocomplete-no-match {
+    color: #64748b;
+    cursor: default;
+}
+

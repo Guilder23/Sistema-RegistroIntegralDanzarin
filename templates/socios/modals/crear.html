@@ -1,0 +1,98 @@
+<div class="modal fade modal-crear-socio" id="modalCrearSocio" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-socio-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" action="{% url 'socios:crear_socio' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Socio</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Usuario</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Contraseña</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Nombres</label>
+                            <input type="text" name="nombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Apellido paterno</label>
+                            <input type="text" name="apellido_paterno" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Apellido materno</label>
+                            <input type="text" name="apellido_materno" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Apellidos (completo)</label>
+                            <input type="text" name="apellido" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Correo</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Teléfono</label>
+                            <input type="text" name="telefono" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Fecha de nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Ciudad</label>
+                            <input type="text" name="ciudad" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Dirección</label>
+                            <input type="text" name="direccion" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Carnet / CI</label>
+                            <input type="text" name="carnet_ci" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Complemento CI (opcional)</label>
+                            <input type="text" name="carnet_complemento" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <!-- espacio en blanco para mantener dos columnas -->
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>¿Por qué quiere unirse?</label>
+                        <input type="text" name="razon" class="form-control" placeholder="Razón (breve)">
+                    </div>
+                    <div class="form-group">
+                        <label>Observación / Nota</label>
+                        <textarea name="observacion" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

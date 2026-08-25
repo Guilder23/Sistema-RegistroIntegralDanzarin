@@ -1,0 +1,1 @@
+document.addEventListener('DOMContentLoaded', function(){var input=document.querySelector('.gestion-page input[name="q"]');if(input){input.addEventListener('input',function(){clearTimeout(input._timer);input._timer=setTimeout(function(){input.form.submit();},350);});}});

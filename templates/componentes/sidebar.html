@@ -1,0 +1,117 @@
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <i class="fas fa-store"></i>
+            <span class="sidebar-brand-text">SIS-Amigos</span>
+        </div>
+        <button class="sidebar-collapse-btn" id="sidebarCollapseBtn" title="Colapsar menu">
+            <i class="fas fa-angles-left"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul class="sidebar-menu">
+            {% if request.user.userprofile.rol != 'miembro' %}
+            {% comment %} <li class="sidebar-item">
+                <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link {% if '/dashboard/' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+            </li> {% endcomment %}
+            <li class="sidebar-item">
+                <a href="{% url 'dashboard:dashboard' %}" class="sidebar-link {% if '/dashboard/' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i><span>Dashboard</span>
+                </a>
+            </li>
+            {% if request.user.userprofile.rol == 'superadministrador' %}
+            <li class="sidebar-item">
+                <a href="{% url 'grupos:listar_grupos' %}" class="sidebar-link {% if '/grupos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-layer-group"></i><span>Grupos</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_grupo' %}
+            <li class="sidebar-item">
+                <a href="{% url 'subgrupos:listar_subgrupos' %}" class="sidebar-link {% if '/subgrupos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-sitemap"></i><span>Subgrupos</span>
+                </a>
+            </li>
+            {% endif %}
+            <li class="sidebar-item">
+                <a href="{% url 'socios:listar_socios' %}" class="sidebar-link {% if '/socios/' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i><span>Socios</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'membresias:listar_membresias' %}" class="sidebar-link {% if '/membresias/' in request.path %}active{% endif %}">
+                    <i class="fas fa-id-card"></i><span>Membresías</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'eventos:listar_eventos' %}" class="sidebar-link {% if '/eventos/' in request.path %}active{% endif %}">
+                    <i class="fas fa-calendar-check"></i><span>Eventos</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'souvenirs:listar_souvenirs' %}" class="sidebar-link {% if '/souvenirs/gestion/' in request.path %}active{% endif %}">
+                    <i class="fas fa-gift"></i><span>Souvenirs</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'souvenirs:listar_entregas' %}" class="sidebar-link {% if request.path == '/souvenirs/' or '/souvenirs/registrar/' in request.path %}active{% endif %}">
+                    <i class="fas fa-truck-loading"></i><span>Entregas</span>
+                </a>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'reportes:reportes_socios' %}" class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i><span>Reportes</span>
+                </a>
+            </li>
+            <li class="sidebar-section">
+                <span class="sidebar-section-title">Administración</span>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'socios:listar_admins' %}" class="sidebar-link {% if '/socios/listar_admins' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-shield"></i><span>Administradores</span>
+                </a>
+            </li>
+            {% if request.user.userprofile.rol == 'superadministrador' %}
+            <li class="sidebar-item">
+                <a href="{% url 'auditoria:listar_auditoria' %}" class="sidebar-link {% if '/auditoria/' in request.path %}active{% endif %}">
+                    <i class="fas fa-clock-rotate-left"></i><span>Historial</span>
+                </a>
+            </li>
+            {% endif %}
+            {% else %}
+            {% comment %} <li class="sidebar-item">
+                <a href="{% url 'socios:mis_souvenirs' %}" class="sidebar-link {% if '/socios/mis_souvenirs' in request.path %}active{% endif %}">
+                    <i class="fas fa-gift"></i><span>Mis Souvenirs</span>
+                </a>
+            </li> {% endcomment %}
+            {% endif %}
+            <li class="sidebar-section">
+                <span class="sidebar-section-title">Cuenta</span>
+            </li>
+            <li class="sidebar-item">
+                <a href="{% url 'socios:perfil_socio' %}" class="sidebar-link {% if '/socios/perfil' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-circle"></i><span>Mi Perfil</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="sidebar-user-avatar">
+                {% if user_profile.foto %}
+                    <img src="{{ user_profile.foto.url }}" alt="avatar" style="width:40px;height:40px;border-radius:50%;object-fit:cover;"/>
+                {% else %}
+                    <i class="fas fa-user"></i>
+                {% endif %}
+            </div>
+            <div class="sidebar-user-info">
+                <strong>{{ user.username|title }}</strong>
+                <small>{{ user.userprofile.get_rol_display|default:'Miembro' }}</small>
+            </div>
+        </div>
+    </div>
+</aside>

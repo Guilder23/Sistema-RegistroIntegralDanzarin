@@ -1,0 +1,8 @@
+.modal-eliminar-socio .modal-header {
+    background: #dc2626;
+    color: #fff;
+}
+
+.modal-eliminar-socio .modal-dialog {
+    max-width: 420px;
+}

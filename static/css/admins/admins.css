@@ -1,0 +1,157 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: #1e3a8a;
+    border-radius: 0.5rem;
+    color: white;
+}
+
+.btn-icon {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.35rem;
+    font-size: 0.95rem;
+    line-height: 1;
+}
+
+.btn-icon i {
+    font-size: 0.95rem;
+}
+
+.acciones-col {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.acciones-col .btn {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0.35rem 0.5rem;
+}
+
+.card-filtros {
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.filtros-admin-linea {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filtro-busqueda {
+    flex: 1 1 420px;
+    min-width: 240px;
+}
+
+.filtro-item {
+    flex: 0 0 180px;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.page-subtitle {
+    margin: 0.25rem 0 0;
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.card-tabla {
+    border: 1px solid #e5e7eb;
+}
+
+.table {
+    width: 100%;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.table thead {
+    background: #3b82f6;
+}
+
+.table thead th {
+    color: #fff;
+    border: none;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.tabla-gestion th.acciones-col-head,
+.tabla-gestion td.acciones-col {
+    width: 140px;
+    min-width: 140px;
+}
+
+.modal-socio-dialog {
+    max-width: 980px;
+}
+
+.modal-socio-dialog .modal-body {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+
+.modal-crear-gestion .modal-header {
+    background: #1e3a8a;
+    color: #fff;
+}
+
+.modal-ver-gestion .modal-header {
+    background: #38bdf8;
+    color: #fff;
+}
+
+.modal-editar-gestion .modal-header {
+    background: #facc15;
+    color: #1f2937;
+}
+
+.modal-eliminar-gestion .modal-header {
+    background: #dc2626;
+    color: #fff;
+}
+
+.modal-eliminar-gestion .modal-dialog {
+    max-width: 420px;
+}
+
+.btn-primary {
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .filtros-admin-linea {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filtro-busqueda,
+    .filtro-item {
+        flex: 1 1 100%;
+    }
+
+    .modal-socio-dialog {
+        max-width: 95%;
+    }
+}

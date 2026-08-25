@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Registrar entrega de souvenir{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/souvenirs/entregas/registrar_entrega.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4">
+    <div class="card p-4 souvenir-delivery-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">Registrar entrega de souvenir</h2>
+                <p class="text-muted mb-0">Asigna un souvenir a un socio activo y registra la entrega.</p>
+            </div>
+            <a href="{% url 'souvenirs:listar_entregas' %}" class="btn btn-secondary">Historial</a>
+        </div>
+
+        <form method="post" id="formRegistrarEntrega">
+            {% csrf_token %}
+            <script id="sociosData" type="application/json">[
+                {% for socio in socios %}
+                    {"value": "{{ socio.id }}", "label": "{{ socio.nombre }} {% if socio.apellido_paterno %}{{ socio.apellido_paterno }}{% endif %} {% if socio.apellido_materno %}{{ socio.apellido_materno }}{% endif %}"}{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ]</script>
+            <div class="form-group autocomplete-group">
+                <label>Socio</label>
+                <input id="socioSearch" type="text" class="form-control" placeholder="Busca por nombre o apellido" autocomplete="off" required>
+                <input id="socioId" type="hidden" name="socio_id">
+                <div id="socioSuggestions" class="autocomplete-suggestions"></div>
+            </div>
+            <div class="form-group">
+                <label>Evento</label>
+                <select id="selectEvento" name="evento_id" class="form-control" required>
+                    <option value="">Selecciona un evento</option>
+                    {% for evento in eventos %}
+                    <option value="{{ evento.id }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Souvenir</label>
+                <select id="selectSouvenir" name="souvenir_id" class="form-control" disabled>
+                    <option value="">Selecciona un evento primero</option>
+                    {% for s in souvenirs %}
+                    {% if s.evento %}
+                    <option value="{{ s.id }}" data-evento="{{ s.evento.id }}">{{ s.nombre }} - Stock: {{ s.stock }}</option>
+                    {% else %}
+                    <option value="{{ s.id }}" data-evento="">{{ s.nombre }} - Stock: {{ s.stock }}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Observación</label>
+                <textarea name="observacion" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="btn-group" role="group">
+                <button class="btn btn-primary" type="submit">Guardar entrega</button>
+                <a href="{% url 'souvenirs:listar_entregas' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/souvenirs/entregas/registrar_entrega.js' %}"></script>
+{% endblock %}

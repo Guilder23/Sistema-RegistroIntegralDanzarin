@@ -1,0 +1,234 @@
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background:#1e3a8a ;
+    border-radius: 0.5rem;
+    color: white;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.page-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.page-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.95rem;
+    font-weight: 600;
+}
+
+.page-subtitle {
+    margin: 0.25rem 0 0;
+    color: rgba(255, 255, 255, 0.92);
+    font-size: 0.98rem;
+}
+
+.souvenir-thumb {
+    width: 52px;
+    height: 52px;
+    object-fit: cover;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.souvenir-thumb-placeholder {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1px solid #cbd5e1;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.acciones-col {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.acciones-col .btn {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0.4rem 0.55rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.acciones-col .btn i {
+    font-size: 0.95rem;
+}
+
+.card-filtros {
+    margin-bottom: 1rem;
+    border: 1px solid #e5e7eb;
+}
+
+.filtros-souvenirs-linea {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filtro-busqueda {
+    flex: 1 1 420px;
+    min-width: 240px;
+}
+
+.filtro-item {
+    flex: 0 0 180px;
+}
+
+.card-tabla {
+    border: 1px solid #e5e7eb;
+}
+
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+    border-top: none;
+}
+
+.table thead {
+    background: #3b82f6;
+}
+
+.table thead th {
+    color: #fff;
+    border: none;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.tabla-gestion th.acciones-col-head,
+.tabla-gestion td.acciones-col {
+    width: 140px;
+    min-width: 140px;
+}
+
+.table tbody tr:hover {
+    background: rgba(59, 130, 246, 0.08);
+}
+
+.table tbody td {
+    color: #334155;
+}
+
+.badge-estado {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid;
+    font-size: 0.72rem;
+    white-space: nowrap;
+}
+
+.badge-estado-activo {
+    color: #065f46;
+    background: #d1fae5;
+    border-color: #6ee7b7;
+}
+
+.badge-estado-inactivo {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fca5a5;
+}
+
+.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+.table tbody td:first-child {
+    padding: 0.8rem 0.75rem;
+}
+
+.page-header .btn-primary {
+    white-space: nowrap;
+}
+
+.modal-socio-dialog {
+    max-width: 980px;
+}
+
+.modal-socio-dialog .modal-body {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+
+.modal-crear-gestion .modal-header {
+    background: #1e3a8a;
+    color: #fff;
+}
+
+.modal-ver-gestion .modal-header {
+    background: #38bdf8;
+    color: #fff;
+}
+
+.modal-editar-gestion .modal-header {
+    background: #facc15;
+    color: #1f2937;
+}
+
+.modal-eliminar-gestion .modal-header {
+    background: #dc2626;
+    color: #fff;
+}
+
+.modal-eliminar-gestion .modal-dialog {
+    max-width: 420px;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .page-header-actions {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .filtros-souvenirs-linea {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filtro-busqueda,
+    .filtro-item {
+        flex: 1 1 100%;
+    }
+
+    .modal-socio-dialog {
+        max-width: 95%;
+    }
+}

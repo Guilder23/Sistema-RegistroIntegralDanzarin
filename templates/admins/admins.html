@@ -1,0 +1,90 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block contenido %}
+<div class="container-fluid py-4">
+  <div class="page-header mb-4">
+    <div class="page-header-content">
+      <h1 class="page-title"><i class="fas fa-user-shield"></i> Gestión de Administradores</h1>
+      <p class="page-subtitle">Gestiona los administradores del sistema.</p>
+    </div>
+    <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearAdmin">Crear administrador</button>
+  </div>
+
+  <div class="card card-filtros mb-3">
+    <div class="card-body py-3">
+      <form method="get" class="filtros-admin-form" id="adminsFiltrosForm">
+        <div class="filtros-admin-linea">
+          <div class="filtro-busqueda">
+            <div class="input-group input-group-sm">
+              <div class="input-group-prepend">
+                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+              </div>
+              <input id="inputAdminBusqueda" type="text" name="q" class="form-control form-control-sm border-left-0" value="{{ q }}" placeholder="Buscar por usuario, nombre o correo">
+            </div>
+          </div>
+          <div class="filtro-item">
+            <select id="selectAdminActivo" name="activo" class="form-control form-control-sm">
+              <option value="">Activo / Inactivo</option>
+              <option value="si" {% if activo == 'si' %}selected{% endif %}>Sí</option>
+              <option value="no" {% if activo == 'no' %}selected{% endif %}>No</option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card card-tabla">
+    <div class="table-responsive">
+      <table class="table table-sm tabla-gestion mb-0">
+    <thead><tr><th>Usuario</th><th>Nombre</th><th>Email</th><th class="text-center acciones-col-head">Acciones</th></tr></thead>
+    <tbody>
+      {% for u in page_obj.object_list %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.get_full_name }}</td>
+        <td>{{ u.email }}</td>
+        <td class="text-center acciones-col">
+          <button type="button" class="btn btn-icon btn-info btn-ver-admin" data-toggle="modal" data-target="#modalVerAdmin" data-username="{{ u.username }}" data-fullname="{{ u.get_full_name }}" data-email="{{ u.email }}">
+            <i class="fas fa-eye"></i>
+          </button>
+          <button type="button" class="btn btn-icon btn-warning btn-editar-admin" data-toggle="modal" data-target="#modalEditarAdmin" data-id="{{ u.id }}" data-username="{{ u.username }}" data-first-name="{{ u.first_name }}" data-last-name="{{ u.last_name }}" data-email="{{ u.email }}">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button type="button" class="btn btn-icon btn-danger btn-eliminar-admin" data-toggle="modal" data-target="#modalEliminarAdmin" data-id="{{ u.id }}" data-username="{{ u.username }}">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}">Siguiente</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+    </div>
+  </div>
+  {% include 'admins/modals/crear.html' %}
+  {% include 'admins/modals/ver.html' %}
+  {% include 'admins/modals/editar.html' %}
+  {% include 'admins/modals/eliminar.html' %}
+</div>
+{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/admins/admins.css' %}">
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/admins/admins.js' %}"></script>
+{% endblock %}

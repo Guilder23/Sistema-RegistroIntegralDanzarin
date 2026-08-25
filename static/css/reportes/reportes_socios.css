@@ -1,0 +1,222 @@
+.page-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.page-header-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.page-title {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #12224d;
+    margin-bottom: 0;
+}
+
+.page-subtitle {
+    color: #546081;
+    margin-bottom: 0;
+}
+
+.page-header-actions {
+    display: flex;
+    align-items: center;
+}
+
+.card-filtros {
+    border-radius: 8px;
+    box-shadow: 0 18px 40px rgba(18, 34, 77, 0.08);
+    border: none;
+}
+
+.card-tabla {
+    border-radius: 8px;
+    box-shadow: 0 18px 40px rgba(18, 34, 77, 0.08);
+    border: none;
+}
+
+.reportes-filtros-form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: end;
+}
+
+.reportes-filtros-form > [class*="col-"] {
+    width: auto;
+    max-width: none;
+    padding: 0;
+}
+
+.reportes-filtros-form .form-control,
+.reportes-filtros-form .form-select {
+    width: 100%;
+    min-height: 38px;
+    border-radius: 6px;
+    border: 1px solid #dce1ed;
+    background: #f8f9ff;
+    color: #22303b;
+}
+
+.reportes-filtros-form .input-group-sm .form-control,
+.reportes-filtros-form .input-group-sm .form-select {
+    height: 38px;
+}
+
+.reportes-filtros-form .input-group {
+    display: flex;
+    flex-wrap: nowrap;
+    width: 100%;
+    align-items: stretch;
+}
+
+.reportes-filtros-form .input-group-prepend {
+    display: flex;
+    flex: 0 0 auto;
+}
+
+.reportes-filtros-form .input-group-prepend .input-group-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 38px;
+    border-radius: 6px 0 0 6px;
+    border-right: 0;
+    border: 1px solid #dce1ed;
+    background: #ffffff;
+}
+
+.reportes-filtros-form .input-group .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+}
+
+.btn-limpiar-filtros {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+}
+
+@media (max-width: 992px) {
+    .reportes-filtros-form {
+        grid-template-columns: repeat(2, minmax(160px, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    .reportes-filtros-form {
+        grid-template-columns: 1fr;
+    }
+}
+
+.table .tabla-socios th,
+.table .tabla-socios td {
+    border: none;
+}
+
+.tabla-socios thead th {
+    color: #1c2f54;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background: transparent;
+    padding: 1rem 0.85rem;
+}
+
+.tabla-socios tbody tr {
+    background: #f8faff;
+    border-radius: 16px;
+}
+
+.tabla-socios tbody tr td {
+    padding: 1rem 0.85rem;
+    vertical-align: middle;
+}
+
+.tabla-socios tbody tr:hover {
+    background: #e8f0ff;
+}
+
+.badge-estado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-estado-activo {
+    background: rgba(26, 161, 114, 0.12);
+    color: #1aa172;
+}
+
+.badge-estado-inactivo {
+    background: rgba(241, 107, 110, 0.14);
+    color: #d43742;
+}
+
+.codigo-socio-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    padding: 0.22rem 0.45rem;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    color: #1e3a8a;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border: 1px solid #93c5fd;
+    line-height: 1.2;
+}
+
+.tabla-socios thead th:nth-child(2),
+.tabla-socios tbody td:nth-child(2) {
+    width: 96px;
+    min-width: 80px;
+    max-width: 110px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.tabla-socios thead th:nth-child(3),
+.tabla-socios tbody td:nth-child(3) {
+    white-space: nowrap;
+    min-width: 220px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+button#btnLimpiarFiltros {
+    min-height: 44px;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .page-header-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

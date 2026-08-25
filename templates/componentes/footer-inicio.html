@@ -1,0 +1,55 @@
+{% load static %}
+
+{% if not user.is_authenticated %}
+<footer class="footer-inicio">
+    <div class="container-fluid footer-inicio-container">
+        <div class="footer-top">
+            <div class="footer-grid">
+                <section class="footer-brand">
+                    <a class="navbar-brand-inicio" href="{% url 'core:inicio' %}">
+                        <img src="{% static 'img/LogoCarnavalOruroClub.webp' %}" alt="Club carnaval Oruro" class="navbar-logo" width="100" height="100">
+                        <span class="navbar-brand-text">
+                            <span class="brand-american">Club carnaval</span> <span class="brand-outlet">ORURO</span>
+                        </span>
+                    </a>
+                    <p class="footer-tagline">Conecta con tu comunidad, gestiona tu membresía y recibe beneficios exclusivos para socios.</p>
+                </section>
+
+                <section class="footer-section">
+                    <h4 class="footer-title">Navegación</h4>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'core:inicio' %}">Inicio</a></li>
+                        <li><a href="{% url 'core:inicio' %}#beneficios">Beneficios</a></li>
+                        <li><a href="{% url 'core:inicio' %}#modalInscripcion">Cómo inscribirme</a></li>
+                        <li><a href="{% url 'core:faq' %}">FAQ</a></li>
+                    </ul>
+                </section>
+
+                <section class="footer-section" id="contacto">
+                    <h4 class="footer-title">Contacto</h4>
+                    <ul class="footer-contact">
+                        <li><i class="fab fa-whatsapp"></i> WhatsApp: <a href="https://wa.me/59171930074" target="_blank" rel="noopener noreferrer">7193 0074</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:info@carnavaldeoruro.club">info@carnavaldeoruro.club</a></li>
+                    </ul>
+                </section>
+
+                <section class="footer-section">
+                    <h4 class="footer-title">Redes</h4>
+                    <div class="footer-social">
+                        <a href="https://wa.me/59171930074" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.facebook.com/carnavaldeoruroclub" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+                        <a href="https://www.instagram.com/carnavaldeoruroclub/" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.tiktok.com/@carnavaldeoruroclub" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p class="footer-bottom-item">&copy; 2026 Club carnaval Oruro</p>
+            <p class="footer-bottom-item">Todos los derechos reservados</p>
+            <p class="footer-bottom-item">Desarrollado por <a href="https://appyaa.com" class="footer-bottom-link" target="_blank" rel="noopener noreferrer">appyaa</a></p>
+        </div>
+    </div>
+</footer>
+{% endif %}

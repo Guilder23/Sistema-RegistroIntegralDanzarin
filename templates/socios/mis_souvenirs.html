@@ -1,0 +1,96 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block estilos_extra %}
+<style>
+.mis-souvenirs-wrapper {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.5rem 0;
+}
+.mis-souvenirs-table .souvenir-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.mis-souvenirs-table .souvenir-thumb-min {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+.mis-souvenirs-table .souvenir-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="mis-souvenirs-wrapper">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2>Mis Souvenirs</h2>
+      <p class="text-muted mb-0">Tus entregas recientes con detalle de souvenir y quién lo entregó.</p>
+    </div>
+  </div>
+  <div class="table-responsive mis-souvenirs-table">
+    <table class="table table-striped mb-0">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Souvenir</th>
+          <th>Entregado por</th>
+          <th>Observación</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in page_obj.object_list %}
+        <tr>
+          <td>{{ e.fecha_entrega|date:'j \d\e F \d\e Y' }}</td>
+          <td>
+            {% if e.souvenir %}
+            <div class="souvenir-cell">
+              {% if e.souvenir.imagen %}
+              <img src="{{ e.souvenir.imagen.url }}" alt="{{ e.souvenir.nombre }}" class="souvenir-thumb-min">
+              {% endif %}
+              <span class="souvenir-name">{{ e.souvenir.nombre }}</span>
+            </div>
+            {% else %}
+            -
+            {% endif %}
+          </td>
+          <td>
+            {% if e.entregado_por %}
+              {% if e.entregado_por.get_full_name %}
+                {{ e.entregado_por.get_full_name }}
+              {% else %}
+                {{ e.entregado_por.username }}
+              {% endif %}
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ e.observacion|default:'Sin observación' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.paginator.num_pages > 1 %}
+  <nav class="mt-3">
+    <ul class="pagination pagination-sm mb-0">
+      {% if page_obj.has_previous %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+      {% endif %}
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      {% if page_obj.has_next %}
+      <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %}

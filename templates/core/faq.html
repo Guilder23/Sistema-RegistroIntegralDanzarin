@@ -1,0 +1,172 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}FAQ - Club carnaval Oruro{% endblock %}
+
+{% block seo %}
+<meta name="description" content="Preguntas frecuentes sobre el Club Carnaval de Oruro, sus beneficios, experiencias, actividades y registro de membresía.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://carnavaldeoruro.club/faq/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Club Carnaval Oruro">
+<meta property="og:title" content="Preguntas frecuentes | Club Carnaval Oruro">
+<meta property="og:description" content="Resuelve tus dudas sobre la membresía, beneficios y experiencias del Club Carnaval de Oruro.">
+<meta property="og:url" content="https://carnavaldeoruro.club/faq/">
+<meta property="og:image" content="https://carnavaldeoruro.club/static/img/LogoCarnavalOruroClub.webp">
+<meta property="og:image:alt" content="Logo del Club Carnaval Oruro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Preguntas frecuentes | Club Carnaval Oruro">
+<meta name="twitter:description" content="Resuelve tus dudas sobre el Club Carnaval de Oruro.">
+<meta name="twitter:image" content="https://carnavaldeoruro.club/static/img/LogoCarnavalOruroClub.webp">
+{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/componentes/navbar-inicio.css' %}">
+<link rel="stylesheet" href="{% static 'css/componentes/footer-inicio.css' %}">
+<link rel="stylesheet" href="{% static 'css/core/faq.css' %}">
+{% endblock %}
+
+{% block contenido %}
+{% include 'componentes/navbar-inicio.html' %}
+
+<section class="faq-hero">
+    <div class="faq-hero-content container">
+        <div class="faq-hero-copy">
+            <span class="section-eyebrow"><i class="fas fa-question-circle"></i> Preguntas frecuentes</span>
+            <h1>Resuelve tus dudas sobre el Club Carnaval de Oruro</h1>
+            <p>Encuentra respuestas claras sobre membresía, beneficios, experiencias y la forma de formar parte de nuestra comunidad.</p>
+        </div>
+        <div class="faq-hero-card">
+            <div class="faq-hero-card-inner">
+                <h3>¿Necesitas ayuda?</h3>
+                <p>Si no encuentras la respuesta aquí, escríbenos por WhatsApp o envía tu consulta desde la página de contacto.</p>
+                <a href="https://wa.me/59171930074" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Contactar por WhatsApp</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="container faq-page py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="faq-accordion">
+                <div class="faq-item active">
+                    <button class="faq-question" type="button" aria-expanded="true">
+                        <span>¿Tiene algún costo ser parte del Club Carnaval de Oruro?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Actualmente, el registro al Club Carnaval de Oruro es gratuito. En esta etapa de lanzamiento queremos abrir las puertas del club a todas las personas que sienten un vínculo especial con el Carnaval de Oruro.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Qué significa ser parte del Club Carnaval de Oruro?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Significa formar parte de una comunidad que comparte una misma emoción por el Carnaval de Oruro. Queremos acercarte a experiencias que te permitan vivir el Carnaval de una manera más cercana, disfrutando de actividades, encuentros, convivencias y momentos que reflejan el espíritu de alegría que hace tan especial a nuestro Carnaval.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Qué tipo de experiencias puedo vivir como miembro?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>El club busca ofrecer experiencias inspiradas en aquello que hace especial vivir el Carnaval: encuentros, convivencias, actividades especiales y momentos para compartir con otros miembros. También podrás recibir detalles y souvenirs exclusivos para miembros del club.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Ser parte del club es como pertenecer a un conjunto?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>El Club Carnaval de Oruro es una iniciativa independiente y no reemplaza ni representa a una fraternidad o conjunto folklórico. Sin embargo, busca acercarte a algunas de las experiencias que hacen especial formar parte de ellos: compartir, encontrarse, celebrar y vivir el Carnaval junto a otras personas que sienten la misma emoción.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Qué ventajas tendré por ser miembro?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Además de las experiencias y actividades del club, podrás disfrutar de descuentos, promociones y beneficios especiales gracias a los convenios que iremos creando con empresas y comercios aliados.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Quiénes pueden formar parte del club?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Todas las personas que sienten un vínculo especial con el Carnaval de Oruro pueden formar parte del club, estén en Bolivia o en cualquier lugar del mundo.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Tengo que vivir en Oruro para ser parte del club?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>No. El Carnaval de Oruro une a personas dentro y fuera de Bolivia. Puedes formar parte del club estés donde estés y compartir con nosotros la misma emoción por esta celebración.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Habrá actividades y encuentros exclusivos para los miembros?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Sí. El club busca crear momentos especiales para sus miembros, con actividades, encuentros, convivencias y experiencias que permitan compartir y disfrutar juntos el espíritu del Carnaval.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Cómo me enteraré de las actividades y beneficios?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Te mantendremos informado sobre nuevas experiencias, actividades, encuentros, beneficios y novedades del club a través de nuestros canales oficiales.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-question" type="button" aria-expanded="false">
+                        <span>¿Cómo puedo registrarme?</span>
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <div class="faq-answer">
+                        <p>Solo tienes que completar el formulario de registro con tus datos. El proceso es sencillo y actualmente es gratuito.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="faq-side-card">
+                <h4>Club Carnaval de Oruro</h4>
+                <p>Somos un espacio que reúne a las personas que viven, sienten y disfrutan la magia del Carnaval de Oruro.</p>
+                <p>Nacimos con la convicción de que el Carnaval de Oruro no solo está presente en las calles durante la entrada, sino también en cada experiencia, recuerdo y emoción que une a quienes forman parte de él.</p>
+                <ul class="faq-contact-list">
+                    <li><i class="fas fa-phone-alt"></i> <a href="https://wa.me/59171930074" target="_blank" rel="noopener noreferrer">+591 7193 0074</a></li>
+                    <li><i class="fas fa-envelope"></i> <a href="mailto:info@carnavaldeoruro.club">info@carnavaldeoruro.club</a></li>
+                    <li><i class="fab fa-whatsapp"></i> <a href="https://wa.me/59171930074" target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<a href="https://wa.me/59171930074" class="floating-whatsapp-btn" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+    <i class="fab fa-whatsapp" aria-hidden="true"></i>
+</a>
+
+{% if not user.is_authenticated %}
+    {% include 'componentes/footer-inicio.html' %}
+{% endif %}
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/core/inicio.js' %}"></script>
+<script src="{% static 'js/componentes/navbar-inicio.js' %}"></script>
+{% endblock %}

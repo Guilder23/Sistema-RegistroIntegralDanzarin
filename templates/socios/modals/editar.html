@@ -1,0 +1,88 @@
+<div class="modal fade modal-editar-socio" id="modalEditarSocio" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-socio-dialog" role="document">
+        <div class="modal-content">
+            <form method="post" id="formEditarSocio" action="">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar Socio</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Nombres</label>
+                            <input type="text" name="nombre" id="editarNombre" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Apellido paterno</label>
+                            <input type="text" name="apellido_paterno" id="editarApellidoPaterno" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Apellido materno</label>
+                            <input type="text" name="apellido_materno" id="editarApellidoMaterno" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Apellidos (completo)</label>
+                            <input type="text" name="apellido" id="editarApellido" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Correo</label>
+                            <input type="email" name="email" id="editarEmail" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Teléfono</label>
+                            <input type="text" name="telefono" id="editarTelefono" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Fecha de nacimiento</label>
+                            <input type="date" name="fecha_nacimiento" id="editarFechaNacimiento" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Ciudad</label>
+                            <input type="text" name="ciudad" id="editarCiudad" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Dirección</label>
+                            <input type="text" name="direccion" id="editarDireccion" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Carnet / CI</label>
+                            <input type="text" name="carnet_ci" id="editarCarnetCi" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
+                            <label>Complemento CI</label>
+                            <input type="text" name="carnet_complemento" id="editarCarnetComplemento" class="form-control">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <!-- espacio en blanco para mantener dos columnas -->
+                        </div>
+                    </div>
+                    <div class="form-group mt-3">
+                        <label>¿Por qué quiere unirse?</label>
+                        <input type="text" name="razon" id="editarRazon" class="form-control" placeholder="Razón (breve)">
+                    </div>
+                    <div class="form-group">
+                        <label>Observación</label>
+                        <textarea name="observacion" id="editarObservacion" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

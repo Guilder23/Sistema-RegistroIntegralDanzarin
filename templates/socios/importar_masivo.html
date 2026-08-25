@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Registro masivo de socios{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/socios/importar_masivo.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4">
+    <div class="page-header mb-4">
+        <div class="page-header-content">
+            <h1 class="page-title"><i class="fas fa-file-import"></i> Registro masivo de socios</h1>
+            <p class="page-subtitle">Descarga el formato de Excel, sube tu archivo y verifica los datos antes de crear los socios.</p>
+        </div>
+    </div>
+
+    <div class="card card-tabla mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <a class="btn btn-outline-primary btn-block" href="{% url 'socios:descargar_plantilla_excel' %}">
+                        <i class="fas fa-download"></i> Descargar plantilla XLSX
+                    </a>
+                </div>
+                <div class="col-md-8">
+                    <form id="formSubirExcel" method="post" action="{% url 'socios:importar_socios_xlsx_preview' %}" enctype="multipart/form-data" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="file" name="file" accept=".xlsx" class="form-control-file" required>
+                        <button type="submit" class="btn btn-primary">Subir Excel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if preview_rows %}
+    <div class="card card-tabla mb-4">
+        <div class="card-body">
+            <h5 class="mb-3">Vista previa del archivo</h5>
+            <p class="text-muted">Revisa las primeras filas antes de confirmar la creación de los socios.</p>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                    <thead>
+                        <tr>
+                            {% for header in preview_headers %}
+                            <th>{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in preview_rows %}
+                        <tr>
+                            {% for cell in row %}
+                            <td>{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <form method="post" action="{% url 'socios:importar_socios_xlsx_confirm' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">Confirmar registro de socios</button>
+                <a href="{% url 'socios:listar_socios' %}" class="btn btn-light">Cancelar</a>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/socios/importar_masivo.js' %}"></script>
+{% endblock %}

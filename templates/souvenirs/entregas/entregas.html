@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Entregas de souvenirs{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/souvenirs/entregas/entregas.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 class="mb-1">Souvenirs entregados</h2>
+            <p class="text-muted mb-0">Controla el historial de entregas y evita duplicados.</p>
+        </div>
+        <a href="{% url 'souvenirs:registrar_entrega' %}" class="btn btn-primary">Registrar entrega</a>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Socio</th>
+                        <th>Evento</th>
+                        <th>Souvenir</th>
+                        <th>Fecha</th>
+                        <th>Entregado por</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entrega in page_obj %}
+                    <tr>
+                        <td>{{ entrega.socio }}</td>
+                        <td>
+                            {% if entrega.evento %}
+                                <span class="event-badge">{{ entrega.evento.nombre }}</span>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td>{% if entrega.souvenir %}{{ entrega.souvenir.nombre }}{% else %}-{% endif %}</td>
+                        <td>{{ entrega.fecha_entrega|date:'d/m/Y' }}</td>
+                        <td>{{ entrega.entregado_por|default:'-' }}</td>
+                        <td>{{ entrega.observacion|default:'-' }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4">No hay entregas registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/souvenirs/entregas/entregas.js' %}">
+</script>
+{% endblock %}

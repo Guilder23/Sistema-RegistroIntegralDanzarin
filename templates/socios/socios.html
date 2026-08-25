@@ -1,0 +1,212 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Gestión de Socios{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/socios/socios.css' %}">
+<link rel="stylesheet" href="{% static 'css/socios/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/socios/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/socios/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/socios/modals/eliminar.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 class="page-title"><i class="fas fa-users"></i> Gestión de Socios</h1>
+            <p class="page-subtitle">Administra los socios del Club carnaval Oruro</p>
+        </div>
+        {% if is_admin %}
+        <div class="page-header-actions">
+            <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearSocio">
+                <i class="fas fa-plus"></i> Nuevo Socio
+            </button>
+            <a class="btn btn-secondary btn-lg" href="{% url 'socios:importar_socios_masivo' %}">
+                <i class="fas fa-file-import"></i> Registro masivo
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card card-filtros mb-3">
+        <div class="card-body py-3">
+            <form method="get" class="filtros-socios-form" id="sociosFiltrosForm">
+                <div class="filtros-socios-linea">
+                    <div class="filtro-busqueda">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input id="inputSocioBusqueda" type="text" class="form-control form-control-sm border-left-0" name="q" value="{{ q }}" placeholder="Buscar por nombre, apellido, ci o correo...">
+                        </div>
+                    </div>
+                    <div class="filtro-item">
+                        <select id="selectSocioEstado" class="form-control form-control-sm" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-tabla">
+        <div class="table-responsive">
+            <table class="table table-sm tabla-socios mb-0">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>CI/Carnet</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Ingreso</th>
+                        <th>Souvenir</th>
+                        <th class="text-center acciones-col-head">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for socio in page_obj %}
+                    <tr>
+                        <td>
+                            {% if socio.user.userprofile.foto %}
+                                <img src="{{ socio.user.userprofile.foto.url }}" alt="foto" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"/>
+                            {% else %}
+                                <div style="width:40px;height:40px;background:#f0f0f0;border-radius:4px;display:inline-block;"></div>
+                            {% endif %}
+                        </td>
+                        <td><span class="codigo-badge">{{ socio.codigo_socio|default:'-' }}</span></td>
+                        <td>{{ socio.nombre }} {% if socio.apellido_paterno %}{{ socio.apellido_paterno }}{% endif %} {% if socio.apellido_materno %}{{ socio.apellido_materno }}{% endif %}</td>
+                        <td>{{ socio.carnet_ci }}{% if socio.carnet_complemento %} {{ socio.carnet_complemento }}{% endif %}</td>
+                        <td>{{ socio.email }}</td>
+                        <td>{{ socio.telefono|default:'-' }}</td>
+                        <td>
+                            <span class="badge-estado {% if socio.estado == 'activo' %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {{ socio.get_estado_display }}
+                            </span>
+                        </td>
+                        <td>{{ socio.fecha_ingreso|date:'d/m/Y' }}</td>
+                        <td>
+                            <span class="badge-estado {% if socio.recibio_souvenir %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {% if socio.recibio_souvenir %}Entregado{% else %}Pendiente{% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center acciones-col">
+                            <button class="btn btn-info btn-sm btn-ver-socio" data-toggle="modal" data-target="#modalVerSocio"
+                                data-codigo-socio="{{ socio.codigo_socio|default:'' }}"
+                                data-nombre="{{ socio.nombre }}"
+                                data-apellido-paterno="{{ socio.apellido_paterno }}"
+                                data-apellido-materno="{{ socio.apellido_materno }}"
+                                data-email="{{ socio.email }}"
+                                data-telefono="{{ socio.telefono }}"
+                                data-ciudad="{{ socio.ciudad }}"
+                                data-direccion="{{ socio.direccion }}"
+                                data-carnet-ci="{{ socio.carnet_ci }}"
+                                data-carnet-complemento="{{ socio.carnet_complemento }}"
+                                data-fecha-nacimiento="{{ socio.fecha_nacimiento|date:'Y-m-d' }}"
+                                data-razon="{{ socio.razon }}"
+                                data-estado="{{ socio.get_estado_display }}"
+                                data-souvenir="{% if socio.recibio_souvenir %}Sí{% else %}No{% endif %}"
+                                data-fecha-ingreso="{{ socio.fecha_ingreso|date:'d/m/Y' }}"
+                                ><i class="fas fa-eye"></i></button>
+                            {% if is_admin %}
+                            <button class="btn btn-warning btn-sm btn-editar-socio" data-toggle="modal" data-target="#modalEditarSocio"
+                                data-id="{{ socio.id }}"
+                                data-nombre="{{ socio.nombre }}"
+                                data-apellido-paterno="{{ socio.apellido_paterno }}"
+                                data-apellido-materno="{{ socio.apellido_materno }}"
+                                data-apellido="{{ socio.apellido }}"
+                                data-email="{{ socio.email }}"
+                                data-telefono="{{ socio.telefono }}"
+                                data-ciudad="{{ socio.ciudad }}"
+                                data-direccion="{{ socio.direccion }}"
+                                data-carnet-ci="{{ socio.carnet_ci }}"
+                                data-carnet-complemento="{{ socio.carnet_complemento }}"
+                                data-fecha-nacimiento="{{ socio.fecha_nacimiento|date:'Y-m-d' }}"
+                                data-razon="{{ socio.razon }}"
+                                data-observacion="{{ socio.observacion }}"
+                                ><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-sm btn-eliminar-socio" data-toggle="modal" data-target="#modalEliminarSocio"
+                                data-id="{{ socio.id }}"
+                                data-nombre="{{ socio.nombre }} {% if socio.apellido_paterno %}{{ socio.apellido_paterno }}{% endif %} {% if socio.apellido_materno %}{{ socio.apellido_materno }}{% endif %}"
+                                ><i class="fas fa-trash"></i></button>
+                            <a href="{% url 'socios:historial_souvenirs' socio.id %}" class="btn btn-secondary btn-sm" title="Historial de souvenirs"><i class="fas fa-history"></i></a>
+                            {% if socio.estado == 'activo' %}
+                            <form method="post" action="{% url 'socios:desactivar_socio' socio.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary btn-sm" type="submit" title="Desactivar socio"><i class="fas fa-user-slash"></i></button>
+                            </form>
+                            {% else %}
+                            <form method="post" action="{% url 'socios:activar_socio' socio.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm" type="submit" title="Activar socio"><i class="fas fa-user-check"></i></button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="text-center py-4">No hay socios registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% if is_admin %}
+    {% include 'socios/modals/crear.html' %}
+    {% include 'socios/modals/editar.html' %}
+    {% include 'socios/modals/eliminar.html' %}
+    {% endif %}
+    {% include 'socios/modals/ver.html' %}
+
+        {% if is_admin %}
+        <div class="modal fade" id="modalCrearAdmin" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form method="post" action="{% url 'socios:crear_admin' %}">
+                        {% csrf_token %}
+                        <div class="modal-header"><h5 class="modal-title">Crear Administrador</h5></div>
+                        <div class="modal-body">
+                            <div class="form-group"><label>Usuario</label><input class="form-control" name="username" required></div>
+                            <div class="form-group"><label>Correo</label><input class="form-control" name="email" type="email" required></div>
+                            <div class="form-group"><label>Contraseña</label><input class="form-control" name="password" type="password" required></div>
+                            <div class="form-group"><label>Nombre</label><input class="form-control" name="first_name"></div>
+                            <div class="form-group"><label>Apellido</label><input class="form-control" name="last_name"></div>
+                        </div>
+                        <div class="modal-footer"><button class="btn btn-primary" type="submit">Crear</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/socios/modals/crear.js' %}"></script>
+<script src="{% static 'js/socios/modals/ver.js' %}"></script>
+<script src="{% static 'js/socios/modals/editar.js' %}"></script>
+<script src="{% static 'js/socios/modals/eliminar.js' %}"></script>
+<script src="{% static 'js/socios/socios.js' %}"></script>
+{% endblock %}

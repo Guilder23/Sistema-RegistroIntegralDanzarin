@@ -1,0 +1,148 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Gestión de Souvenirs{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/souvenirs/souvenirs.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4">
+    <div class="page-header mb-4">
+        <div class="page-header-content">
+            <h1 class="page-title"><i class="fas fa-gifts"></i> Gestión de Souvenirs</h1>
+            <p class="page-subtitle">Revisa, edita y administra los souvenirs disponibles para entregar.</p>
+        </div>
+        <div class="page-header-actions">
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearSouvenir">Nuevo souvenir</button>
+        </div>
+    </div>
+
+    <div class="card card-filtros mb-3">
+        <div class="card-body py-3">
+            <form method="get" class="filtros-souvenirs-form" id="souvenirsFiltrosForm">
+                <div class="filtros-souvenirs-linea">
+                    <div class="filtro-busqueda">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input id="inputSouvenirBusqueda" type="text" name="q" class="form-control form-control-sm border-left-0" value="{{ q }}" placeholder="Buscar por nombre o descripción">
+                        </div>
+                    </div>
+                    <div class="filtro-item">
+                        <select id="selectSouvenirEvento" name="evento_id" class="form-control form-control-sm">
+                            <option value="">Todos los eventos</option>
+                            {% for evento in eventos %}
+                            <option value="{{ evento.id }}" {% if evento_id == evento.id|stringformat:'s' %}selected{% endif %}>{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filtro-item">
+                        <select id="selectSouvenirActivo" name="activo" class="form-control form-control-sm">
+                            <option value="">Activo / Inactivo</option>
+                            <option value="si" {% if activo == 'si' %}selected{% endif %}>Activo</option>
+                            <option value="no" {% if activo == 'no' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-tabla">
+        <div class="table-responsive">
+            <table class="table table-sm tabla-gestion mb-0">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre</th>
+                        <th>Evento</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in page_obj.object_list %}
+                    <tr>
+                        <td>
+                            {% if s.imagen %}
+                            <img src="{{ s.imagen.url }}" class="souvenir-thumb" alt="{{ s.nombre }}" />
+                            {% else %}
+                            <span class="souvenir-thumb-placeholder" aria-label="Sin imagen"><i class="fas fa-image"></i></span>
+                            {% endif %}
+                        </td>
+                        <td>{{ s.nombre }}</td>
+                        <td>{{ s.evento.nombre|default:'-' }}</td>
+                        <td>{{ s.stock }}</td>
+                        <td>
+                            <span class="badge-estado {% if s.activo %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {{ s.activo|yesno:'Activo,Inactivo' }}
+                            </span>
+                        </td>
+                        <td class="text-center acciones-col">
+                            <button type="button" class="btn btn-info btn-sm btn-ver-souvenir" data-toggle="modal" data-target="#modalVerSouvenir"
+                                data-nombre="{{ s.nombre|escapejs }}"
+                                data-descripcion="{{ s.descripcion|escapejs }}"
+                                data-stock="{{ s.stock }}"
+                                data-activo="{{ s.activo|yesno:'Activo,Inactivo' }}"
+                                data-creado="{{ s.creado|date:'d/m/Y H:i' }}"
+                                {% if s.imagen %}data-imagen="{{ s.imagen.url|escapejs }}"{% endif %}>
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm btn-editar-souvenir" data-toggle="modal" data-target="#modalEditarSouvenir"
+                                data-id="{{ s.pk }}"
+                                data-nombre="{{ s.nombre|escapejs }}"
+                                data-descripcion="{{ s.descripcion|escapejs }}"
+                                {% if s.evento %}data-evento-id="{{ s.evento.id }}" data-evento-nombre="{{ s.evento.nombre|escapejs }}"{% else %}data-evento-id="" data-evento-nombre=""{% endif %}
+                                data-stock="{{ s.stock }}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <form method="post" action="{% url 'souvenirs:cambiar_estado_souvenir' s.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn {% if s.activo %}btn-secondary{% else %}btn-success{% endif %} btn-sm" title="{% if s.activo %}Desactivar souvenir{% else %}Activar souvenir{% endif %}">
+                                    <i class="fas {% if s.activo %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
+                                </button>
+                            </form>
+                            {% if not s.entregas.exists %}
+                            <button type="button" class="btn btn-danger btn-sm btn-eliminar-souvenir" data-toggle="modal" data-target="#modalEliminarSouvenir"
+                                data-id="{{ s.pk }}"
+                                data-nombre="{{ s.nombre|escapejs }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center py-4">No hay souvenirs registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}&evento_id={{ evento_id|urlencode }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&activo={{ activo|urlencode }}&evento_id={{ evento_id|urlencode }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% include 'souvenirs/modals/crear.html' %}
+    {% include 'souvenirs/modals/ver.html' %}
+    {% include 'souvenirs/modals/editar.html' %}
+    {% include 'souvenirs/modals/eliminar.html' %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/souvenirs/souvenirs.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{% block titulo %}Dashboard{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/dashboard/dashboard.css' %}">
+{% endblock %}
+{% block contenido %}
+<div class="container-fluid py-4">
+    <h2 class="mb-3">Panel de Club carnaval Oruro</h2>
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="card p-3"><h4>{{ total_socios }}</h4><p class="mb-0">Total de socios</p></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3"><h4>{{ socios_activos }}</h4><p class="mb-0">Socios activos</p></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3"><h4>{{ socios_inactivos }}</h4><p class="mb-0">Socios inactivos</p></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3"><h4>{{ souvenirs_entregados }}</h4><p class="mb-0">Souvenirs entregados</p></div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card p-3"><h4>{{ souvenirs_pendientes }}</h4><p class="mb-0">Souvenirs pendientes</p></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
