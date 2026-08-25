@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'css/componentes/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/componentes/footer.css' %}">
     {% block estilos_extra %}{% endblock %}
+    {% block scripts_head %}{% endblock %}
 </head>
 <body>
     {% if user.is_authenticated %}

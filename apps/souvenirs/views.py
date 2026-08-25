@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from apps.eventos.models import Evento
 from apps.socios.models import Socio
 from .models import SouvenirEntrega, Souvenir
-from apps.core.permissions import scope_filter, get_role, is_administrative
+from apps.core.permissions import scope_filter, get_role, is_administrative, registrar_auditoria
 
 
 @login_required
@@ -70,6 +70,17 @@ def registrar_entrega(request):
 
         socio.recibio_souvenir = True
         socio.save()
+        
+        # Obtener grupo y subgrupo del socio para la auditoría
+        membresia = socio.membresias.filter(estado='activo').first()
+        registrar_auditoria(
+            request.user,
+            'entrega_souvenir',
+            f'Entrega a {socio} ({evento.nombre})',
+            nuevo={'socio': str(socio), 'evento': evento.nombre, 'souvenir': souvenir.nombre if souvenir else 'Sin souvenir específico'},
+            grupo=membresia.grupo if membresia else None,
+            subgrupo=membresia.subgrupo if membresia else None,
+        )
         messages.success(request, 'Entrega de souvenir registrada.')
         return redirect('souvenirs:listar_entregas')
 
@@ -137,7 +148,14 @@ def crear_souvenir(request):
         if evento_id:
             evento = Evento.objects.filter(id=evento_id, activo=True).first()
 
-        Souvenir.objects.create(nombre=nombre, evento=evento, descripcion=descripcion, stock=stock, imagen=imagen)
+        souvenir = Souvenir.objects.create(nombre=nombre, evento=evento, descripcion=descripcion, stock=stock, imagen=imagen)
+        registrar_auditoria(
+            request.user,
+            'creacion_souvenir',
+            f'Souvenir {souvenir.nombre}',
+            nuevo={'nombre': souvenir.nombre, 'stock': souvenir.stock, 'evento': evento.nombre if evento else None},
+            grupo=evento.grupo if evento else None,
+        )
         messages.success(request, 'Souvenir creado.')
         return redirect('souvenirs:listar_souvenirs')
     return redirect('souvenirs:listar_souvenirs')
@@ -148,6 +166,7 @@ def crear_souvenir(request):
 def editar_souvenir(request, pk):
     s = get_object_or_404(Souvenir, pk=pk)
     if request.method == 'POST':
+        anterior = {'nombre': s.nombre, 'stock': s.stock}
         s.nombre = request.POST.get('nombre', s.nombre).strip()
         evento_id = request.POST.get('evento_id')
         s.descripcion = request.POST.get('descripcion', s.descripcion).strip()
@@ -159,6 +178,14 @@ def editar_souvenir(request, pk):
         else:
             s.evento = None
         s.save()
+        registrar_auditoria(
+            request.user,
+            'modificacion_souvenir',
+            f'Souvenir {s.nombre}',
+            anterior=anterior,
+            nuevo={'nombre': s.nombre, 'stock': s.stock},
+            grupo=s.evento.grupo if s.evento else None,
+        )
         messages.success(request, 'Souvenir actualizado.')
         return redirect('souvenirs:listar_souvenirs')
     return redirect('souvenirs:listar_souvenirs')
@@ -178,7 +205,15 @@ def eliminar_souvenir(request, pk):
         if s.entregas.exists():
             messages.error(request, 'No se puede eliminar un souvenir asignado a un socio. Puedes cambiar su estado a inactivo.')
             return redirect('souvenirs:listar_souvenirs')
+        nombre = s.nombre
+        grupo = s.evento.grupo if s.evento else None
         s.delete()
+        registrar_auditoria(
+            request.user,
+            'eliminacion_souvenir',
+            f'Souvenir {nombre}',
+            grupo=grupo,
+        )
         messages.success(request, 'Souvenir eliminado.')
         return redirect('souvenirs:listar_souvenirs')
     return redirect('souvenirs:listar_souvenirs')
@@ -192,5 +227,13 @@ def cambiar_estado_souvenir(request, pk):
         souvenir.activo = not souvenir.activo
         souvenir.save(update_fields=['activo'])
         estado = 'activado' if souvenir.activo else 'desactivado'
+        registrar_auditoria(
+            request.user,
+            'cambio_estado_souvenir',
+            f'Souvenir {souvenir.nombre} ({estado})',
+            nuevo={'activo': souvenir.activo},
+            grupo=souvenir.evento.grupo if souvenir.evento else None,
+        )
         messages.success(request, f'Souvenir {estado}.')
     return redirect('souvenirs:listar_souvenirs')
+

@@ -69,18 +69,19 @@
             <li class="sidebar-section">
                 <span class="sidebar-section-title">Administración</span>
             </li>
+            {% if request.user.userprofile.rol == 'superadministrador' %}
             <li class="sidebar-item">
                 <a href="{% url 'socios:listar_admins' %}" class="sidebar-link {% if '/socios/listar_admins' in request.path %}active{% endif %}">
                     <i class="fas fa-user-shield"></i><span>Administradores</span>
                 </a>
             </li>
-            {% if request.user.userprofile.rol == 'superadministrador' %}
+            {% endif %}
             <li class="sidebar-item">
                 <a href="{% url 'auditoria:listar_auditoria' %}" class="sidebar-link {% if '/auditoria/' in request.path %}active{% endif %}">
                     <i class="fas fa-clock-rotate-left"></i><span>Historial</span>
                 </a>
             </li>
-            {% endif %}
+
             {% else %}
             {% comment %} <li class="sidebar-item">
                 <a href="{% url 'socios:mis_souvenirs' %}" class="sidebar-link {% if '/socios/mis_souvenirs' in request.path %}active{% endif %}">

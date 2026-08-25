@@ -1,5 +1,325 @@
 {% extends 'base/base.html' %}
 {% load static %}
-{% block titulo %}Auditoría{% endblock %}
-{% block estilos_extra %}<link rel="stylesheet" href="{% static 'css/auditoria/auditoria.css' %}">{% endblock %}
-{% block contenido %}<div class="container-fluid gestion-page"><div class="page-header"><div><h1 class="page-title"><i class="fas fa-clock-rotate-left"></i> Historial de acciones</h1><p class="page-subtitle">Consulta los cambios realizados por usuarios administrativos.</p></div></div><div class="card card-filtros mb-3"><div class="card-body"><form method="get"><input class="form-control" name="q" value="{{ q }}" placeholder="Buscar acción o registro..."></form></div></div><div class="card card-tabla"><div class="table-responsive"><table class="table mb-0"><thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Registro afectado</th><th>Cambio</th></tr></thead><tbody>{% for registro in registros %}<tr><td>{{ registro.fecha_hora|date:'d/m/Y H:i' }}</td><td>{{ registro.usuario|default:'-' }}</td><td><strong>{{ registro.accion }}</strong></td><td>{{ registro.registro_afectado }}</td><td>{{ registro.valor_anterior|default:'-' }} &rarr; {{ registro.valor_nuevo|default:'-' }}</td></tr>{% empty %}<tr><td colspan="5" class="text-center py-4">No hay acciones registradas.</td></tr>{% endfor %}</tbody></table></div></div></div>{% endblock %}{% block scripts_extra %}<script src="{% static 'js/auditoria/auditoria.js' %}"></script>{% endblock %}
+
+{% block titulo %}Historial de Auditoría | Club Carnaval Oruro{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/auditoria/auditoria.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid py-4 auditoria-page">
+    <!-- Header y Contexto de Ámbito -->
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title mb-1">
+                <i class="fas fa-clock-rotate-left text-primary mr-2"></i>Historial de Auditoría
+            </h1>
+            <p class="page-subtitle text-muted mb-0">
+                {% if role == 'superadministrador' %}
+                    <span class="header-scope-badge badge-primary"><i class="fas fa-globe mr-1"></i> Ámbito General</span> Registro total de acciones de Superadministradores, Grupos y Subgrupos.
+                {% elif role == 'administrador_grupo' %}
+                    <span class="header-scope-badge badge-info"><i class="fas fa-layer-group mr-1"></i> Grupo: {{ user_profile.grupo.nombre|default:'Asignado' }}</span> Registro de tus cambios y de tus subgrupos.
+                {% elif role == 'administrador_subgrupo' %}
+                    <span class="header-scope-badge badge-success"><i class="fas fa-sitemap mr-1"></i> Subgrupo: {{ user_profile.subgrupo.nombre|default:'Asignado' }}</span> Registro exclusivo de tus cambios.
+                {% endif %}
+            </p>
+        </div>
+        <div class="header-stats d-flex gap-3 mt-2 mt-md-0">
+            <div class="stat-mini-card">
+                <span class="stat-mini-label">Total en vista</span>
+                <span class="stat-mini-value">{{ total_registros }}</span>
+            </div>
+            <div class="stat-mini-card">
+                <span class="stat-mini-label">Registrados hoy</span>
+                <span class="stat-mini-value text-primary">{{ registros_hoy }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tarjeta de Filtros Avanzados -->
+    <div class="card card-filtros mb-4 shadow-sm">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 font-weight-bold text-dark">
+                <i class="fas fa-filter text-primary mr-2"></i>Filtros de Búsqueda y Ámbito
+            </h6>
+            {% if q or origen != 'todos' or accion or grupo_id or subgrupo_id or usuario_id or desde or hasta %}
+                <a href="{% url 'auditoria:listar_auditoria' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="fas fa-times mr-1"></i>Limpiar Filtros
+                </a>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3" id="formAuditoriaFiltros">
+                <!-- 1. Búsqueda por texto libre -->
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Búsqueda General</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text bg-light border-right-0"><i class="fas fa-search text-muted"></i></span>
+                        </div>
+                        <input type="text" class="form-control border-left-0" name="q" value="{{ q }}" placeholder="Buscar por usuario, acción, registro...">
+                    </div>
+                </div>
+
+                <!-- 2. Filtro de Origen según Rol -->
+                {% if role == 'superadministrador' %}
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Nivel de Administrador</label>
+                    <select class="form-control" name="origen" onchange="this.form.submit()">
+                        <option value="todos" {% if origen == 'todos' or not origen %}selected{% endif %}>Todos los niveles</option>
+                        <option value="mis_cambios" {% if origen == 'mis_cambios' %}selected{% endif %}>Solo mis cambios (Superadmin)</option>
+                        <option value="superadmin" {% if origen == 'superadmin' %}selected{% endif %}>Superadministradores</option>
+                        <option value="admin_grupo" {% if origen == 'admin_grupo' %}selected{% endif %}>Administradores de Grupo</option>
+                        <option value="admin_subgrupo" {% if origen == 'admin_subgrupo' %}selected{% endif %}>Administradores de Subgrupo</option>
+                    </select>
+                </div>
+                {% elif role == 'administrador_grupo' %}
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Ámbito de Historial</label>
+                    <select class="form-control" name="origen" onchange="this.form.submit()">
+                        <option value="todos" {% if origen == 'todos' or not origen %}selected{% endif %}>Todo mi grupo y subgrupos</option>
+                        <option value="mis_cambios" {% if origen == 'mis_cambios' %}selected{% endif %}>Solo mis cambios (Admin de grupo)</option>
+                        <option value="subgrupos" {% if origen == 'subgrupos' %}selected{% endif %}>Solo cambios de subgrupos</option>
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- 3. Filtro por Grupo (Solo Superadmin) -->
+                {% if role == 'superadministrador' and grupos %}
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Grupo</label>
+                    <select class="form-control" name="grupo_id" onchange="this.form.submit()">
+                        <option value="">Todos los grupos</option>
+                        {% for g in grupos %}
+                        <option value="{{ g.id }}" {% if grupo_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- 4. Filtro por Subgrupo (Superadmin y Admin de Grupo) -->
+                {% if role == 'superadministrador' or role == 'administrador_grupo' %}
+                <div class="col-lg-2 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Subgrupo</label>
+                    <select class="form-control" name="subgrupo_id" onchange="this.form.submit()">
+                        <option value="">Todos</option>
+                        {% for sg in subgrupos %}
+                        <option value="{{ sg.id }}" {% if subgrupo_id == sg.id|stringformat:"s" %}selected{% endif %}>
+                            {% if role == 'superadministrador' %}{{ sg.grupo.nombre }} / {% endif %}{{ sg.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- 5. Filtro por Usuario -->
+                {% if role == 'superadministrador' or role == 'administrador_grupo' %}
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Usuario Específico</label>
+                    <select class="form-control" name="usuario_id" onchange="this.form.submit()">
+                        <option value="">Cualquier usuario</option>
+                        {% for u in usuarios_disponibles %}
+                        <option value="{{ u.id }}" {% if usuario_id == u.id|stringformat:"s" %}selected{% endif %}>
+                            {{ u.get_full_name|default:u.username }} ({{ u.username }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+
+                <!-- 6. Tipo de Acción -->
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Tipo de Acción</label>
+                    <select class="form-control" name="accion" onchange="this.form.submit()">
+                        <option value="">Todas las acciones</option>
+                        {% for acc in acciones_disponibles %}
+                        <option value="{{ acc }}" {% if accion == acc %}selected{% endif %}>{{ acc }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- 7. Rango de Fechas -->
+                <div class="col-lg-2 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Desde</label>
+                    <input type="date" class="form-control" name="desde" value="{{ desde }}" onchange="this.form.submit()">
+                </div>
+                <div class="col-lg-2 col-md-6 mb-3">
+                    <label class="form-label text-muted small font-weight-bold">Hasta</label>
+                    <input type="date" class="form-control" name="hasta" value="{{ hasta }}" onchange="this.form.submit()">
+                </div>
+
+                <!-- Botón de Filtrar -->
+                <div class="col-lg-2 col-md-12 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search mr-1"></i>Aplicar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabla de Registros de Auditoría -->
+    <div class="card card-tabla shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="thead-light">
+                    <tr>
+                        <th style="width: 160px;">Fecha y Hora</th>
+                        <th>Administrador / Usuario</th>
+                        <th>Ámbito (Grupo / Subgrupo)</th>
+                        <th>Acción</th>
+                        <th>Registro Afectado</th>
+                        <th>Detalles del Cambio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reg in registros %}
+                    <tr>
+                        <td class="text-nowrap">
+                            <div class="font-weight-bold text-dark">{{ reg.fecha_hora|date:'d/m/Y' }}</div>
+                            <small class="text-muted"><i class="far fa-clock mr-1"></i>{{ reg.fecha_hora|date:'H:i:s' }}</small>
+                        </td>
+                        <td>
+                            {% if reg.usuario %}
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-sm bg-primary-subtle text-primary rounded-circle mr-2 d-flex align-items-center justify-content-center" style="width:34px;height:34px;background:#eef2ff;font-weight:600;">
+                                        {{ reg.usuario.username|slice:":2"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="font-weight-bold text-dark">{{ reg.usuario.get_full_name|default:reg.usuario.username }}</div>
+                                        <div class="small mt-1">
+                                            {% if reg.usuario.is_superuser or reg.usuario.userprofile.rol == 'superadministrador' %}
+                                                <span class="tag-rol-superadmin">Superadmin</span>
+                                            {% elif reg.usuario.userprofile.rol == 'administrador_grupo' %}
+                                                <span class="tag-rol-grupo">Admin Grupo</span>
+                                            {% elif reg.usuario.userprofile.rol == 'administrador_subgrupo' %}
+                                                <span class="tag-rol-subgrupo">Admin Subgrupo</span>
+                                            {% else %}
+                                                <span class="tag-rol-usuario">Usuario</span>
+                                            {% endif %}
+                                            <span class="text-muted ml-1">@{{ reg.usuario.username }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% else %}
+                                <span class="text-muted font-italic"><i class="fas fa-robot mr-1"></i>Sistema</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="ambito-tag-container">
+                                {% if reg.grupo or reg.usuario.userprofile.grupo %}
+                                    <div class="mb-1">
+                                        <span class="tag-ambito-grupo">
+                                            <i class="fas fa-layer-group text-primary mr-1"></i>{{ reg.grupo.nombre|default:reg.usuario.userprofile.grupo.nombre|default:'General' }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if reg.subgrupo or reg.usuario.userprofile.subgrupo %}
+                                    <div>
+                                        <span class="tag-ambito-subgrupo">
+                                            <i class="fas fa-sitemap text-info mr-1"></i>{{ reg.subgrupo.nombre|default:reg.usuario.userprofile.subgrupo.nombre }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                {% if not reg.grupo and not reg.subgrupo and not reg.usuario.userprofile.grupo and not reg.usuario.userprofile.subgrupo %}
+                                    <span class="tag-ambito-global">Global</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if 'creacion' in reg.accion or 'registro' in reg.accion %}
+                                <span class="badge-accion badge-creacion"><i class="fas fa-plus-circle mr-1"></i>{{ reg.accion }}</span>
+                            {% elif 'modificacion' in reg.accion or 'edicion' in reg.accion %}
+                                <span class="badge-accion badge-edicion"><i class="fas fa-pen-to-square mr-1"></i>{{ reg.accion }}</span>
+                            {% elif 'eliminacion' in reg.accion or 'baja' in reg.accion or 'desactivacion' in reg.accion %}
+                                <span class="badge-accion badge-eliminacion"><i class="fas fa-trash mr-1"></i>{{ reg.accion }}</span>
+                            {% elif 'activacion' in reg.accion %}
+                                <span class="badge-accion badge-activacion"><i class="fas fa-check-circle mr-1"></i>{{ reg.accion }}</span>
+                            {% elif 'entrega' in reg.accion %}
+                                <span class="badge-accion badge-entrega"><i class="fas fa-gift mr-1"></i>{{ reg.accion }}</span>
+                            {% else %}
+                                <span class="badge-accion badge-default"><i class="fas fa-tag mr-1"></i>{{ reg.accion }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="font-weight-semibold text-dark">{{ reg.registro_afectado }}</span>
+                        </td>
+                        <td>
+                            {% if reg.valor_anterior or reg.valor_nuevo %}
+                                <div class="detalles-cambio">
+                                    {% if reg.valor_anterior %}
+                                        <div class="text-danger small">
+                                            <i class="fas fa-arrow-down mr-1"></i><strong>Anterior:</strong> {{ reg.valor_anterior }}
+                                        </div>
+                                    {% endif %}
+                                    {% if reg.valor_nuevo %}
+                                        <div class="text-success small">
+                                            <i class="fas fa-arrow-up mr-1"></i><strong>Nuevo:</strong> {{ reg.valor_nuevo }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-muted small font-italic">Sin datos extendidos</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="empty-state py-4">
+                                <i class="fas fa-folder-open fa-3x text-muted mb-3 opacity-50"></i>
+                                <h5 class="text-secondary font-weight-normal">No se encontraron registros de auditoría</h5>
+                                <p class="text-muted small mb-0">No hay acciones registradas para los filtros y ámbito seleccionados.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer bg-white border-top py-3 d-flex flex-wrap justify-content-between align-items-center">
+            <div class="text-muted small mb-2 mb-md-0">
+                Página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong> (Total: {{ page_obj.paginator.count }} registros)
+            </div>
+            <ul class="pagination pagination-sm mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Primera">
+                        <i class="fas fa-angles-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
+                        <i class="fas fa-angle-left"></i> Anterior
+                    </a>
+                </li>
+                {% endif %}
+
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
+                        Siguiente <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Última">
+                        <i class="fas fa-angles-right"></i>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/auditoria/auditoria.js' %}"></script>
+{% endblock %}

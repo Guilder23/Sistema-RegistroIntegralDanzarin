@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import FileResponse, Http404
 
 from .models import Evento
-from apps.core.permissions import can_manage_events, get_role, scope_filter
+from apps.core.permissions import can_manage_events, get_role, scope_filter, registrar_auditoria
 
 
 @login_required
@@ -57,12 +57,19 @@ def crear_evento(request):
             messages.error(request, 'Selecciona un grupo para el evento.')
             return redirect('eventos:listar_eventos')
 
-        Evento.objects.create(
+        evento = Evento.objects.create(
             nombre=nombre,
             descripcion=descripcion,
             fecha_evento=fecha_evento,
             lugar=lugar,
             activo=activo,
+            grupo=grupo,
+        )
+        registrar_auditoria(
+            request.user,
+            'creacion_evento',
+            f'Evento {evento.nombre}',
+            nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
             grupo=grupo,
         )
         messages.success(request, 'Evento creado correctamente.')
@@ -76,6 +83,7 @@ def crear_evento(request):
 def editar_evento(request, pk):
     evento = get_object_or_404(scope_filter(Evento.objects.all(), request.user), pk=pk)
     if request.method == 'POST':
+        anterior = {'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar}
         evento.nombre = request.POST.get('nombre', evento.nombre).strip()
         evento.descripcion = request.POST.get('descripcion', evento.descripcion).strip()
         fecha_evento = request.POST.get('fecha_evento')
@@ -85,6 +93,14 @@ def editar_evento(request, pk):
         if fecha_evento:
             evento.fecha_evento = fecha_evento
         evento.save()
+        registrar_auditoria(
+            request.user,
+            'modificacion_evento',
+            f'Evento {evento.nombre}',
+            anterior=anterior,
+            nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
+            grupo=evento.grupo,
+        )
         messages.success(request, 'Evento actualizado correctamente.')
         return redirect('eventos:listar_eventos')
 
@@ -99,7 +115,15 @@ def eliminar_evento(request, pk):
         if evento.souvenirs.exists():
             messages.error(request, 'No se puede eliminar un evento que tiene souvenirs asignados. Puedes cambiar su estado a inactivo.')
             return redirect('eventos:listar_eventos')
+        nombre = evento.nombre
+        grupo = evento.grupo
         evento.delete()
+        registrar_auditoria(
+            request.user,
+            'eliminacion_evento',
+            f'Evento {nombre}',
+            grupo=grupo,
+        )
         messages.success(request, 'Evento eliminado correctamente.')
     return redirect('eventos:listar_eventos')
 
@@ -112,7 +136,15 @@ def cambiar_estado_evento(request, pk):
         evento.estado = 'finalizado' if evento.estado == 'programado' else 'programado'
         evento.activo = evento.estado == 'programado'
         evento.save()
+        registrar_auditoria(
+            request.user,
+            'cambio_estado_evento',
+            f'Evento {evento.nombre} ({evento.estado})',
+            nuevo={'estado': evento.estado, 'activo': evento.activo},
+            grupo=evento.grupo,
+        )
         messages.success(request, f'Evento {evento.get_estado_display().lower()}.')
+
     return redirect('eventos:listar_eventos')
 
 

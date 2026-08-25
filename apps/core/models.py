@@ -37,12 +37,12 @@ class Auditoria(models.Model):
 	registro_afectado = models.CharField(max_length=255)
 	valor_anterior = models.JSONField(null=True, blank=True)
 	valor_nuevo = models.JSONField(null=True, blank=True)
+	grupo = models.ForeignKey(Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
+	subgrupo = models.ForeignKey(Subgrupo, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
 
 	class Meta:
 		ordering = ['-fecha_hora']
 
 	def __str__(self):
 		return f'{self.accion} - {self.registro_afectado}'
-from django.db import models
 
-# Create your models here.

@@ -1,4 +1,4 @@
-﻿from django.contrib import messages
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
@@ -287,6 +287,14 @@ def crear_admin(request):
         user.is_superuser = rol == 'superadministrador'
         user.save()
         UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+        registrar_auditoria(
+            request.user,
+            'creacion_admin',
+            f'Admin {user.username} ({rol})',
+            nuevo={'username': user.username, 'rol': rol, 'grupo': grupo.nombre if grupo else None, 'subgrupo': subgrupo.nombre if subgrupo else None},
+            grupo=grupo,
+            subgrupo=subgrupo,
+        )
         messages.success(request, 'Administrador creado correctamente.')
         return redirect('socios:listar_admins')
     return redirect('socios:listar_admins')
@@ -660,6 +668,14 @@ def editar_admin(request, user_id):
             user.set_password(password)
         user.save()
         UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+        registrar_auditoria(
+            request.user,
+            'modificacion_admin',
+            f'Admin {user.username} ({rol})',
+            nuevo={'username': user.username, 'rol': rol, 'grupo': grupo.nombre if grupo else None, 'subgrupo': subgrupo.nombre if subgrupo else None},
+            grupo=grupo,
+            subgrupo=subgrupo,
+        )
         messages.success(request, 'Administrador actualizado.')
         return redirect('socios:listar_admins')
     return redirect('socios:listar_admins')
@@ -670,7 +686,9 @@ def editar_admin(request, user_id):
 def eliminar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
+        username = user.username
         user.delete()
+        registrar_auditoria(request.user, 'eliminacion_admin', f'Admin {username}')
         messages.success(request, 'Administrador eliminado.')
         return redirect('socios:listar_admins')
     return redirect('socios:listar_admins')
@@ -681,7 +699,7 @@ def mis_souvenirs(request):
     try:
         socio = request.user.socio_profile
     except Socio.DoesNotExist:
-        messages.error(request, 'No se encontrÃ³ perfil de socio.')
+        messages.error(request, 'No se encontró perfil de socio.')
         return redirect('/')
     entregas = socio.entregas_souvenir.select_related('souvenir', 'entregado_por').all()
     paginator = Paginator(entregas, 10)
@@ -711,7 +729,7 @@ def editar_socio(request, socio_id):
     socio.sexo = request.POST.get('sexo', '').strip()
     socio.modalidad = request.POST.get('modalidad', '').strip()
     socio.save()
-    registrar_auditoria(request.user, 'modificacion_socio', f'Socio {socio.pk}', nuevo={'nombre': socio.nombre, 'email': socio.email})
+    registrar_auditoria(request.user, 'modificacion_socio', f'Socio {socio.pk} - {socio}', nuevo={'nombre': socio.nombre, 'email': socio.email})
     messages.success(request, 'Datos del socio actualizados.')
     return redirect('socios:listar_socios')
 
@@ -722,7 +740,7 @@ def activar_socio(request, socio_id):
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     anteriores = list(socio.membresias.filter(estado__in=['suspendido', 'castigado']).values_list('id', flat=True))
     socio.membresias.filter(estado__in=['suspendido', 'castigado']).update(estado='activo')
-    registrar_auditoria(request.user, 'activacion_membresia', f'Socio {socio.pk}', anterior={'membresias': anteriores}, nuevo={'estado': 'activo'})
+    registrar_auditoria(request.user, 'activacion_membresia', f'Socio {socio.pk} - {socio}', anterior={'membresias': anteriores}, nuevo={'estado': 'activo'})
     messages.success(request, 'Membresía activa.')
     return redirect('socios:listar_socios')
 
@@ -733,7 +751,7 @@ def desactivar_socio(request, socio_id):
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     anteriores = list(socio.membresias.values_list('id', flat=True))
     socio.membresias.update(estado='baja')
-    registrar_auditoria(request.user, 'baja_membresia', f'Socio {socio.pk}', anterior={'membresias': anteriores}, nuevo={'estado': 'baja'})
+    registrar_auditoria(request.user, 'baja_membresia', f'Socio {socio.pk} - {socio}', anterior={'membresias': anteriores}, nuevo={'estado': 'baja'})
     messages.success(request, 'Membresía dada de baja.')
     return redirect('socios:listar_socios')
 
@@ -757,8 +775,13 @@ def historial_souvenirs(request, socio_id):
 @user_passes_test(is_administrative, login_url='/login/')
 def eliminar_socio(request, socio_id):
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    socio.user.delete()
-    socio.delete()
+    socio_info = f'Socio {socio.pk} - {socio}'
+    if getattr(socio, 'user', None):
+        socio.user.delete()
+    else:
+        socio.delete()
+    registrar_auditoria(request.user, 'eliminacion_socio', socio_info)
     messages.success(request, 'Socio eliminado definitivamente.')
     return redirect('socios:listar_socios')
+
 

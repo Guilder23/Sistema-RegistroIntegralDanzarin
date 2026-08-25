@@ -64,14 +64,31 @@ def scope_socios(queryset, user):
     return scope_filter(queryset, user, 'membresias__grupo', 'membresias__subgrupo').distinct()
 
 
-def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo=None):
-    if get_role(usuario) == 'superadministrador':
-        return
+def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo=None, grupo=None, subgrupo=None):
     from .models import Auditoria
+    from apps.socios.models import UserProfile
+
+    auditoria_grupo = grupo
+    auditoria_subgrupo = subgrupo
+
+    if usuario and getattr(usuario, 'is_authenticated', False):
+        try:
+            profile = getattr(usuario, 'userprofile', None)
+            if profile:
+                if not auditoria_grupo and profile.grupo:
+                    auditoria_grupo = profile.grupo
+                if not auditoria_subgrupo and profile.subgrupo:
+                    auditoria_subgrupo = profile.subgrupo
+        except Exception:
+            pass
+
     Auditoria.objects.create(
-        usuario=usuario,
+        usuario=usuario if (usuario and getattr(usuario, 'is_authenticated', False)) else None,
         accion=accion,
         registro_afectado=registro_afectado,
         valor_anterior=anterior,
         valor_nuevo=nuevo,
+        grupo=auditoria_grupo,
+        subgrupo=auditoria_subgrupo,
     )
+

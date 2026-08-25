@@ -1,1 +1,314 @@
-.gestion-page{padding:1.5rem 0}.gestion-page .page-header{margin-bottom:1.5rem}.gestion-page .page-subtitle{color:#687386;margin:0}.gestion-page .card{border:1px solid #e6e9ef;box-shadow:0 8px 24px rgba(25,35,52,.05);border-radius:8px}.gestion-page .table th{font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;color:#687386;background:#f7f8fa}.gestion-page .table td{vertical-align:middle}.gestion-page .table td:last-child{font-size:.85rem;color:#52606d}
+/* ==========================================
+   ESTILOS HISTORIAL DE AUDITORÍA
+   ========================================== */
+
+.auditoria-page {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.auditoria-page .page-title {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.auditoria-page .page-subtitle {
+    font-size: 0.95rem;
+}
+
+/* Header Scope Badge */
+.header-scope-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    position: static !important;
+}
+
+.header-scope-badge.badge-primary {
+    background-color: #1e3a8a;
+    color: #ffffff;
+}
+
+.header-scope-badge.badge-info {
+    background-color: #0284c7;
+    color: #ffffff;
+}
+
+.header-scope-badge.badge-success {
+    background-color: #059669;
+    color: #ffffff;
+}
+
+/* Header Mini Stats */
+.stat-mini-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stat-mini-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.stat-mini-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+/* Card Filtros */
+.card-filtros {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+}
+
+.card-filtros .card-header {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.card-filtros .form-control,
+.card-filtros .form-select {
+    border-radius: 8px;
+    font-size: 0.88rem;
+    border-color: #cbd5e1;
+}
+
+.card-filtros .form-control:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Card Tabla */
+.card-tabla {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-tabla .table th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    color: #475569;
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0.85rem 1rem;
+}
+
+.card-tabla .table td {
+    padding: 0.95rem 1rem;
+    vertical-align: middle;
+    font-size: 0.9rem;
+    border-color: #f1f5f9;
+}
+
+.card-tabla .table tr:hover {
+    background-color: #f8fafc;
+}
+
+/* ==========================================
+   TAGS PERSONALIZADOS DE ÁMBITO (TERCERA COLUMNA)
+   ========================================== */
+
+.ambito-tag-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.tag-ambito-grupo {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #1e3a8a;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    white-space: nowrap;
+    position: static !important;
+}
+
+.tag-ambito-subgrupo {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.80rem;
+    font-weight: 500;
+    color: #0f766e;
+    background-color: #f0fdfa;
+    border: 1px solid #99f6e4;
+    white-space: nowrap;
+    position: static !important;
+}
+
+.tag-ambito-global {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.80rem;
+    font-weight: 500;
+    color: #475569;
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    white-space: nowrap;
+    position: static !important;
+}
+
+/* Tags de Rol de Usuario */
+.tag-rol-superadmin {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #1e3a8a;
+    position: static !important;
+}
+
+.tag-rol-grupo {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #0284c7;
+    position: static !important;
+}
+
+.tag-rol-subgrupo {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #059669;
+    position: static !important;
+}
+
+.tag-rol-usuario {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #64748b;
+    position: static !important;
+}
+
+/* Badges de Acciones */
+.badge-accion {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.35em 0.75em;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+    position: static !important;
+}
+
+.badge-creacion {
+    background-color: #ecfdf5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-edicion {
+    background-color: #eff6ff;
+    color: #1e40af;
+    border: 1px solid #bfdbfe;
+}
+
+.badge-eliminacion {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.badge-activacion {
+    background-color: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.badge-entrega {
+    background-color: #faf5ff;
+    color: #6b21a8;
+    border: 1px solid #e9d5ff;
+}
+
+.badge-default {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+
+/* Detalles de Cambio */
+.detalles-cambio {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.45rem 0.65rem;
+    max-width: 380px;
+    word-break: break-word;
+}
+
+.detalles-cambio div {
+    line-height: 1.4;
+}
+
+/* Paginación */
+.pagination .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    color: #334155;
+    border-color: #e2e8f0;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #1e3a8a;
+    border-color: #1e3a8a;
+    color: #ffffff;
+}
+
+.pagination .page-link:hover {
+    background-color: #f1f5f9;
+    color: #1e3a8a;
+}

@@ -1,1 +1,12 @@
-document.addEventListener('DOMContentLoaded', function(){var input=document.querySelector('.gestion-page input[name="q"]');if(input){input.addEventListener('input',function(){clearTimeout(input._timer);input._timer=setTimeout(function(){input.form.submit();},350);});}});
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        let timer = null;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(function () {
+                searchInput.form.submit();
+            }, 600);
+        });
+    }
+});
