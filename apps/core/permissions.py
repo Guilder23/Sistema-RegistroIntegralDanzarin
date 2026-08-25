@@ -30,6 +30,14 @@ def can_manage_events(user):
     return get_role(user) in {'superadministrador', 'administrador_grupo'}
 
 
+def can_register_members(user):
+    return get_role(user) in {'superadministrador', 'administrador_subgrupo'}
+
+
+def can_manage_users(user):
+    return get_role(user) == 'superadministrador'
+
+
 def scope_filter(queryset, user, grupo_field='grupo', subgrupo_field='subgrupo'):
     """Limita un queryset al ámbito del usuario autenticado."""
     role = get_role(user)

@@ -18,7 +18,9 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime
-from apps.core.permissions import scope_socios, is_administrative
+from apps.core.permissions import scope_socios, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
+from apps.core.models import Grupo, Subgrupo
+from apps.core.models import Grupo, Subgrupo
 
 
 @login_required
@@ -39,13 +41,14 @@ def listar_socios(request):
             | Q(carnet_ci__icontains=q)
         )
     if estado:
-        socios = socios.filter(estado=estado)
+        socios = socios.filter(membresias__estado=estado).distinct()
 
     paginator = Paginator(socios.order_by('-fecha_ingreso'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     # Asegurar que cada usuario listado tenga un UserProfile para evitar errores en plantillas
     for s in page_obj.object_list:
+        s.membresia_visible = s.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('grupo', 'subgrupo').first() or s.membresias.order_by('-fecha_ingreso').first()
         try:
             UserProfile.objects.get_or_create(user=s.user)
         except Exception:
@@ -55,12 +58,14 @@ def listar_socios(request):
         'page_obj': page_obj,
         'q': q,
         'estado': estado,
-        'is_admin': request.user.is_staff,
+        'is_admin': can_register_members(request.user),
+        'grupos': Grupo.objects.filter(activo=True),
+        'subgrupos': Subgrupo.objects.filter(activo=True).select_related('grupo'),
     })
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def crear_socio(request):
     if request.method != 'POST':
         return redirect('socios:listar_socios')
@@ -80,6 +85,8 @@ def crear_socio(request):
     carnet_ci = request.POST.get('carnet_ci', '').strip()
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
+    sexo = request.POST.get('sexo', '').strip()
+    modalidad = request.POST.get('modalidad', '').strip()
 
     if not username or not nombre or not (apellido_paterno or apellido) or not email or not password:
         messages.error(request, 'Completa los campos obligatorios.')
@@ -89,11 +96,23 @@ def crear_socio(request):
         messages.error(request, 'El nombre de usuario ya existe.')
         return redirect('socios:listar_socios')
 
+    role = get_role(request.user)
+    if role == 'administrador_subgrupo':
+        grupo = request.user.userprofile.grupo
+        subgrupo = request.user.userprofile.subgrupo
+    else:
+        grupo_id = request.POST.get('grupo_id') or None
+        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
+        subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
+    if not grupo or not subgrupo:
+        messages.error(request, 'Selecciona un grupo y subgrupo válidos.')
+        return redirect('socios:listar_socios')
+
     user = User.objects.create_user(username=username, email=email, password=password)
     user.first_name = nombre
     user.last_name = apellido_paterno or apellido
     user.save()
-    Socio.objects.create(
+    socio = Socio.objects.create(
         user=user,
         codigo_socio=generar_codigo_socio(),
         nombre=nombre,
@@ -109,7 +128,12 @@ def crear_socio(request):
         carnet_ci=carnet_ci,
         carnet_complemento=carnet_complemento,
         observacion=observacion,
+        sexo=sexo,
+        modalidad=modalidad,
     )
+    from .models import Membresia
+    Membresia.inscribir(socio, grupo, subgrupo, estado_pago='al_dia')
+    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'grupo': grupo.pk, 'subgrupo': subgrupo.pk})
     messages.success(request, 'Socio registrado correctamente.')
     return redirect('socios:listar_socios')
 
@@ -228,7 +252,7 @@ def subir_foto(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def crear_admin(request):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
@@ -236,9 +260,23 @@ def crear_admin(request):
         password = request.POST.get('password', '')
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
+        rol = request.POST.get('rol', 'administrador_grupo')
+        grupo_id = request.POST.get('grupo_id') or None
+        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
+        subgrupo_id = request.POST.get('subgrupo_id') or None
+        subgrupo = Subgrupo.objects.filter(pk=subgrupo_id, grupo=grupo, activo=True).first() if grupo and subgrupo_id else None
+        if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}:
+            messages.error(request, 'Selecciona un tipo de administrador válido.')
+            return redirect('socios:listar_admins')
         if not username or not email or not password:
             messages.error(request, 'Completa los campos obligatorios.')
             return redirect('socios:crear_admin')
+        if rol == 'administrador_grupo' and not grupo:
+            messages.error(request, 'El Administrador de Grupo debe tener un grupo asignado.')
+            return redirect('socios:listar_admins')
+        if rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
+            messages.error(request, 'El Administrador de Subgrupo debe tener grupo y subgrupo asignados.')
+            return redirect('socios:listar_admins')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'El nombre de usuario ya existe.')
             return redirect('socios:crear_admin')
@@ -246,15 +284,16 @@ def crear_admin(request):
         user.first_name = first_name
         user.last_name = last_name
         user.is_staff = True
+        user.is_superuser = rol == 'superadministrador'
         user.save()
-        UserProfile.objects.filter(user=user).update(rol='administrador_grupo')
+        UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
         messages.success(request, 'Administrador creado correctamente.')
         return redirect('socios:listar_admins')
     return redirect('socios:listar_admins')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def importar_socios(request):
     if request.method == 'POST':
         f = request.FILES.get('file')
@@ -295,13 +334,13 @@ def importar_socios(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def importar_socios_masivo(request):
     return render(request, 'socios/importar_masivo.html')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def importar_socios_xlsx_preview(request):
     if request.method != 'POST':
         return redirect('socios:importar_socios_masivo')
@@ -347,7 +386,7 @@ def importar_socios_xlsx_preview(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def importar_socios_xlsx_confirm(request):
     preview_data = request.session.pop('socios_import_preview', None)
     if not preview_data:
@@ -514,7 +553,7 @@ def descargar_plantilla_excel(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def importar_socios_xlsx(request):
     if request.method == 'POST':
         f = request.FILES.get('file')
@@ -560,11 +599,11 @@ def importar_socios_xlsx(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def listar_admins(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
-    admins = User.objects.filter(is_staff=True)
+    admins = User.objects.filter(is_staff=True).select_related('userprofile', 'userprofile__grupo', 'userprofile__subgrupo')
 
     if q:
         admins = admins.filter(
@@ -581,17 +620,23 @@ def listar_admins(request):
 
     paginator = Paginator(admins.order_by('username'), 20)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'admins/admins.html', {'page_obj': page_obj, 'q': q, 'activo': activo})
+    return render(request, 'admins/admins.html', {
+        'page_obj': page_obj,
+        'q': q,
+        'activo': activo,
+        'grupos': Grupo.objects.filter(activo=True),
+        'subgrupos': Subgrupo.objects.filter(activo=True).select_related('grupo'),
+    })
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def ver_admin(request, user_id):
     return redirect('socios:listar_admins')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def editar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
@@ -599,17 +644,29 @@ def editar_admin(request, user_id):
         user.email = request.POST.get('email', user.email).strip()
         user.first_name = request.POST.get('first_name', user.first_name).strip()
         user.last_name = request.POST.get('last_name', user.last_name).strip()
+        rol = request.POST.get('rol', 'administrador_grupo')
+        grupo_id = request.POST.get('grupo_id') or None
+        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
+        subgrupo_id = request.POST.get('subgrupo_id') or None
+        subgrupo = Subgrupo.objects.filter(pk=subgrupo_id, grupo=grupo, activo=True).first() if grupo and subgrupo_id else None
+        if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}:
+            messages.error(request, 'Selecciona un tipo de administrador válido.')
+            return redirect('socios:listar_admins')
+        if (rol == 'administrador_grupo' and not grupo) or (rol == 'administrador_subgrupo' and (not grupo or not subgrupo)):
+            messages.error(request, 'El tipo de administrador requiere un ámbito válido.')
+            return redirect('socios:listar_admins')
         password = request.POST.get('password')
         if password:
             user.set_password(password)
         user.save()
+        UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
         messages.success(request, 'Administrador actualizado.')
         return redirect('socios:listar_admins')
     return redirect('socios:listar_admins')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def eliminar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
@@ -633,12 +690,12 @@ def mis_souvenirs(request):
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def editar_socio(request, socio_id):
     if request.method != 'POST':
         return redirect('socios:listar_socios')
 
-    socio = get_object_or_404(Socio, id=socio_id)
+    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     socio.nombre = request.POST.get('nombre', '').strip()
     socio.apellido_paterno = request.POST.get('apellido_paterno', '').strip()
     socio.apellido_materno = request.POST.get('apellido_materno', '').strip()
@@ -650,35 +707,41 @@ def editar_socio(request, socio_id):
     socio.carnet_ci = request.POST.get('carnet_ci', '').strip()
     socio.carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     socio.observacion = request.POST.get('observacion', '').strip()
+    socio.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
+    socio.sexo = request.POST.get('sexo', '').strip()
+    socio.modalidad = request.POST.get('modalidad', '').strip()
     socio.save()
+    registrar_auditoria(request.user, 'modificacion_socio', f'Socio {socio.pk}', nuevo={'nombre': socio.nombre, 'email': socio.email})
     messages.success(request, 'Datos del socio actualizados.')
     return redirect('socios:listar_socios')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def activar_socio(request, socio_id):
-    socio = get_object_or_404(Socio, id=socio_id)
-    socio.estado = 'activo'
-    socio.save()
-    messages.success(request, 'Socio activado.')
+    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
+    anteriores = list(socio.membresias.filter(estado__in=['suspendido', 'castigado']).values_list('id', flat=True))
+    socio.membresias.filter(estado__in=['suspendido', 'castigado']).update(estado='activo')
+    registrar_auditoria(request.user, 'activacion_membresia', f'Socio {socio.pk}', anterior={'membresias': anteriores}, nuevo={'estado': 'activo'})
+    messages.success(request, 'Membresía activa.')
     return redirect('socios:listar_socios')
 
 
 @login_required
-@user_passes_test(is_administrative, login_url='/login/')
+@user_passes_test(can_register_members, login_url='/login/')
 def desactivar_socio(request, socio_id):
-    socio = get_object_or_404(Socio, id=socio_id)
-    socio.estado = 'inactivo'
-    socio.save()
-    messages.success(request, 'Socio desactivado.')
+    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
+    anteriores = list(socio.membresias.values_list('id', flat=True))
+    socio.membresias.update(estado='baja')
+    registrar_auditoria(request.user, 'baja_membresia', f'Socio {socio.pk}', anterior={'membresias': anteriores}, nuevo={'estado': 'baja'})
+    messages.success(request, 'Membresía dada de baja.')
     return redirect('socios:listar_socios')
 
 
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def historial_souvenirs(request, socio_id):
-    socio = get_object_or_404(Socio, id=socio_id)
+    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     entregas = socio.entregas_souvenir.select_related('souvenir', 'evento', 'entregado_por').order_by('-fecha_entrega')
     total_entregas = entregas.count()
     paginator = Paginator(entregas, 10)
@@ -693,7 +756,7 @@ def historial_souvenirs(request, socio_id):
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def eliminar_socio(request, socio_id):
-    socio = get_object_or_404(Socio, id=socio_id)
+    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     socio.user.delete()
     socio.delete()
     messages.success(request, 'Socio eliminado definitivamente.')

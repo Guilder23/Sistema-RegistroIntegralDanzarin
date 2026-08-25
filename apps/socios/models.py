@@ -7,6 +7,7 @@ from django.db import transaction
 
 
 class Socio(models.Model):
+    SEXO_CHOICES = [('m', 'Varón'), ('f', 'Mujer'), ('otro', 'Otro')]
     ESTADO_CHOICES = [
         ('activo', 'Activo'),
         ('inactivo', 'Inactivo'),
@@ -26,6 +27,8 @@ class Socio(models.Model):
     ciudad = models.CharField(max_length=150, blank=True, default='', verbose_name='Ciudad')
     direccion = models.CharField(max_length=250, blank=True, default='', verbose_name='Dirección')
     fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
+    sexo = models.CharField(max_length=10, choices=SEXO_CHOICES, blank=True, default='')
+    modalidad = models.CharField(max_length=100, blank=True, default='', verbose_name='Categoría o modalidad')
     razon = models.TextField(blank=True, default='', verbose_name='Razón de ingreso')
     fecha_ingreso = models.DateField(auto_now_add=True, verbose_name='Fecha de ingreso')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')

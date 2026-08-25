@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('verUsuarioUsername').textContent = this.dataset.username || '';
             document.getElementById('verUsuarioNombre').textContent = fullName || '-';
             document.getElementById('verUsuarioEmail').textContent = this.dataset.email || '-';
-            document.getElementById('verUsuarioRol').textContent = this.dataset.isStaff === '1' ? 'Administrador' : 'Usuario';
+            document.getElementById('verUsuarioRol').textContent = this.dataset.rol || 'Miembro / Socio';
             document.getElementById('verUsuarioEstado').textContent = this.dataset.isActive === '1' ? 'Activo' : 'Bloqueado';
         });
     });
@@ -44,7 +44,9 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('editUsuarioFirstName').value = this.dataset.firstName || '';
             document.getElementById('editUsuarioLastName').value = this.dataset.lastName || '';
             document.getElementById('editUsuarioEmail').value = this.dataset.email || '';
-            document.getElementById('editUsuarioIsAdmin').checked = this.dataset.isStaff === '1';
+            document.getElementById('editUsuarioRol').value = this.dataset.rol || 'miembro';
+            document.getElementById('editUsuarioGrupo').value = this.dataset.grupo || '';
+            document.getElementById('editUsuarioSubgrupo').value = this.dataset.subgrupo || '';
         });
     });
 });

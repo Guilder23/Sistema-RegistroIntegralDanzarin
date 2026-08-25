@@ -9,6 +9,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from xml.sax.saxutils import escape
+from .permissions import can_manage_users
 
 
 def get_home_redirect(user):
@@ -101,7 +102,7 @@ def cerrar_sesion(request):
 
 
 @login_required
-@user_passes_test(lambda u: u.is_staff, login_url='/login/')
+@user_passes_test(can_manage_users, login_url='/login/')
 def registrar_usuario(request):
 	if request.method == 'POST':
 		username = request.POST.get('username', '').strip()
@@ -110,7 +111,22 @@ def registrar_usuario(request):
 		email = request.POST.get('email', '').strip()
 		password = request.POST.get('password', '')
 		password2 = request.POST.get('password2', '')
-		is_admin = request.POST.get('is_admin') == 'on'
+		rol = request.POST.get('rol', 'miembro')
+		roles_validos = {'superadministrador', 'administrador_grupo', 'administrador_subgrupo', 'miembro'}
+		if rol not in roles_validos:
+			rol = 'miembro'
+		from apps.core.models import Grupo, Subgrupo
+		grupo = Grupo.objects.filter(pk=request.POST.get('grupo_id'), activo=True).first()
+		subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
+		if rol == 'administrador_grupo' and not grupo:
+			messages.error(request, 'El Administrador de Grupo debe tener un grupo asignado.')
+			return redirect('core:registro')
+		if rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
+			messages.error(request, 'El Administrador de Subgrupo debe tener grupo y subgrupo asignados.')
+			return redirect('core:registro')
+		if rol == 'miembro' and (not grupo or not subgrupo):
+			messages.error(request, 'El Miembro / Socio debe tener grupo y subgrupo asignados.')
+			return redirect('core:registro')
 
 		if not username or not password:
 			messages.error(request, 'Usuario y contrasena son obligatorios.')
@@ -131,11 +147,21 @@ def registrar_usuario(request):
 			email=email,
 			password=password,
 		)
-		user.is_staff = is_admin
+		user.is_staff = rol != 'miembro'
+		user.is_superuser = rol == 'superadministrador'
 		user.save()
-		if is_admin:
-			from apps.socios.models import UserProfile
-			UserProfile.objects.filter(user=user).update(rol='administrador_grupo')
+		from apps.socios.models import UserProfile
+		UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+		if rol == 'miembro':
+			from apps.socios.models import Socio, Membresia, generar_codigo_socio
+			socio = Socio.objects.create(
+				user=user,
+				codigo_socio=generar_codigo_socio(),
+				nombre=first_name or username,
+				apellido=last_name,
+				email=email,
+			)
+			Membresia.inscribir(socio, grupo, subgrupo, estado_pago='al_dia')
 
 		messages.success(request, 'Usuario creado correctamente.')
 		return redirect('core:registro')
@@ -175,6 +201,8 @@ def registrar_usuario(request):
 			'q': q,
 			'rol': rol,
 			'estado': estado,
+			'grupos': __import__('apps.core.models', fromlist=['Grupo']).Grupo.objects.filter(activo=True),
+			'subgrupos': __import__('apps.core.models', fromlist=['Subgrupo']).Subgrupo.objects.filter(activo=True).select_related('grupo'),
 		},
 	)
 
@@ -193,7 +221,15 @@ def editar_usuario(request, user_id):
 		email = request.POST.get('email', '').strip()
 		first_name = request.POST.get('first_name', '').strip()
 		last_name = request.POST.get('last_name', '').strip()
-		is_admin = request.POST.get('is_admin') == 'on'
+		rol = request.POST.get('rol', 'miembro')
+		from apps.core.models import Grupo, Subgrupo
+		grupo = Grupo.objects.filter(pk=request.POST.get('grupo_id'), activo=True).first()
+		subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
+		if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo', 'miembro'}:
+			rol = 'miembro'
+		if rol == 'administrador_grupo' and not grupo or rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
+			messages.error(request, 'El rol seleccionado requiere un ámbito válido.')
+			return redirect('core:registro')
 
 		if not username:
 			messages.error(request, 'El usuario es obligatorio.')
@@ -207,7 +243,8 @@ def editar_usuario(request, user_id):
 		objetivo.email = email
 		objetivo.first_name = first_name
 		objetivo.last_name = last_name
-		objetivo.is_staff = is_admin
+		objetivo.is_staff = rol != 'miembro'
+		objetivo.is_superuser = rol == 'superadministrador'
 
 		password = request.POST.get('password', '')
 		password2 = request.POST.get('password2', '')
@@ -218,6 +255,8 @@ def editar_usuario(request, user_id):
 			objetivo.set_password(password)
 
 		objetivo.save()
+		from apps.socios.models import UserProfile
+		UserProfile.objects.filter(user=objetivo).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
 		messages.success(request, 'Usuario actualizado correctamente.')
 
 	return redirect('core:registro')

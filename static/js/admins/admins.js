@@ -1,6 +1,36 @@
 // JS para admins
 
 function setupAdminModals() {
+    function configureScope(roleId, groupId, subgroupId) {
+        const role = document.getElementById(roleId);
+        const group = document.getElementById(groupId);
+        const subgroup = document.getElementById(subgroupId);
+        if (!role || !group || !subgroup) return;
+
+        const updateScope = function () {
+            const requiresGroup = role.value === 'administrador_grupo' || role.value === 'administrador_subgrupo';
+            const requiresSubgroup = role.value === 'administrador_subgrupo';
+            group.disabled = !requiresGroup;
+            group.required = requiresGroup;
+            subgroup.disabled = !requiresSubgroup;
+            subgroup.required = requiresSubgroup;
+            if (!requiresGroup) group.value = '';
+            if (!requiresSubgroup) subgroup.value = '';
+            Array.from(subgroup.options).forEach(function (option) {
+                if (!option.dataset.grupoId) return;
+                option.hidden = !requiresSubgroup || option.dataset.grupoId !== group.value;
+            });
+            if (requiresSubgroup && subgroup.selectedOptions[0]?.hidden) subgroup.value = '';
+        };
+
+        role.addEventListener('change', updateScope);
+        group.addEventListener('change', updateScope);
+        updateScope();
+    }
+
+    configureScope('crearAdminRol', 'crearAdminGrupo', 'crearAdminSubgrupo');
+    configureScope('editarAdminRol', 'editarAdminGrupo', 'editarAdminSubgrupo');
+
     const verButtons = document.querySelectorAll('.btn-ver-admin');
     const editarButtons = document.querySelectorAll('.btn-editar-admin');
     const eliminarButtons = document.querySelectorAll('.btn-eliminar-admin');
@@ -10,12 +40,18 @@ function setupAdminModals() {
             const username = button.getAttribute('data-username') || '';
             const fullname = button.getAttribute('data-fullname') || '';
             const email = button.getAttribute('data-email') || '';
+            const rol = button.getAttribute('data-rol') || '';
+            const ambito = button.getAttribute('data-ambito') || 'Global';
             const usernameEl = document.getElementById('verAdminUsername');
             const nombreEl = document.getElementById('verAdminNombre');
             const emailEl = document.getElementById('verAdminEmail');
             if (usernameEl) usernameEl.textContent = username;
             if (nombreEl) nombreEl.textContent = fullname;
             if (emailEl) emailEl.textContent = email;
+            const rolEl = document.getElementById('verAdminRol');
+            const ambitoEl = document.getElementById('verAdminAmbito');
+            if (rolEl) rolEl.textContent = rol;
+            if (ambitoEl) ambitoEl.textContent = ambito;
         });
     });
 
@@ -26,6 +62,9 @@ function setupAdminModals() {
             const firstName = button.getAttribute('data-first-name') || '';
             const lastName = button.getAttribute('data-last-name') || '';
             const email = button.getAttribute('data-email') || '';
+            const rol = button.getAttribute('data-rol') || 'administrador_grupo';
+            const grupo = button.getAttribute('data-grupo') || '';
+            const subgrupo = button.getAttribute('data-subgrupo') || '';
             const form = document.getElementById('formEditarAdmin');
             if (form) {
                 form.action = `/socios/admins/${id}/editar/`;
@@ -38,6 +77,12 @@ function setupAdminModals() {
             if (firstNameEl) firstNameEl.value = firstName;
             if (lastNameEl) lastNameEl.value = lastName;
             if (emailEl) emailEl.value = email;
+            const rolEl = document.getElementById('editarAdminRol');
+            const grupoEl = document.getElementById('editarAdminGrupo');
+            const subgrupoEl = document.getElementById('editarAdminSubgrupo');
+            if (rolEl) rolEl.value = rol;
+            if (grupoEl) grupoEl.value = grupo;
+            if (subgrupoEl) subgrupoEl.value = subgrupo;
         });
     });
 

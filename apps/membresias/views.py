@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from apps.socios.models import Membresia
-from apps.core.permissions import get_role, scope_filter
+from apps.core.permissions import get_role, scope_filter, registrar_auditoria
 
 
 def can_manage_members(user):
@@ -33,9 +33,18 @@ def cambiar_membresia(request, pk):
         if membresia.grupo_id != profile.grupo_id or (get_role(request.user) == 'administrador_subgrupo' and membresia.subgrupo_id != profile.subgrupo_id):
             return redirect('membresias:listar_membresias')
     if request.method == 'POST':
+        estado_anterior = membresia.estado
+        pago_anterior = membresia.estado_pago
         membresia.estado = request.POST.get('estado', membresia.estado)
         membresia.estado_pago = request.POST.get('estado_pago', membresia.estado_pago)
         membresia.observacion = request.POST.get('observacion', membresia.observacion).strip()
         membresia.save()
+        registrar_auditoria(
+            request.user,
+            'modificacion_membresia',
+            f'Membresía {membresia.pk} / Socio {membresia.socio_id}',
+            {'estado': estado_anterior, 'estado_pago': pago_anterior},
+            {'estado': membresia.estado, 'estado_pago': membresia.estado_pago},
+        )
         messages.success(request, 'Membresía actualizada correctamente.')
     return redirect('membresias:listar_membresias')

@@ -6,6 +6,10 @@ from django.http import FileResponse
 from django.shortcuts import render
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from apps.socios.models import Socio
 from apps.souvenirs.models import Souvenir
 from apps.core.permissions import scope_socios, is_administrative
@@ -33,7 +37,7 @@ def aplicar_filtros_socios(request):
             | Q(direccion__icontains=q)
         )
     if estado:
-        socios = socios.filter(estado=estado)
+        socios = socios.filter(membresias__estado=estado).distinct()
     if ciudad:
         socios = socios.filter(ciudad__icontains=ciudad)
     if desde:
@@ -205,3 +209,36 @@ def descargar_reporte_socios(request):
     response['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     response['Content-Disposition'] = 'attachment; filename=reporte_socios.xlsx'
     return response
+
+
+@login_required
+@user_passes_test(is_administrative, login_url='/login/')
+def descargar_reporte_socios_pdf(request):
+    socios, filtros = aplicar_filtros_socios(request)
+    buffer = io.BytesIO()
+    documento = SimpleDocTemplate(buffer, pagesize=landscape(letter), rightMargin=24, leftMargin=24, topMargin=24, bottomMargin=24)
+    estilos = getSampleStyleSheet()
+    filas = [['Código', 'Socio', 'Correo', 'CI / Carnet', 'Ciudad', 'Estado', 'Pago']]
+    for socio in socios:
+        membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('grupo', 'subgrupo').first()
+        filas.append([
+            socio.codigo_socio or '-',
+            str(socio),
+            socio.email,
+            f'{socio.carnet_ci} {socio.carnet_complemento}'.strip() or '-',
+            socio.ciudad or '-',
+            membresia.get_estado_display() if membresia else 'Dado de baja',
+            membresia.get_estado_pago_display() if membresia else '-',
+        ])
+    elementos = [Paragraph('Reporte de integrantes', estilos['Title']), Spacer(1, 12)]
+    tabla = Table(filas, repeatRows=1)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0B3D91')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.25, colors.HexColor('#D9DEE7')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+    ]))
+    elementos.append(tabla)
+    documento.build(elementos)
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='reporte_socios.pdf', content_type='application/pdf')

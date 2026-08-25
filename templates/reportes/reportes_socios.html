@@ -18,6 +18,9 @@
             <a href="{% url 'reportes:descargar_reporte_socios' %}?q={{ q|urlencode }}&estado={{ estado|urlencode }}&recibio_souvenir={{ recibio_souvenir|urlencode }}&souvenir_id={{ souvenir_id|urlencode }}&orden={{ orden|urlencode }}&desde={{ desde|urlencode }}&hasta={{ hasta|urlencode }}" class="btn btn-primary btn-lg">
                 <i class="fas fa-file-excel"></i> Descargar Excel
             </a>
+            <a href="{% url 'reportes:descargar_reporte_socios_pdf' %}?q={{ q|urlencode }}&estado={{ estado|urlencode }}&orden={{ orden|urlencode }}&desde={{ desde|urlencode }}&hasta={{ hasta|urlencode }}" class="btn btn-outline-danger btn-lg">
+                <i class="fas fa-file-pdf"></i> Descargar PDF
+            </a>
         </div>
     </div>
 
@@ -36,7 +39,9 @@
                     <select id="filtroEstado" class="form-control form-control-sm">
                         <option value="">Todos los estados</option>
                         <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
-                        <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                        <option value="suspendido" {% if estado == 'suspendido' %}selected{% endif %}>Suspendido</option>
+                        <option value="castigado" {% if estado == 'castigado' %}selected{% endif %}>Castigado</option>
+                        <option value="baja" {% if estado == 'baja' %}selected{% endif %}>Dado de baja</option>
                     </select>
                 </div>
                 <div class="col-6 col-md-2">

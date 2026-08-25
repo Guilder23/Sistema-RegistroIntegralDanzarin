@@ -15,7 +15,7 @@
             <div class="card p-3"><h4>{{ socios_activos }}</h4><p class="mb-0">Socios activos</p></div>
         </div>
         <div class="col-md-4 mb-3">
-            <div class="card p-3"><h4>{{ socios_inactivos }}</h4><p class="mb-0">Socios inactivos</p></div>
+            <div class="card p-3"><h4>{{ socios_inactivos }}</h4><p class="mb-0">Socios no activos</p></div>
         </div>
         <div class="col-md-4 mb-3">
             <div class="card p-3"><h4>{{ souvenirs_entregados }}</h4><p class="mb-0">Souvenirs entregados</p></div>
@@ -24,5 +24,12 @@
             <div class="card p-3"><h4>{{ souvenirs_pendientes }}</h4><p class="mb-0">Souvenirs pendientes</p></div>
         </div>
     </div>
+    <div class="row">
+        <div class="col-md-6 mb-3"><div class="card p-3"><h5>Sexo</h5><p class="mb-0">Varones: {{ por_sexo.varones }} | Mujeres: {{ por_sexo.mujeres }}</p></div></div>
+        <div class="col-md-6 mb-3"><div class="card p-3"><h5>Rangos de edad</h5><p class="mb-0">Menores: {{ por_edad.menores }} | Adultos: {{ por_edad.adultos }} | Mayores: {{ por_edad.mayores }}</p></div></div>
+        <div class="col-md-6 mb-3"><div class="card p-3"><h5>Estados administrativos</h5><p class="mb-0">Activos: {{ estados.activo }} | Suspendidos: {{ estados.suspendido }} | Castigados: {{ estados.castigado }} | Bajas: {{ estados.baja }}</p></div></div>
+        <div class="col-md-6 mb-3"><div class="card p-3"><h5>Pagos</h5><p class="mb-0">Al día: {{ pagos.al_dia }} | Con deuda: {{ pagos.con_deuda }}</p></div></div>
+    </div>
+    <div class="card p-3"><h5>Distribución por grupo y subgrupo</h5><div class="table-responsive"><table class="table table-sm mb-0"><thead><tr><th>Grupo</th><th>Subgrupo</th><th>Total</th></tr></thead><tbody>{% for fila in distribucion %}<tr><td>{{ fila.membresias__grupo__nombre }}</td><td>{{ fila.membresias__subgrupo__nombre }}</td><td>{{ fila.total }}</td></tr>{% empty %}<tr><td colspan="3">No hay integrantes activos.</td></tr>{% endfor %}</tbody></table></div></div>
 </div>
 {% endblock %}

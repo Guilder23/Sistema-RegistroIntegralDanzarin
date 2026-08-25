@@ -46,7 +46,9 @@
                         <select id="selectSocioEstado" class="form-control form-control-sm" name="estado">
                             <option value="">Todos los estados</option>
                             <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
-                            <option value="inactivo" {% if estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                            <option value="suspendido" {% if estado == 'suspendido' %}selected{% endif %}>Suspendido</option>
+                            <option value="castigado" {% if estado == 'castigado' %}selected{% endif %}>Castigado</option>
+                            <option value="baja" {% if estado == 'baja' %}selected{% endif %}>Dado de baja</option>
                         </select>
                     </div>
                 </div>
@@ -87,8 +89,8 @@
                         <td>{{ socio.email }}</td>
                         <td>{{ socio.telefono|default:'-' }}</td>
                         <td>
-                            <span class="badge-estado {% if socio.estado == 'activo' %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
-                                {{ socio.get_estado_display }}
+                            <span class="badge-estado {% if socio.membresia_visible.estado == 'activo' %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {{ socio.membresia_visible.get_estado_display|default:'Sin membresía' }}
                             </span>
                         </td>
                         <td>{{ socio.fecha_ingreso|date:'d/m/Y' }}</td>
@@ -111,7 +113,7 @@
                                 data-carnet-complemento="{{ socio.carnet_complemento }}"
                                 data-fecha-nacimiento="{{ socio.fecha_nacimiento|date:'Y-m-d' }}"
                                 data-razon="{{ socio.razon }}"
-                                data-estado="{{ socio.get_estado_display }}"
+                                data-estado="{{ socio.membresia_visible.get_estado_display|default:'Sin membresía' }}"
                                 data-souvenir="{% if socio.recibio_souvenir %}Sí{% else %}No{% endif %}"
                                 data-fecha-ingreso="{{ socio.fecha_ingreso|date:'d/m/Y' }}"
                                 ><i class="fas fa-eye"></i></button>
@@ -137,7 +139,7 @@
                                 data-nombre="{{ socio.nombre }} {% if socio.apellido_paterno %}{{ socio.apellido_paterno }}{% endif %} {% if socio.apellido_materno %}{{ socio.apellido_materno }}{% endif %}"
                                 ><i class="fas fa-trash"></i></button>
                             <a href="{% url 'socios:historial_souvenirs' socio.id %}" class="btn btn-secondary btn-sm" title="Historial de souvenirs"><i class="fas fa-history"></i></a>
-                            {% if socio.estado == 'activo' %}
+                            {% if socio.membresia_visible.estado == 'activo' %}
                             <form method="post" action="{% url 'socios:desactivar_socio' socio.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button class="btn btn-secondary btn-sm" type="submit" title="Desactivar socio"><i class="fas fa-user-slash"></i></button>
