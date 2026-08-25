@@ -211,14 +211,24 @@
                                 {% if reg.grupo or reg.usuario.userprofile.grupo %}
                                     <div class="mb-1">
                                         <span class="tag-ambito-grupo">
-                                            <i class="fas fa-layer-group text-primary mr-1"></i>{{ reg.grupo.nombre|default:reg.usuario.userprofile.grupo.nombre|default:'General' }}
+                                            <i class="fas fa-layer-group text-primary mr-1"></i>
+                                            {% if reg.grupo %}
+                                                {{ reg.grupo.nombre }}
+                                            {% else %}
+                                                {{ reg.usuario.userprofile.grupo.nombre }}
+                                            {% endif %}
                                         </span>
                                     </div>
                                 {% endif %}
                                 {% if reg.subgrupo or reg.usuario.userprofile.subgrupo %}
                                     <div>
                                         <span class="tag-ambito-subgrupo">
-                                            <i class="fas fa-sitemap text-info mr-1"></i>{{ reg.subgrupo.nombre|default:reg.usuario.userprofile.subgrupo.nombre }}
+                                            <i class="fas fa-sitemap text-info mr-1"></i>
+                                            {% if reg.subgrupo %}
+                                                {{ reg.subgrupo.nombre }}
+                                            {% else %}
+                                                {{ reg.usuario.userprofile.subgrupo.nombre }}
+                                            {% endif %}
                                         </span>
                                     </div>
                                 {% endif %}

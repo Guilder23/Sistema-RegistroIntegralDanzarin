@@ -1,5 +1,5 @@
 /* ==========================================
-   ESTILOS PREMIUM DASHBOARD
+   ESTILOS PREMIUM DASHBOARD - PALETA INSTITUCIONAL VERDE
    ========================================== */
 
 .dashboard-container {
@@ -12,53 +12,54 @@
 }
 
 .dashboard-title {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #032c2a;
     letter-spacing: -0.02em;
 }
 
 .dashboard-subtitle {
     font-size: 0.95rem;
+    color: #52706d;
 }
 
 /* Dash Scope Badge */
 .dash-scope-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 11px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     position: static !important;
 }
 
 .dash-scope-badge.badge-primary {
-    background-color: #1e3a8a;
+    background-color: #05413f;
     color: #ffffff;
 }
 
 .dash-scope-badge.badge-info {
-    background-color: #0284c7;
+    background-color: #3d9b92;
     color: #ffffff;
 }
 
 .dash-scope-badge.badge-success {
-    background-color: #059669;
+    background-color: #10b981;
     color: #ffffff;
 }
 
-/* Card Tags (reemplazo de badges problemáticos) */
+/* Card Tags */
 .dash-card-tag {
     display: inline-flex;
     align-items: center;
-    padding: 3px 8px;
+    padding: 3px 9px;
     border-radius: 6px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #475569;
-    background-color: #f1f5f9;
-    border: 1px solid #e2e8f0;
+    color: #05413f;
+    background-color: #eff8f6;
+    border: 1px solid #76c7bd;
     position: static !important;
     letter-spacing: 0.02em;
 }
@@ -68,25 +69,28 @@
     border-radius: 14px;
     background: #ffffff;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #d1e7e4 !important;
 }
 
 .kpi-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 25px rgba(3, 44, 42, 0.08) !important;
 }
 
 .kpi-label {
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
+    color: #52706d;
 }
 
 .kpi-value {
     font-size: 2rem;
     line-height: 1.1;
     margin-top: 0.25rem;
+    color: #032c2a;
+    font-weight: 800;
 }
 
 .kpi-icon-wrapper {
@@ -100,28 +104,30 @@
 }
 
 /* Background subtles */
-.bg-primary-subtle { background-color: #eff6ff !important; }
-.bg-success-subtle { background-color: #ecfdf5 !important; }
-.bg-info-subtle { background-color: #f0fdfa !important; }
-.bg-purple-subtle { background-color: #faf5ff !important; }
+.bg-primary-subtle { background-color: #eff8f6 !important; color: #05413f !important; }
+.bg-success-subtle { background-color: #ecfdf5 !important; color: #065f46 !important; }
+.bg-info-subtle { background-color: #f0fdfa !important; color: #0f766e !important; }
+.bg-purple-subtle { background-color: #faf5ff !important; color: #6b21a8 !important; }
 .text-purple { color: #7e22ce !important; }
 
 /* Chart Cards */
 .chart-card {
     border-radius: 14px;
     background: #ffffff;
-    border: 1px solid #e2e8f0 !important;
+    border: 1px solid #d1e7e4 !important;
     transition: box-shadow 0.2s ease;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.04) !important;
 }
 
 .chart-card:hover {
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 8px 24px rgba(3, 44, 42, 0.08) !important;
 }
 
 .chart-card .card-header {
     border-top-left-radius: 14px;
     border-top-right-radius: 14px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid #eef5f3;
+    background: #fafcfb;
 }
 
 .chart-wrapper {
@@ -131,12 +137,12 @@
 
 /* Activity Feed */
 .list-group-item {
-    border-color: #f1f5f9;
+    border-color: #eef5f3;
     transition: background-color 0.15s ease;
 }
 
 .list-group-item:hover {
-    background-color: #f8fafc;
+    background-color: #eff8f6;
 }
 
 /* Responsive tweaks */

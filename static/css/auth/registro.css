@@ -1,50 +1,69 @@
+/* ============================================================================
+   ESTILOS PARA REGISTRO DE USUARIOS - DISEÑO INSTITUCIONAL VERDE
+   ============================================================================ */
+
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1.5rem;
     padding: 1.5rem 2rem;
-    background: #1e3a8a;
-    border-radius: 0.5rem;
-    color: #fff;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
 }
 
 .page-title {
     margin: 0;
-    font-size: 1.75rem;
-    font-weight: 600;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
 }
 
 .page-subtitle {
-    margin: 0.25rem 0 0;
-    color: rgba(255, 255, 255, 0.92);
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.95rem;
 }
 
 .card-filtros,
 .card-tabla {
-    border: 1px solid #e5e7eb;
+    border: 1px solid #d1e7e4;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
 }
 
 .tabla-usuarios thead th {
-    background: #3b82f6;
-    color: #fff;
+    background: #05413f;
+    color: #ffffff;
     border: none;
     text-transform: uppercase;
+    letter-spacing: 0.05em;
     font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.9rem 1rem;
+}
+
+.tabla-usuarios tbody tr:hover {
+    background-color: #f0fdf9;
 }
 
 .badge-estado {
     display: inline-block;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-    border: 1px solid;
-    font-size: 0.72rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    font-size: 0.74rem;
+    font-weight: 700;
 }
 
 .badge-estado-activo {
     color: #065f46;
     background: #d1fae5;
-    border-color: #6ee7b7;
+    border-color: #a7f3d0;
 }
 
 .badge-estado-inactivo {

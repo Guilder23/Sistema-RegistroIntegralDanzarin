@@ -1,34 +1,60 @@
 /* ==========================================
-   ESTILOS GENERALES - SOLO VARIABLES Y RESET
+   ESTILOS GENERALES - VARIABLES INSTITUCIONALES Y RESET
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
    ========================================== */
 
-/* Variables CSS Globales */
 :root {
-    /* Colores principales - Azul oscuro y Verde oscuro profesional */
-    --color-primario: #1e3a8a;
-    --color-primario-hover: #1e40af;
-    --color-secundario: #065f46;
-    --color-secundario-hover: #047857;
-    --color-exito: #059669;
-    --color-peligro: #dc2626;
-    --color-advertencia: #d97706;
+    /* Colores Principales Institucionales */
+    --color-primario: #05413f;
+    --color-primario-hover: #032c2a;
+    --color-primario-active: #021f1d;
+    --color-primario-light: rgba(5, 65, 63, 0.08);
+    --color-primario-subtle: #eff8f6;
+
+    /* Colores Secundarios y Acentos */
+    --color-secundario: #3d9b92;
+    --color-secundario-hover: #2e7e76;
+    --color-acento: #76c7bd;
+    --color-acento-claro: #d9efeb;
+
+    /* Tonos Oscuros */
+    --color-dark: #032c2a;
+    --color-dark-2: #123c3a;
+
+    /* Estados y Alertas */
+    --color-exito: #10b981;
+    --color-exito-hover: #059669;
+    --color-peligro: #ef4444;
+    --color-peligro-hover: #dc2626;
+    --color-advertencia: #f59e0b;
     --color-info: #0891b2;
-    --color-fondo: #f9fafb;
-    --color-texto: #1f2937;
-    --color-texto-secundario: #6b7280;
+
+    /* Fondos, Textos y Bordes */
+    --color-fondo: #f4faf8;
+    --color-fondo-card: #ffffff;
+    --color-texto: #0f2927;
+    --color-texto-secundario: #52706d;
     --color-blanco: #ffffff;
-    --color-gris-claro: #e5e7eb;
-    --color-gris-oscuro: #4b5563;
-    --color-borde: #e5e7eb;
+    --color-gris-claro: #e6f0ee;
+    --color-gris-oscuro: #3a5451;
+    --color-borde: #d1e7e4;
+    --color-borde-focus: #3d9b92;
     
-    --fuente-principal: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    --radio-borde: 6px;
-    --radio-sm: 4px;
-    --radio-md: 6px;
-    --radio-lg: 8px;
-    --sombra: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --sombra-hover: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --transicion: all 0.2s ease;
+    /* Tipografía y Geometría */
+    --fuente-principal: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --radio-sm: 6px;
+    --radio-md: 10px;
+    --radio-lg: 14px;
+    --radio-xl: 18px;
+    --radio-pill: 9999px;
+    --radio-borde: 10px;
+
+    /* Sombras Elevadas y Suaves */
+    --sombra-sm: 0 2px 8px rgba(3, 44, 42, 0.05);
+    --sombra: 0 8px 24px rgba(3, 44, 42, 0.08);
+    --sombra-hover: 0 14px 35px rgba(3, 44, 42, 0.12);
+    --sombra-lg: 0 20px 45px rgba(3, 44, 42, 0.16);
+    --transicion: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Reset Básico */
@@ -43,10 +69,62 @@ body {
     background-color: var(--color-fondo);
     color: var(--color-texto);
     line-height: 1.6;
-    font-size: 14px;
+    font-size: 14.5px;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Utilidades Globales Mínimas */
+/* Enlaces */
+a {
+    color: var(--color-primario);
+    transition: var(--transicion);
+}
+
+a:hover {
+    color: var(--color-secundario);
+    text-decoration: none;
+}
+
+/* Botones Principales Globales */
+.btn-primary {
+    background-color: var(--color-primario) !important;
+    border-color: var(--color-primario) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(5, 65, 63, 0.25);
+    font-weight: 600;
+    transition: var(--transicion);
+    border-radius: var(--radio-sm);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background-color: var(--color-primario-hover) !important;
+    border-color: var(--color-primario-hover) !important;
+    box-shadow: 0 6px 20px rgba(3, 44, 42, 0.32);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    background-color: var(--color-primario-active) !important;
+    transform: translateY(0);
+}
+
+.btn-outline-primary {
+    color: var(--color-primario) !important;
+    border-color: var(--color-primario) !important;
+    background-color: transparent !important;
+    font-weight: 600;
+    transition: var(--transicion);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    background-color: var(--color-primario) !important;
+    border-color: var(--color-primario) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(5, 65, 63, 0.2);
+}
+
+/* Utilidades Globales */
 .texto-centro { text-align: center; }
 .texto-derecha { text-align: right; }
 .texto-izquierda { text-align: left; }

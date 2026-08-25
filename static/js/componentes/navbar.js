@@ -1,29 +1,33 @@
+/* ============================================================================
+   NAVBAR JS - Interacciones del Menú de Usuario y Notificaciones
+   ============================================================================ */
+
 document.addEventListener('DOMContentLoaded', function () {
-    const notificacionesBtn = document.getElementById('notificacionesBtn');
-    const notificacionesDropdown = document.getElementById('notificacionesDropdown');
     const usuarioBtn = document.getElementById('usuarioBtn');
     const usuarioDropdown = document.getElementById('usuarioDropdown');
-
-    if (notificacionesBtn && notificacionesDropdown) {
-        notificacionesBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            usuarioDropdown?.classList.remove('show');
-            notificacionesDropdown.classList.toggle('show');
-        });
-    }
 
     if (usuarioBtn && usuarioDropdown) {
         usuarioBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            notificacionesDropdown?.classList.remove('show');
+            const isShown = usuarioDropdown.classList.contains('show');
             usuarioDropdown.classList.toggle('show');
+            usuarioBtn.setAttribute('aria-expanded', !isShown);
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!usuarioDropdown.contains(e.target) && !usuarioBtn.contains(e.target)) {
+                usuarioDropdown.classList.remove('show');
+                usuarioBtn.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Cerrar con Escape
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && usuarioDropdown.classList.contains('show')) {
+                usuarioDropdown.classList.remove('show');
+                usuarioBtn.setAttribute('aria-expanded', 'false');
+            }
         });
     }
-
-    document.addEventListener('click', function () {
-        notificacionesDropdown?.classList.remove('show');
-        usuarioDropdown?.classList.remove('show');
-    });
 });

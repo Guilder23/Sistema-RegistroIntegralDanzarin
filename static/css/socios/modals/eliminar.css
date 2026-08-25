@@ -1,6 +1,6 @@
 .modal-eliminar-socio .modal-header {
-    background: #dc2626;
-    color: #fff;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: #ffffff;
 }
 
 .modal-eliminar-socio .modal-dialog {

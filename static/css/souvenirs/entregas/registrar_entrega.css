@@ -1,11 +1,22 @@
-.souvenir-delivery-card { max-width: 820px; margin: 0 auto; }
+/* ============================================================================
+   ESTILOS PARA REGISTRAR ENTREGA - DISEÑO INSTITUCIONAL VERDE
+   ============================================================================ */
+
+.souvenir-delivery-card {
+    max-width: 820px;
+    margin: 0 auto;
+    border: 1px solid #d1e7e4;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(3, 44, 42, 0.06);
+}
 
 .event-badge {
     display: inline-block;
-    padding: 0.2rem 0.45rem;
+    padding: 0.25rem 0.6rem;
     border-radius: 999px;
-    background: #e2e8f0;
-    color: #334155;
+    background: #eff8f6;
+    color: #05413f;
+    border: 1px solid #76c7bd;
     font-size: 0.78rem;
     line-height: 1.25;
     max-width: 140px;
@@ -13,6 +24,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
     vertical-align: middle;
+    font-weight: 600;
 }
 
 .autocomplete-group {
@@ -25,15 +37,15 @@
     left: 0;
     right: 0;
     z-index: 999;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #d1e7e4;
     border-top: none;
     background: #ffffff;
     max-height: 240px;
     overflow-y: auto;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+    box-shadow: 0 8px 24px rgba(3, 44, 42, 0.12);
     display: none;
-    border-bottom-left-radius: 0.5rem;
-    border-bottom-right-radius: 0.5rem;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 .autocomplete-suggestions.visible {
@@ -46,23 +58,24 @@
     padding: 0.75rem 1rem;
     text-align: left;
     cursor: pointer;
-    color: #0f172a;
+    color: #032c2a;
     font-size: 0.93rem;
     border: none;
     background: transparent;
+    transition: background 0.15s ease;
 }
 
 .autocomplete-item:hover {
-    background: #f8fafc;
+    background: #eff8f6;
+    color: #05413f;
 }
 
 .autocomplete-item:focus {
     outline: none;
-    background: #e2e8f0;
+    background: #d9efeb;
 }
 
 .autocomplete-no-match {
-    color: #64748b;
+    color: #52706d;
     cursor: default;
 }
-

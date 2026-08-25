@@ -1,10 +1,20 @@
+/* ============================================================================
+   ESTILOS PARA REPORTES DE SOCIOS - DISEÑO INSTITUCIONAL VERDE
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
+   ============================================================================ */
+
 .page-header {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
 }
 
 .page-header-content {
@@ -14,15 +24,17 @@
 }
 
 .page-title {
-    font-size: 1.9rem;
+    font-size: 1.85rem;
     font-weight: 700;
-    color: #12224d;
+    color: #ffffff;
     margin-bottom: 0;
+    letter-spacing: -0.01em;
 }
 
 .page-subtitle {
-    color: #546081;
+    color: rgba(255, 255, 255, 0.88);
     margin-bottom: 0;
+    font-size: 0.95rem;
 }
 
 .page-header-actions {
@@ -31,15 +43,19 @@
 }
 
 .card-filtros {
-    border-radius: 8px;
-    box-shadow: 0 18px 40px rgba(18, 34, 77, 0.08);
-    border: none;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
+    border: 1px solid #d1e7e4;
+    background: #ffffff;
+    margin-bottom: 1.25rem;
 }
 
 .card-tabla {
-    border-radius: 8px;
-    box-shadow: 0 18px 40px rgba(18, 34, 77, 0.08);
-    border: none;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
+    border: 1px solid #d1e7e4;
+    background: #ffffff;
+    overflow: hidden;
 }
 
 .reportes-filtros-form {
@@ -59,10 +75,16 @@
 .reportes-filtros-form .form-select {
     width: 100%;
     min-height: 38px;
-    border-radius: 6px;
-    border: 1px solid #dce1ed;
-    background: #f8f9ff;
-    color: #22303b;
+    border-radius: 8px;
+    border: 1px solid #d1e7e4;
+    background: #fafcfb;
+    color: #032c2a;
+}
+
+.reportes-filtros-form .form-control:focus,
+.reportes-filtros-form .form-select:focus {
+    border-color: #3d9b92;
+    box-shadow: 0 0 0 3px rgba(61, 155, 146, 0.2);
 }
 
 .reportes-filtros-form .input-group-sm .form-control,
@@ -87,17 +109,18 @@
     align-items: center;
     justify-content: center;
     height: 38px;
-    border-radius: 6px 0 0 6px;
+    border-radius: 8px 0 0 8px;
     border-right: 0;
-    border: 1px solid #dce1ed;
+    border: 1px solid #d1e7e4;
     background: #ffffff;
+    color: #52706d;
 }
 
 .reportes-filtros-form .input-group .form-control {
     flex: 1 1 auto;
     min-width: 0;
     border-left: none;
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 8px 8px 0;
 }
 
 .btn-limpiar-filtros {
@@ -107,7 +130,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: 8px;
+    border: 1px solid #d1e7e4;
+    background: #ffffff;
+    color: #52706d;
+    transition: all 0.2s ease;
+}
+
+.btn-limpiar-filtros:hover {
+    background: #eff8f6;
+    color: #05413f;
+    border-color: #76c7bd;
 }
 
 @media (max-width: 992px) {
@@ -128,46 +161,45 @@
 }
 
 .tabla-socios thead th {
-    color: #1c2f54;
+    color: #ffffff;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.03em;
-    background: transparent;
-    padding: 1rem 0.85rem;
-}
-
-.tabla-socios tbody tr {
-    background: #f8faff;
-    border-radius: 16px;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+    background: #05413f;
+    padding: 0.9rem 1rem;
 }
 
 .tabla-socios tbody tr td {
-    padding: 1rem 0.85rem;
+    padding: 0.95rem 1rem;
     vertical-align: middle;
+    border-top: 1px solid #eef5f3;
 }
 
 .tabla-socios tbody tr:hover {
-    background: #e8f0ff;
+    background: #f0fdf9;
 }
 
 .badge-estado {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 
 .badge-estado-activo {
-    background: rgba(26, 161, 114, 0.12);
-    color: #1aa172;
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
 }
 
 .badge-estado-inactivo {
-    background: rgba(241, 107, 110, 0.14);
-    color: #d43742;
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
 }
 
 .codigo-socio-badge {
@@ -175,25 +207,25 @@
     align-items: center;
     justify-content: center;
     max-width: 100%;
-    padding: 0.22rem 0.45rem;
+    padding: 0.25rem 0.55rem;
     border-radius: 6px;
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1e3a8a;
+    background: linear-gradient(135deg, #eff8f6 0%, #d9efeb 100%);
+    color: #05413f;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    border: 1px solid #93c5fd;
+    border: 1px solid #76c7bd;
     line-height: 1.2;
 }
 
 .tabla-socios thead th:nth-child(2),
 .tabla-socios tbody td:nth-child(2) {
-    width: 96px;
-    min-width: 80px;
-    max-width: 110px;
+    width: 100px;
+    min-width: 85px;
+    max-width: 120px;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
 }

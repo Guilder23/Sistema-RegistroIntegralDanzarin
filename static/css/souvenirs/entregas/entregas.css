@@ -1,2 +1,26 @@
-.souvenir-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; }
-.table thead th { background: #f8f9fa; }
+/* ============================================================================
+   ESTILOS PARA ENTREGAS DE SOUVENIRS - DISEÑO INSTITUCIONAL VERDE
+   ============================================================================ */
+
+.souvenir-thumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #76c7bd;
+}
+
+.table thead th {
+    background: #05413f;
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+    padding: 0.9rem 1rem;
+    border: none;
+}
+
+.table tbody tr:hover {
+    background-color: #f0fdf9;
+}

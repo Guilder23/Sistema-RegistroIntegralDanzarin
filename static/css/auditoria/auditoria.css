@@ -1,5 +1,5 @@
 /* ==========================================
-   ESTILOS HISTORIAL DE AUDITORÍA
+   ESTILOS HISTORIAL DE AUDITORÍA - PALETA INSTITUCIONAL VERDE
    ========================================== */
 
 .auditoria-page {
@@ -12,98 +12,103 @@
 }
 
 .auditoria-page .page-title {
-    font-size: 1.65rem;
+    font-size: 1.75rem;
     font-weight: 700;
-    color: #1e293b;
+    color: #032c2a;
 }
 
 .auditoria-page .page-subtitle {
     font-size: 0.95rem;
+    color: #52706d;
 }
 
 /* Header Scope Badge */
 .header-scope-badge {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.8rem;
-    font-weight: 600;
+    font-weight: 700;
     position: static !important;
 }
 
 .header-scope-badge.badge-primary {
-    background-color: #1e3a8a;
+    background-color: #05413f;
     color: #ffffff;
 }
 
 .header-scope-badge.badge-info {
-    background-color: #0284c7;
+    background-color: #3d9b92;
     color: #ffffff;
 }
 
 .header-scope-badge.badge-success {
-    background-color: #059669;
+    background-color: #10b981;
     color: #ffffff;
 }
 
 /* Header Mini Stats */
 .stat-mini-card {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 0.5rem 1rem;
+    border: 1px solid #d1e7e4;
+    border-radius: 12px;
+    padding: 0.6rem 1.15rem;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 8px rgba(3, 44, 42, 0.04);
 }
 
 .stat-mini-label {
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #64748b;
-    font-weight: 600;
+    color: #52706d;
+    font-weight: 700;
 }
 
 .stat-mini-value {
-    font-size: 1.25rem;
+    font-size: 1.35rem;
     font-weight: 700;
-    color: #0f172a;
+    color: #032c2a;
     line-height: 1.2;
 }
 
 /* Card Filtros */
 .card-filtros {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1px solid #d1e7e4;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(3, 44, 42, 0.04);
 }
 
 .card-filtros .card-header {
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    border-bottom: 1px solid #eef5f3;
+    background: #fafcfb;
 }
 
 .card-filtros .form-control,
 .card-filtros .form-select {
     border-radius: 8px;
     font-size: 0.88rem;
-    border-color: #cbd5e1;
+    border-color: #d1e7e4;
 }
 
 .card-filtros .form-control:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    border-color: #3d9b92;
+    box-shadow: 0 0 0 3px rgba(61, 155, 146, 0.2);
 }
 
 /* Card Tabla */
 .card-tabla {
     background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
+    border: 1px solid #d1e7e4;
+    border-radius: 14px;
     overflow: hidden;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
 }
 
 .card-tabla .table th {
@@ -111,21 +116,22 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 700;
-    color: #475569;
-    background-color: #f8fafc;
-    border-bottom: 1px solid #e2e8f0;
-    padding: 0.85rem 1rem;
+    color: #ffffff;
+    background-color: #05413f;
+    border: none;
+    padding: 0.9rem 1rem;
 }
 
 .card-tabla .table td {
     padding: 0.95rem 1rem;
     vertical-align: middle;
     font-size: 0.9rem;
-    border-color: #f1f5f9;
+    border-top: 1px solid #eef5f3;
+    color: #123c3a;
 }
 
 .card-tabla .table tr:hover {
-    background-color: #f8fafc;
+    background-color: #f0fdf9;
 }
 
 /* ==========================================
@@ -145,10 +151,10 @@
     padding: 4px 10px;
     border-radius: 6px;
     font-size: 0.82rem;
-    font-weight: 600;
-    color: #1e3a8a;
-    background-color: #eff6ff;
-    border: 1px solid #bfdbfe;
+    font-weight: 700;
+    color: #05413f;
+    background-color: #eff8f6;
+    border: 1px solid #76c7bd;
     white-space: nowrap;
     position: static !important;
 }
@@ -159,7 +165,7 @@
     padding: 3px 9px;
     border-radius: 6px;
     font-size: 0.80rem;
-    font-weight: 500;
+    font-weight: 600;
     color: #0f766e;
     background-color: #f0fdfa;
     border: 1px solid #99f6e4;
@@ -174,9 +180,9 @@
     border-radius: 6px;
     font-size: 0.80rem;
     font-weight: 500;
-    color: #475569;
-    background-color: #f1f5f9;
-    border: 1px solid #cbd5e1;
+    color: #52706d;
+    background-color: #eef5f3;
+    border: 1px solid #d1e7e4;
     white-space: nowrap;
     position: static !important;
 }
@@ -185,48 +191,48 @@
 .tag-rol-superadmin {
     display: inline-flex;
     align-items: center;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #ffffff;
-    background-color: #1e3a8a;
+    background-color: #05413f;
     position: static !important;
 }
 
 .tag-rol-grupo {
     display: inline-flex;
     align-items: center;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #ffffff;
-    background-color: #0284c7;
+    background-color: #3d9b92;
     position: static !important;
 }
 
 .tag-rol-subgrupo {
     display: inline-flex;
     align-items: center;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #ffffff;
-    background-color: #059669;
+    background-color: #10b981;
     position: static !important;
 }
 
 .tag-rol-usuario {
     display: inline-flex;
     align-items: center;
-    padding: 2px 7px;
+    padding: 2px 8px;
     border-radius: 12px;
     font-size: 0.72rem;
     font-weight: 600;
     color: #ffffff;
-    background-color: #64748b;
+    background-color: #52706d;
     position: static !important;
 }
 
@@ -236,7 +242,7 @@
     align-items: center;
     padding: 0.35em 0.75em;
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 700;
     border-radius: 6px;
     letter-spacing: 0.02em;
     position: static !important;
@@ -249,9 +255,9 @@
 }
 
 .badge-edicion {
-    background-color: #eff6ff;
-    color: #1e40af;
-    border: 1px solid #bfdbfe;
+    background-color: #eff8f6;
+    color: #05413f;
+    border: 1px solid #76c7bd;
 }
 
 .badge-eliminacion {
@@ -280,10 +286,10 @@
 
 /* Detalles de Cambio */
 .detalles-cambio {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 0.45rem 0.65rem;
+    background-color: #fafcfb;
+    border: 1px solid #d1e7e4;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
     max-width: 380px;
     word-break: break-word;
 }
@@ -294,21 +300,23 @@
 
 /* Paginación */
 .pagination .page-link {
-    border-radius: 6px;
+    border-radius: 8px;
     margin: 0 2px;
-    color: #334155;
-    border-color: #e2e8f0;
+    color: #123c3a;
+    border-color: #d1e7e4;
     font-size: 0.85rem;
-    font-weight: 500;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
 .pagination .page-item.active .page-link {
-    background-color: #1e3a8a;
-    border-color: #1e3a8a;
+    background-color: #05413f;
+    border-color: #05413f;
     color: #ffffff;
+    box-shadow: 0 3px 10px rgba(5, 65, 63, 0.25);
 }
 
 .pagination .page-link:hover {
-    background-color: #f1f5f9;
-    color: #1e3a8a;
+    background-color: #eff8f6;
+    color: #05413f;
 }

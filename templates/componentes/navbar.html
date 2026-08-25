@@ -2,36 +2,61 @@
 <nav class="navbar navbar-principal">
     <div class="navbar-container">
         <div class="navbar-left">
-            <button class="sidebar-toggle-btn" id="sidebarToggle" title="Alternar menu">
+            <button class="sidebar-toggle-btn" id="sidebarToggle" title="Alternar menú" aria-label="Alternar menú">
                 <i class="fas fa-bars"></i>
             </button>
             <div class="navbar-logo">
                 <a href="{% url 'core:inicio' %}">
-                    <img src="{% static 'img/LogoCarnavalOruroClub.webp' %}" alt="Club carnaval Oruro" style="height:48px;max-width:180px;object-fit:contain;vertical-align:middle;">
-                    <span class="navbar-brand-text" style="font-size:1.3rem;vertical-align:middle;"><span class="brand-primary">Club carnaval</span> <span class="brand-secondary">Oruro</span></span>
+                    <img src="{% static 'img/LogoCarnavalOruroClub.webp' %}" alt="Club Carnaval Oruro" class="navbar-logo-img">
+                    <span class="navbar-brand-text">
+                        <span class="brand-primary">Club carnaval</span>
+                        <span class="brand-secondary">Oruro</span>
+                    </span>
                 </a>
             </div>
         </div>
 
         <div class="navbar-right">
-
             <div class="navbar-usuario">
-                <button class="navbar-user-btn" id="usuarioBtn" title="Mi cuenta">
-                    <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <button class="navbar-user-btn" id="usuarioBtn" title="Mi cuenta" aria-haspopup="true" aria-expanded="false">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
                     <div class="user-info">
                         <span class="user-name">{{ user.username|title }}</span>
                         <span class="user-role">{{ user.userprofile.get_rol_display|default:'Miembro' }}</span>
                     </div>
-                    <i class="fas fa-chevron-down"></i>
+                    <i class="fas fa-chevron-down chevron-icon"></i>
                 </button>
                 <div class="navbar-dropdown usuario-dropdown" id="usuarioDropdown">
-                    <a href="{% url 'socios:perfil_socio' %}" class="dropdown-item"><i class="fas fa-user-circle"></i> {{ user.get_full_name|default:user.username }}</a>
-                    {% if user.userprofile.rol != 'miembro' %}
-                    <a href="{% url 'core:registro' %}" class="dropdown-item"><i class="fas fa-user-plus"></i> Registrar Usuarios</a>
-                    {% comment %} <a href="{% url 'dashboard:dashboard' %}" class="dropdown-item"><i class="fas fa-chart-pie"></i> Dashboard</a> {% endcomment %}
-                    {% endif %}
+                    <div class="dropdown-user-header">
+                        <div class="user-avatar-large">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div class="user-header-text">
+                            <span class="user-header-name">{{ user.get_full_name|default:user.username }}</span>
+                            <span class="user-header-role">
+                                <i class="fas fa-circle-check"></i> {{ user.userprofile.get_rol_display|default:'Miembro' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="dropdown-items">
+                        <a href="{% url 'socios:perfil_socio' %}" class="dropdown-item">
+                            <i class="fas fa-user-circle"></i>
+                            <span>Mi Perfil</span>
+                        </a>
+                        {% if user.userprofile.rol != 'miembro' %}
+                        <a href="{% url 'core:registro' %}" class="dropdown-item">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Registrar Usuarios</span>
+                        </a>
+                        {% endif %}
+                    </div>
                     <div class="dropdown-divider"></div>
-                    <a href="{% url 'core:logout' %}" class="dropdown-item dropdown-item-logout"><i class="fas fa-sign-out-alt"></i> Cerrar Sesion</a>
+                    <a href="{% url 'core:logout' %}" class="dropdown-item dropdown-item-logout">
+                        <i class="fas fa-arrow-right-from-bracket"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
                 </div>
             </div>
         </div>

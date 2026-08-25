@@ -1,1 +1,113 @@
-.gestion-page{padding:1.5rem 0}.gestion-page .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}.gestion-page .page-subtitle{color:#687386;margin:0}.gestion-page .card{border:1px solid #e6e9ef;box-shadow:0 8px 24px rgba(25,35,52,.05);border-radius:8px}.gestion-page .table th{font-size:.76rem;text-transform:uppercase;letter-spacing:.04em;color:#687386;background:#f7f8fa}.gestion-page .table td{vertical-align:middle}.estado-suspendido{background:#fff0c2;color:#7a5700}.estado-castigado{background:#ffe0e0;color:#8c2020}.estado-baja{background:#edf0f3;color:#52606d}
+/* ============================================================================
+   ESTILOS PARA MEMBRESÍAS - DISEÑO INSTITUCIONAL VERDE
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
+   ============================================================================ */
+
+.gestion-page {
+    padding: 0;
+}
+
+.gestion-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
+}
+
+.gestion-page .page-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+}
+
+.gestion-page .page-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.95rem;
+}
+
+.gestion-page .card {
+    border: 1px solid #d1e7e4;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.gestion-page .card-tabla {
+    overflow: hidden;
+}
+
+.gestion-page .table th {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    background: #05413f;
+    padding: 0.9rem 1rem;
+    border: none;
+}
+
+.gestion-page .table td {
+    vertical-align: middle;
+    padding: 0.95rem 1rem;
+    border-top: 1px solid #eef5f3;
+}
+
+.gestion-page .table tbody tr:hover {
+    background-color: #f0fdf9;
+}
+
+/* Badges de Estado Específicos de Membresía */
+.badge-estado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.estado-activo {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.estado-suspendido {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+}
+
+.estado-castigado {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.estado-baja {
+    background: #e2ecea;
+    color: #52706d;
+    border: 1px solid #d1e7e4;
+}
+
+.badge-estado-activo {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.badge-estado-inactivo {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}

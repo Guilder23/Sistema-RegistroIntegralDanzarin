@@ -1,61 +1,421 @@
 /* ============================================================================
-   ESTILOS PARA BASE.HTML - Layout principal
+   ESTILOS PARA BASE.HTML - Layout Principal, Tablas y Modales Globales
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
    ============================================================================ */
 
 /* Contenedor principal del layout */
 .main-container {
-    margin-left: 220px;
-    margin-top: 10px;
-    transition: margin-left 0.2s ease;
+    margin-left: 230px;
+    margin-top: 0;
+    transition: margin-left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: calc(100vh - 64px);
+    background-color: var(--color-fondo);
 }
 
 /* Ajuste cuando el sidebar está colapsado */
 body.sidebar-collapsed .main-container {
-    margin-left: 60px;
+    margin-left: 70px;
 }
 
 .content {
-    padding: 1.5rem;
-    min-height: calc(100vh - 60px);
-    background: #f8f9fa;
+    padding: 1.75rem 2rem;
+    min-height: calc(100vh - 64px);
+    background: var(--color-fondo);
 }
 
-/* Alertas de Bootstrap personalizadas */
+/* ============================================================================
+   TARJETAS Y CONTENEDORES GLOBALES
+   ============================================================================ */
+
+.card {
+    background-color: var(--color-fondo-card);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-sm);
+    transition: var(--transicion);
+}
+
+.card:hover {
+    box-shadow: var(--sombra);
+}
+
+/* Header de Páginas de Gestión */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.75rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-dark) 100%);
+    border-radius: var(--radio-lg);
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.page-header::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 280px;
+    height: 280px;
+    background: radial-gradient(circle, rgba(118, 199, 189, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-title i {
+    color: var(--color-acento);
+}
+
+.page-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.95rem;
+}
+
+/* Tarjeta de Filtros */
+.card-filtros {
+    background: #ffffff;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-md);
+    box-shadow: var(--sombra-sm);
+    margin-bottom: 1.25rem;
+}
+
+.card-filtros .form-control,
+.card-filtros .form-select,
+.form-control {
+    border-radius: var(--radio-sm);
+    border: 1px solid var(--color-borde);
+    font-size: 0.9rem;
+    color: var(--color-texto);
+    background-color: #ffffff;
+    transition: var(--transicion);
+}
+
+.form-control:focus,
+.card-filtros .form-control:focus {
+    border-color: var(--color-secundario);
+    box-shadow: 0 0 0 3px rgba(61, 155, 146, 0.2);
+    outline: none;
+}
+
+/* ============================================================================
+   ESTILOS MODERNOS GLOBALES PARA TABLAS
+   ============================================================================ */
+
+.card-tabla {
+    background: #ffffff;
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-lg);
+    box-shadow: var(--sombra-sm);
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+}
+
+.table-responsive {
+    border-radius: var(--radio-lg);
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--color-texto);
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table thead th {
+    background: var(--color-primario);
+    color: #ffffff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.9rem 1rem;
+    border: none;
+    vertical-align: middle;
+}
+
+.table tbody td {
+    padding: 0.95rem 1rem;
+    vertical-align: middle;
+    border-top: 1px solid var(--color-gris-claro);
+    font-size: 0.9rem;
+    color: var(--color-texto);
+    transition: background-color 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background-color: var(--color-primario-subtle);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Badges de Código */
+.codigo-badge,
+.codigo-socio-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: var(--color-acento-claro);
+    color: var(--color-primario);
+    border: 1px solid var(--color-acento);
+}
+
+/* Badges de Estado */
+.badge-estado {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.75rem;
+    border-radius: var(--radio-pill);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.3;
+    border: 1px solid transparent;
+}
+
+.badge-estado-activo {
+    background-color: #d1fae5;
+    color: #065f46;
+    border-color: #a7f3d0;
+}
+
+.badge-estado-inactivo {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* Botones de Acción en Tablas */
+.btn-icon {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    line-height: 1;
+    border: none;
+    transition: var(--transicion);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.btn-icon:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.btn-icon.btn-info {
+    background-color: var(--color-secundario) !important;
+    color: #ffffff !important;
+}
+
+.btn-icon.btn-info:hover {
+    background-color: var(--color-secundario-hover) !important;
+}
+
+.btn-icon.btn-warning {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+}
+
+.btn-icon.btn-warning:hover {
+    background-color: #d97706 !important;
+}
+
+.btn-icon.btn-danger {
+    background-color: var(--color-peligro) !important;
+    color: #ffffff !important;
+}
+
+.btn-icon.btn-danger:hover {
+    background-color: var(--color-peligro-hover) !important;
+}
+
+/* Paginación Moderna */
+.pagination {
+    gap: 0.35rem;
+}
+
+.pagination .page-link {
+    border-radius: 8px;
+    color: var(--color-texto);
+    border: 1px solid var(--color-borde);
+    font-weight: 600;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.85rem;
+    transition: var(--transicion);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--color-primario);
+    border-color: var(--color-primario);
+    color: #ffffff;
+    box-shadow: 0 3px 10px rgba(5, 65, 63, 0.25);
+}
+
+.pagination .page-link:hover {
+    background-color: var(--color-primario-subtle);
+    border-color: var(--color-acento);
+    color: var(--color-primario);
+}
+
+/* ============================================================================
+   ESTILOS MODERNOS GLOBALES PARA MODALES
+   ============================================================================ */
+
+.modal-content {
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-xl);
+    box-shadow: var(--sombra-lg);
+    overflow: hidden;
+    background-color: #ffffff;
+}
+
+.modal-header {
+    padding: 1.25rem 1.75rem;
+    border-bottom: 1px solid var(--color-borde);
+    background: var(--color-primario);
+    color: #ffffff;
+    align-items: center;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-header .close {
+    color: #ffffff;
+    text-shadow: none;
+    opacity: 0.8;
+    font-size: 1.6rem;
+    padding: 0.5rem;
+    margin: -0.5rem -0.5rem -0.5rem auto;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transicion);
+}
+
+.modal-header .close:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+.modal-body {
+    padding: 1.75rem;
+    color: var(--color-texto);
+}
+
+.modal-footer {
+    padding: 1.1rem 1.75rem;
+    border-top: 1px solid var(--color-gris-claro);
+    background: #fafcfb;
+}
+
+/* Variantes Temáticas de Header de Modal */
+.modal-crear .modal-header,
+.modal-crear-gestion .modal-header,
+.modal-crear-socio .modal-header {
+    background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-dark) 100%);
+    color: #ffffff;
+}
+
+.modal-ver .modal-header,
+.modal-ver-gestion .modal-header,
+.modal-ver-socio .modal-header {
+    background: linear-gradient(135deg, var(--color-secundario) 0%, #0f766e 100%);
+    color: #ffffff;
+}
+
+.modal-editar .modal-header,
+.modal-editar-gestion .modal-header,
+.modal-editar-socio .modal-header {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    color: #ffffff;
+}
+
+.modal-eliminar .modal-header,
+.modal-eliminar-gestion .modal-header,
+.modal-eliminar-socio .modal-header {
+    background: linear-gradient(135deg, var(--color-peligro) 0%, var(--color-peligro-hover) 100%);
+    color: #ffffff;
+}
+
+/* ============================================================================
+   ALERTAS Y MENSAJES FLOTANTES
+   ============================================================================ */
+
 .alert {
     padding: 1rem 1.25rem;
-    border-radius: 10px;
+    border-radius: var(--radio-md);
     margin-bottom: 1.25rem;
-    border-left: 4px solid;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: 1px solid transparent;
+    border-left: 5px solid;
+    box-shadow: var(--sombra-sm);
+    font-weight: 500;
 }
 
 .alert-success {
     background-color: #f0fdf4;
     color: #166534;
-    border-left-color: #26de81;
+    border-left-color: var(--color-exito);
+    border-color: #bbf7d0;
 }
 
 .alert-danger, .alert-error {
     background-color: #fef2f2;
     color: #991b1b;
-    border-left-color: #ff4757;
+    border-left-color: var(--color-peligro);
+    border-color: #fecaca;
 }
 
 .alert-warning {
     background-color: #fffbeb;
     color: #92400e;
-    border-left-color: #f7b731;
+    border-left-color: var(--color-advertencia);
+    border-color: #fde68a;
 }
 
 .alert-info {
-    background-color: #eff6ff;
-    color: #1e40af;
-    border-left-color: #4bcffa;
+    background-color: #f0fdfa;
+    color: #115e59;
+    border-left-color: var(--color-secundario);
+    border-color: #99f6e4;
 }
-
-/* ============================================================================
-   MENSAJES - Notificaciones en esquina inferior derecha
-   ============================================================================ */
 
 /* Contenedor de mensajes en esquina inferior derecha */
 .messages-container {
@@ -69,13 +429,13 @@ body.sidebar-collapsed .main-container {
 
 .messages-container .alert {
     margin-bottom: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 24px rgba(3, 44, 42, 0.15);
     animation: slideInRight 0.3s ease-out;
     pointer-events: auto;
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;
-    padding-right: 3rem !important; /* Espacio para el botón X */
+    padding-right: 3rem !important;
     position: relative;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -89,11 +449,10 @@ body.sidebar-collapsed .main-container {
     padding: 0;
     background: transparent;
     border: none;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 700;
-    line-height: 1;
     color: inherit;
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: pointer;
     width: 24px;
     height: 24px;
@@ -101,17 +460,12 @@ body.sidebar-collapsed .main-container {
     align-items: center;
     justify-content: center;
     border-radius: 4px;
-    transition: all 0.2s ease;
+    transition: var(--transicion);
 }
 
 .messages-container .alert .close:hover {
     opacity: 1;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.messages-container .alert .close:active {
-    background: rgba(0, 0, 0, 0.2);
-    transform: translateY(-50%) scale(0.95);
+    background: rgba(0, 0, 0, 0.08);
 }
 
 .messages-container .alert.fade-out {
@@ -119,25 +473,13 @@ body.sidebar-collapsed .main-container {
 }
 
 @keyframes slideInRight {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(400px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
 @keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(400px);
-        opacity: 0;
-    }
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(400px); opacity: 0; }
 }
 
 /* RESPONSIVE */
@@ -145,11 +487,22 @@ body.sidebar-collapsed .main-container {
     .main-container {
         margin-left: 0 !important;
     }
+    
+    .content {
+        padding: 1.25rem 1rem;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem 1.5rem;
+    }
 }
 
 @media (max-width: 576px) {
     .content {
-        padding: 1rem;
+        padding: 1rem 0.75rem;
     }
     
     .messages-container {
@@ -157,10 +510,5 @@ body.sidebar-collapsed .main-container {
         right: 10px !important;
         bottom: 10px !important;
         max-width: none;
-    }
-    
-    .messages-container .alert {
-        font-size: 0.9rem;
-        padding: 0.75rem 2.5rem 0.75rem 1rem !important;
     }
 }

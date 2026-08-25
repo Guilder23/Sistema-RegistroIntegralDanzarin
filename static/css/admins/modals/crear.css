@@ -1,1 +1,8 @@
-.modal-body .form-group { margin-bottom: 1rem; }
+.modal-crear-gestion .modal-header {
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    color: #ffffff;
+}
+
+.modal-body .form-group {
+    margin-bottom: 1rem;
+}

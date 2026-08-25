@@ -1,1 +1,4 @@
-.modal-body dl { margin-bottom: 1rem; }
+.modal-ver-gestion .modal-header {
+    background: linear-gradient(135deg, #3d9b92 0%, #0f766e 100%);
+    color: #ffffff;
+}
