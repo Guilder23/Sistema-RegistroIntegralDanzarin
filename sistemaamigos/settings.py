@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from decouple import config, Csv
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -30,6 +31,11 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver'
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 PUBLIC_SITE_URL = config('PUBLIC_SITE_URL', default='https://carnavaldeoruro.club').rstrip('/')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+is_render = (
+    os.environ.get('RENDER') == 'true' or
+    os.environ.get('RENDER_SERVICE_ID') is not None or
+    'RENDER' in os.environ
+)
 
 
 # Application definition
@@ -41,8 +47,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'cloudinary_storage',
-    'cloudinary',
     'apps.core.apps.CoreConfig',
     'apps.socios.apps.SociosConfig',
     'apps.souvenirs.apps.SouvenirsConfig',
@@ -57,6 +61,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,16 +95,26 @@ WSGI_APPLICATION = 'sistemaamigos.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='sistema_tiendaropa_db'),
-        'USER': config('DB_USER', default='postgres'),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default=5434, cast=int),
+database_url = config('DATABASE_URL', default='')
+if database_url:
+    DATABASES = {
+        'default': dj_database_url.parse(
+            database_url,
+            conn_max_age=600,
+            ssl_require=is_render,
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': config('DB_NAME', default='sistema_tiendaropa_db'),
+            'USER': config('DB_USER', default='postgres'),
+            'PASSWORD': config('DB_PASSWORD', default=''),
+            'HOST': config('DB_HOST', default='localhost'),
+            'PORT': config('DB_PORT', default=5434, cast=int),
+        }
+    }
 
 
 # Password validation
@@ -132,60 +147,24 @@ USE_I18N = True
 
 USE_TZ = True
 
-# Configuración para almacenamiento persistente en Render
-is_render = (
-    os.environ.get('RENDER') == 'true' or 
-    os.environ.get('RENDER_SERVICE_ID') is not None or
-    'RENDER' in os.environ
-)
-
-# Configuración de Cloudinary
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': config('CLOUDINARY_CLOUD_NAME', default=''),
-    'API_KEY': config('CLOUDINARY_API_KEY', default=''),
-    'API_SECRET': config('CLOUDINARY_API_SECRET', default=''),
-}
-
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 
-try:
-    import whitenoise  # noqa: F401
-    _STATICFILES_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-except ModuleNotFoundError:
-    _STATICFILES_BACKEND = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+_STATICFILES_BACKEND = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# Configuración de Media URL y Storage
 MEDIA_URL = '/media/'
 
-# Storage (Django 5+): usar STORAGES. Si Cloudinary está configurado,
-# cualquier ImageField/FileField se guardará en Cloudinary.
-cloud_name = config('CLOUDINARY_CLOUD_NAME', default='')
-if cloud_name:
-    STORAGES = {
-        'default': {
-            'BACKEND': 'cloudinary_storage.storage.MediaCloudinaryStorage',
-        },
-        'staticfiles': {
-            'BACKEND': _STATICFILES_BACKEND,
-        },
-    }
-    MEDIA_ROOT = ''
-else:
-    STORAGES = {
-        'default': {
-            'BACKEND': 'django.core.files.storage.FileSystemStorage',
-        },
-        'staticfiles': {
-            'BACKEND': _STATICFILES_BACKEND,
-        },
-    }
-    if is_render:
-        MEDIA_ROOT = '/opt/render/project/src/media'
-    else:
-        MEDIA_ROOT = BASE_DIR / 'media'
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': _STATICFILES_BACKEND,
+    },
+}
+MEDIA_ROOT = '/opt/render/project/src/media' if is_render else BASE_DIR / 'media'
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
