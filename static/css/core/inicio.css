@@ -1115,6 +1115,33 @@
 }
 
 /* =====================================================
+   MODAL DE INICIO DE SESIÓN
+===================================================== */
+
+.modal-login-custom {
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-login-custom .login-form {
+  margin-top: 0;
+}
+
+.modal-login-custom form.login-card {
+  background: none;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  padding: 0;
+}
+
+.modal-login-custom form.login-card::before {
+  display: none;
+}
+
+
+/* =====================================================
    BOTONES FLOTANTES
 ===================================================== */
 

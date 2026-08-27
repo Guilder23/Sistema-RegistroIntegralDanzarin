@@ -3,8 +3,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const passwordInput = document.querySelector('#id_password');
     const toggleButton = document.querySelector('#togglePassword');
     const eyeIcon = document.querySelector('#eyeIcon');
+    const loginModal = document.querySelector('#modalLogin');
 
-    usernameInput?.focus();
+    if (loginModal && window.jQuery) {
+        window.jQuery(loginModal).on('shown.bs.modal', function () {
+            usernameInput?.focus();
+        });
+    } else {
+        usernameInput?.focus();
+    }
 
     if (toggleButton && passwordInput && eyeIcon) {
         toggleButton.addEventListener('click', function () {

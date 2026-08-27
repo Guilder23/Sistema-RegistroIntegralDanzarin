@@ -1,7 +1,7 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block titulo %}Club Carnaval Oruro | Sistema Registro Integral Danzarín{% endblock %}
+{% block titulo %}Club  integral del DANZARIN{% endblock %}
 
 {% block seo %}
 <meta name="description" content="Club Carnaval de Oruro: comunidad para disfrutar el Carnaval, la cultura, el folklore, las tradiciones, la música y las danzas de Oruro.">
@@ -65,9 +65,9 @@
             </p>
 
             <div class="hero-buttons">
-                <a href="{% url 'core:login' %}" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalLogin">
                     <i class="fas fa-right-to-bracket mr-2"></i>Ingresar al sistema
-                </a>
+                </button>
                 <a href="#danzas" class="btn btn-outline">
                     <i class="fas fa-masks-theater mr-2"></i>Danzas y Secciones
                 </a>
@@ -479,9 +479,9 @@
             </div>
 
             <div>
-                <a href="{% url 'core:login' %}" class="btn btn-light mr-2">
+                <button type="button" class="btn btn-light mr-2" data-toggle="modal" data-target="#modalLogin">
                     <i class="fas fa-right-to-bracket mr-2"></i>Ingresar al Sistema
-                </a>
+                </button>
                 <a href="https://wa.me/59171930074?text=Hola%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n%20sobre%20los%20eventos..." target="_blank" rel="noopener noreferrer" class="btn btn-outline text-white" style="border-color: rgba(255,255,255,0.6);">
                     <i class="fab fa-whatsapp mr-2"></i>Coordinar por WhatsApp
                 </a>
@@ -563,7 +563,7 @@
                 <span></span>
                 <span>¿QUIERES SER PARTE?</span>
             </div>
-            <h2>Únete al <span>Club Carnaval de Oruro</span></h2>
+            <h2>Únete al <span>Club integral del DANZARIN</span></h2>
             <p>La administración gestiona y coordina las nuevas solicitudes para brindarte una bienvenida personalizada.</p>
         </div>
 
@@ -571,9 +571,9 @@
             <button type="button" class="btn btn-light" data-toggle="modal" data-target="#modalInscripcion">
                 <i class="fas fa-id-card mr-2"></i>Cómo inscribirme
             </button>
-            <a href="{% url 'core:login' %}" class="btn btn-outline text-white ml-md-2 mt-2 mt-md-0" style="border-color: rgba(255,255,255,0.7);">
+            <button type="button" class="btn btn-outline text-white ml-md-2 mt-2 mt-md-0" style="border-color: rgba(255,255,255,0.7);" data-toggle="modal" data-target="#modalLogin">
                 <i class="fas fa-right-to-bracket mr-2"></i>Acceso al Sistema
-            </a>
+            </button>
         </div>
     </div>
 </section>
@@ -597,7 +597,7 @@
             </div>
             <div class="modal-body p-4">
                 <p class="mb-3" style="color: var(--gray); font-size: 0.95rem;">
-                    El registro de nuevos socios es coordinado y procesado directamente por la <strong>Administración del Club Carnaval Oruro</strong> para asignar tu fraternidad y grupo correspondiente.
+                    El registro de nuevos socios es coordinado y procesado directamente por la <strong>Administración del Club integral del DANZARIN</strong> para asignar tu fraternidad y grupo correspondiente.
                 </p>
 
                 <div class="modal-steps-list">
