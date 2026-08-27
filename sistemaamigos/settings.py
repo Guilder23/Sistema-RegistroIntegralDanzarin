@@ -28,6 +28,11 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-15(4^2d42%w=4qmro8g(z
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=Csv())
+render_hostname = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+if render_hostname and render_hostname not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(render_hostname)
+if 'sistema-registrointegraldanzarin.onrender.com' not in ALLOWED_HOSTS and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('sistema-registrointegraldanzarin.onrender.com')
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 PUBLIC_SITE_URL = config('PUBLIC_SITE_URL', default='https://carnavaldeoruro.club').rstrip('/')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
