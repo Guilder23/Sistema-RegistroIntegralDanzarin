@@ -71,20 +71,26 @@ def iniciar_sesion(request):
 		username = request.POST.get('username', '').strip()
 		password = request.POST.get('password', '')
 
+		login_error = None
 		user = authenticate(request, username=username, password=password)
 		if user is None:
-			messages.error(request, 'Usuario o contrasena incorrectos.')
-			return render(request, 'auth/login.html')
+			login_error = 'Usuario o contrasena incorrectos.'
+		else:
+			try:
+				from apps.socios.models import Socio
+				socio = Socio.objects.get(user=user)
+				membresias = socio.membresias.all()
+				if membresias.exists() and not membresias.filter(estado='activo').exists():
+					login_error = 'Tu membresia no se encuentra activa. Comunicate con el administrador.'
+			except Socio.DoesNotExist:
+				pass
 
-		try:
-			from apps.socios.models import Socio
-			socio = Socio.objects.get(user=user)
-			membresias = socio.membresias.all()
-			if membresias.exists() and not membresias.filter(estado='activo').exists():
-				messages.error(request, 'Tu membresia no se encuentra activa. Comunicate con el administrador.')
-				return render(request, 'auth/login.html')
-		except Socio.DoesNotExist:
-			pass
+		if login_error:
+			return render(request, 'core/inicio.html', {
+				'show_login_modal': True,
+				'login_username': username,
+				'login_error': login_error,
+			})
 
 		login(request, user)
 		next_url = request.GET.get('next') or request.POST.get('next')
@@ -92,7 +98,7 @@ def iniciar_sesion(request):
 			return redirect(next_url)
 		return redirect(get_home_redirect(user))
 
-	return render(request, 'auth/login.html')
+	return redirect(f"{reverse('core:inicio')}#modalLogin")
 
 
 @login_required
