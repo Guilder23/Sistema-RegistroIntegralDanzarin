@@ -20,13 +20,13 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='evento',
-            name='grupo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='eventos', to='core.grupo'),
+            name='asociacion',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='eventos', to='core.asociacion'),
         ),
         migrations.AddField(
             model_name='evento',
-            name='subgrupo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='eventos', to='core.subgrupo'),
+            name='conjunto',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='eventos', to='core.conjunto'),
         ),
         migrations.CreateModel(
             name='Certificado',

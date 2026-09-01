@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Q
 from django.shortcuts import render
 from django.utils import timezone
-from apps.core.models import Grupo, Subgrupo, Auditoria
+from apps.core.models import Asociacion, Conjunto, Auditoria
 from apps.core.permissions import get_role, is_administrative
 from apps.socios.models import Socio, Membresia
 from apps.souvenirs.models import SouvenirEntrega
@@ -24,54 +24,54 @@ def dashboard(request):
     eventos_qs = Evento.objects.all()
     auditorias_qs = Auditoria.objects.all()
 
-    grupos_filtro = Grupo.objects.none()
-    subgrupos_filtro = Subgrupo.objects.none()
+    asociaciones_filtro = Asociacion.objects.none()
+    conjuntos_filtro = Conjunto.objects.none()
 
-    grupo_seleccionado_id = request.GET.get('grupo_id', '').strip()
-    subgrupo_seleccionado_id = request.GET.get('subgrupo_id', '').strip()
+    asociacion_seleccionada_id = request.GET.get('asociacion_id', '').strip()
+    conjunto_seleccionado_id = request.GET.get('conjunto_id', '').strip()
 
-    if role == 'administrador_subgrupo':
-        # Ámbito estricto: Solo su subgrupo asignado
-        subgrupo_id = profile.subgrupo_id if profile else None
-        grupo_id = profile.grupo_id if profile else None
+    if role == 'administrador_conjunto':
+        # Ámbito estricto: Solo su conjunto asignado
+        conjunto_id = profile.conjunto_id if profile else None
+        asociacion_id = profile.asociacion_id if profile else None
 
-        if subgrupo_id:
-            socios_qs = socios_qs.filter(membresias__subgrupo_id=subgrupo_id).distinct()
-            membresias_qs = membresias_qs.filter(subgrupo_id=subgrupo_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__subgrupo_id=subgrupo_id).distinct()
-            eventos_qs = eventos_qs.filter(Q(grupo_id=grupo_id) | Q(grupo__isnull=True))
+        if conjunto_id:
+            socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_id).distinct()
+            membresias_qs = membresias_qs.filter(conjunto_id=conjunto_id)
+            entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_id).distinct()
+            eventos_qs = eventos_qs.filter(Q(asociacion_id=asociacion_id) | Q(asociacion__isnull=True))
             auditorias_qs = auditorias_qs.filter(usuario_id=request.user.id)
-            subgrupos_filtro = Subgrupo.objects.filter(pk=subgrupo_id)
-            grupos_filtro = Grupo.objects.filter(pk=grupo_id) if grupo_id else Grupo.objects.none()
+            conjuntos_filtro = Conjunto.objects.filter(pk=conjunto_id)
+            asociaciones_filtro = Asociacion.objects.filter(pk=asociacion_id) if asociacion_id else Asociacion.objects.none()
         else:
             socios_qs = socios_qs.none()
             membresias_qs = membresias_qs.none()
             entregas_qs = entregas_qs.none()
             auditorias_qs = auditorias_qs.none()
 
-    elif role == 'administrador_grupo':
-        # Ámbito estricto: Solo su grupo y los subgrupos de su grupo
-        grupo_id = profile.grupo_id if profile else None
+    elif role == 'administrador_asociacion':
+        # Ámbito estricto: Solo su asociación y los conjuntos de su asociación
+        asociacion_id = profile.asociacion_id if profile else None
 
-        if grupo_id:
-            grupos_filtro = Grupo.objects.filter(pk=grupo_id)
-            subgrupos_filtro = Subgrupo.objects.filter(grupo_id=grupo_id, activo=True)
+        if asociacion_id:
+            asociaciones_filtro = Asociacion.objects.filter(pk=asociacion_id)
+            conjuntos_filtro = Conjunto.objects.filter(asociacion_id=asociacion_id, activo=True)
 
-            # Filtro opcional por subgrupo dentro de su grupo
-            if subgrupo_seleccionado_id and subgrupos_filtro.filter(pk=subgrupo_seleccionado_id).exists():
-                socios_qs = socios_qs.filter(membresias__subgrupo_id=subgrupo_seleccionado_id).distinct()
-                membresias_qs = membresias_qs.filter(subgrupo_id=subgrupo_seleccionado_id)
-                entregas_qs = entregas_qs.filter(socio__membresias__subgrupo_id=subgrupo_seleccionado_id).distinct()
+            # Filtro opcional por conjunto dentro de su asociación
+            if conjunto_seleccionado_id and conjuntos_filtro.filter(pk=conjunto_seleccionado_id).exists():
+                socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+                membresias_qs = membresias_qs.filter(conjunto_id=conjunto_seleccionado_id)
+                entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
             else:
-                socios_qs = socios_qs.filter(membresias__grupo_id=grupo_id).distinct()
-                membresias_qs = membresias_qs.filter(grupo_id=grupo_id)
-                entregas_qs = entregas_qs.filter(socio__membresias__grupo_id=grupo_id).distinct()
+                socios_qs = socios_qs.filter(membresias__asociacion_id=asociacion_id).distinct()
+                membresias_qs = membresias_qs.filter(asociacion_id=asociacion_id)
+                entregas_qs = entregas_qs.filter(socio__membresias__asociacion_id=asociacion_id).distinct()
 
-            eventos_qs = eventos_qs.filter(grupo_id=grupo_id)
+            eventos_qs = eventos_qs.filter(asociacion_id=asociacion_id)
             auditorias_qs = auditorias_qs.filter(
                 Q(usuario_id=request.user.id)
-                | Q(usuario__userprofile__grupo_id=grupo_id)
-                | Q(grupo_id=grupo_id)
+                | Q(usuario__userprofile__asociacion_id=asociacion_id)
+                | Q(asociacion_id=asociacion_id)
             )
         else:
             socios_qs = socios_qs.none()
@@ -80,24 +80,24 @@ def dashboard(request):
             auditorias_qs = auditorias_qs.none()
 
     else:
-        # Superadministrador: Vista global con posibilidad de filtrar por grupo y subgrupo
-        grupos_filtro = Grupo.objects.filter(activo=True).order_by('nombre')
-        subgrupos_filtro = Subgrupo.objects.filter(activo=True).select_related('grupo').order_by('grupo__nombre', 'nombre')
+        # Superadministrador: Vista global con posibilidad de filtrar por asociación y conjunto
+        asociaciones_filtro = Asociacion.objects.filter(activo=True).order_by('nombre')
+        conjuntos_filtro = Conjunto.objects.filter(activo=True).select_related('asociacion').order_by('asociacion__nombre', 'nombre')
 
-        if grupo_seleccionado_id:
-            socios_qs = socios_qs.filter(membresias__grupo_id=grupo_seleccionado_id).distinct()
-            membresias_qs = membresias_qs.filter(grupo_id=grupo_seleccionado_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__grupo_id=grupo_seleccionado_id).distinct()
-            eventos_qs = eventos_qs.filter(grupo_id=grupo_seleccionado_id)
+        if asociacion_seleccionada_id:
+            socios_qs = socios_qs.filter(membresias__asociacion_id=asociacion_seleccionada_id).distinct()
+            membresias_qs = membresias_qs.filter(asociacion_id=asociacion_seleccionada_id)
+            entregas_qs = entregas_qs.filter(socio__membresias__asociacion_id=asociacion_seleccionada_id).distinct()
+            eventos_qs = eventos_qs.filter(asociacion_id=asociacion_seleccionada_id)
             auditorias_qs = auditorias_qs.filter(
-                Q(grupo_id=grupo_seleccionado_id) | Q(usuario__userprofile__grupo_id=grupo_seleccionado_id)
+                Q(asociacion_id=asociacion_seleccionada_id) | Q(usuario__userprofile__asociacion_id=asociacion_seleccionada_id)
             )
-            subgrupos_filtro = subgrupos_filtro.filter(grupo_id=grupo_seleccionado_id)
+            conjuntos_filtro = conjuntos_filtro.filter(asociacion_id=asociacion_seleccionada_id)
 
-        if subgrupo_seleccionado_id:
-            socios_qs = socios_qs.filter(membresias__subgrupo_id=subgrupo_seleccionado_id).distinct()
-            membresias_qs = membresias_qs.filter(subgrupo_id=subgrupo_seleccionado_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__subgrupo_id=subgrupo_seleccionado_id).distinct()
+        if conjunto_seleccionado_id:
+            socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+            membresias_qs = membresias_qs.filter(conjunto_id=conjunto_seleccionado_id)
+            entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
 
     # 2. Métricas y KPIs Principales
     total_socios = socios_qs.count()
@@ -150,13 +150,13 @@ def dashboard(request):
     modalidades_labels = [m['modalidad'] if m['modalidad'] else 'General' for m in modalidades_data]
     modalidades_counts = [m['total'] for m in modalidades_data]
 
-    # 6. Distribución por Grupos y Subgrupos
-    distribucion_grupos = socios_qs.filter(membresias__estado='activo').values(
-        'membresias__grupo__nombre', 'membresias__subgrupo__nombre'
+    # 6. Distribución por Asociaciones y Conjuntos
+    distribucion_asociaciones = socios_qs.filter(membresias__estado='activo').values(
+        'membresias__asociacion__nombre', 'membresias__conjunto__nombre'
     ).annotate(total=Count('id', distinct=True)).order_by(
-        'membresias__grupo__nombre', 'membresias__subgrupo__nombre'
+        'membresias__asociacion__nombre', 'membresias__conjunto__nombre'
     )
-    distribucion_lista = list(distribucion_grupos)
+    distribucion_lista = list(distribucion_asociaciones)
 
     # 7. Tendencia de Registros de Socios (Últimos 6 meses)
     hoy = timezone.now().date()
@@ -208,10 +208,10 @@ def dashboard(request):
             'labels': ['Menores (<18)', 'Jóvenes (18-29)', 'Adultos (30-59)', 'Mayores (60+)'],
             'data': [por_edad['menores'], por_edad['jovenes'], por_edad['adultos'], por_edad['mayores']],
         },
-        # Barras Horizontales (Horizontal Bar Chart): Distribución por Grupo y Subgrupo
+        # Barras Horizontales (Horizontal Bar Chart): Distribución por Asociación y Conjunto
         'distribucion': {
             'labels': [
-                f"{fila['membresias__grupo__nombre'] or 'General'} / {fila['membresias__subgrupo__nombre'] or 'General'}"
+                f"{fila['membresias__asociacion__nombre'] or 'General'} / {fila['membresias__conjunto__nombre'] or 'General'}"
                 for fila in distribucion_lista
             ] if distribucion_lista else ['Sin integrantes'],
             'data': [fila['total'] for fila in distribucion_lista] if distribucion_lista else [0],
@@ -245,10 +245,10 @@ def dashboard(request):
     return render(request, 'dashboard/dashboard.html', {
         'role': role,
         'user_profile': profile,
-        'grupos_filtro': grupos_filtro,
-        'subgrupos_filtro': subgrupos_filtro,
-        'grupo_id': grupo_seleccionado_id,
-        'subgrupo_id': subgrupo_seleccionado_id,
+        'asociaciones_filtro': asociaciones_filtro,
+        'conjuntos_filtro': conjuntos_filtro,
+        'asociacion_id': asociacion_seleccionada_id,
+        'conjunto_id': conjunto_seleccionado_id,
         'total_socios': total_socios,
         'socios_activos': activos,
         'socios_inactivos': inactivos,

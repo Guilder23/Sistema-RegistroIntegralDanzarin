@@ -15,9 +15,9 @@ from apps.core.permissions import scope_filter, get_role, is_administrative, reg
 def listar_entregas(request):
     entregas = SouvenirEntrega.objects.select_related('socio', 'entregado_por', 'evento')
     if get_role(request.user) != 'superadministrador':
-        entregas = entregas.filter(socio__membresias__grupo_id=request.user.userprofile.grupo_id)
-        if get_role(request.user) == 'administrador_subgrupo':
-            entregas = entregas.filter(socio__membresias__subgrupo_id=request.user.userprofile.subgrupo_id)
+        entregas = entregas.filter(socio__membresias__asociacion_id=request.user.userprofile.asociacion_id)
+        if get_role(request.user) == 'administrador_conjunto':
+            entregas = entregas.filter(socio__membresias__conjunto_id=request.user.userprofile.conjunto_id)
     entregas = entregas.distinct().order_by('-fecha_entrega')
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -35,9 +35,9 @@ def registrar_entrega(request):
 
         socio = Socio.objects.filter(id=socio_id)
         if get_role(request.user) != 'superadministrador':
-            socio = socio.filter(membresias__grupo_id=request.user.userprofile.grupo_id)
-            if get_role(request.user) == 'administrador_subgrupo':
-                socio = socio.filter(membresias__subgrupo_id=request.user.userprofile.subgrupo_id)
+            socio = socio.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
+            if get_role(request.user) == 'administrador_conjunto':
+                socio = socio.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
         socio = socio.distinct().first()
         if not socio:
             messages.error(request, 'Selecciona un socio válido.')
@@ -71,24 +71,24 @@ def registrar_entrega(request):
         socio.recibio_souvenir = True
         socio.save()
         
-        # Obtener grupo y subgrupo del socio para la auditoría
+        # Obtener asociación y conjunto del socio para la auditoría
         membresia = socio.membresias.filter(estado='activo').first()
         registrar_auditoria(
             request.user,
             'entrega_souvenir',
             f'Entrega a {socio} ({evento.nombre})',
             nuevo={'socio': str(socio), 'evento': evento.nombre, 'souvenir': souvenir.nombre if souvenir else 'Sin souvenir específico'},
-            grupo=membresia.grupo if membresia else None,
-            subgrupo=membresia.subgrupo if membresia else None,
+            asociacion=membresia.asociacion if membresia else None,
+            conjunto=membresia.conjunto if membresia else None,
         )
         messages.success(request, 'Entrega de souvenir registrada.')
         return redirect('souvenirs:listar_entregas')
 
     socios = Socio.objects.filter(membresias__estado='activo')
     if get_role(request.user) != 'superadministrador':
-        socios = socios.filter(membresias__grupo_id=request.user.userprofile.grupo_id)
-        if get_role(request.user) == 'administrador_subgrupo':
-            socios = socios.filter(membresias__subgrupo_id=request.user.userprofile.subgrupo_id)
+        socios = socios.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
+        if get_role(request.user) == 'administrador_conjunto':
+            socios = socios.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
     socios = socios.distinct().order_by('apellido', 'nombre')
     eventos = Evento.objects.filter(activo=True).order_by('-fecha_evento')
     souvenirs = Souvenir.objects.filter(activo=True).order_by('-creado')
@@ -154,7 +154,7 @@ def crear_souvenir(request):
             'creacion_souvenir',
             f'Souvenir {souvenir.nombre}',
             nuevo={'nombre': souvenir.nombre, 'stock': souvenir.stock, 'evento': evento.nombre if evento else None},
-            grupo=evento.grupo if evento else None,
+            asociacion=evento.asociacion if evento else None,
         )
         messages.success(request, 'Souvenir creado.')
         return redirect('souvenirs:listar_souvenirs')
@@ -184,7 +184,7 @@ def editar_souvenir(request, pk):
             f'Souvenir {s.nombre}',
             anterior=anterior,
             nuevo={'nombre': s.nombre, 'stock': s.stock},
-            grupo=s.evento.grupo if s.evento else None,
+            asociacion=s.evento.asociacion if s.evento else None,
         )
         messages.success(request, 'Souvenir actualizado.')
         return redirect('souvenirs:listar_souvenirs')
@@ -206,13 +206,13 @@ def eliminar_souvenir(request, pk):
             messages.error(request, 'No se puede eliminar un souvenir asignado a un socio. Puedes cambiar su estado a inactivo.')
             return redirect('souvenirs:listar_souvenirs')
         nombre = s.nombre
-        grupo = s.evento.grupo if s.evento else None
+        asociacion = s.evento.asociacion if s.evento else None
         s.delete()
         registrar_auditoria(
             request.user,
             'eliminacion_souvenir',
             f'Souvenir {nombre}',
-            grupo=grupo,
+            asociacion=asociacion,
         )
         messages.success(request, 'Souvenir eliminado.')
         return redirect('souvenirs:listar_souvenirs')
@@ -232,7 +232,7 @@ def cambiar_estado_souvenir(request, pk):
             'cambio_estado_souvenir',
             f'Souvenir {souvenir.nombre} ({estado})',
             nuevo={'activo': souvenir.activo},
-            grupo=souvenir.evento.grupo if souvenir.evento else None,
+            asociacion=souvenir.evento.asociacion if souvenir.evento else None,
         )
         messages.success(request, f'Souvenir {estado}.')
     return redirect('souvenirs:listar_souvenirs')

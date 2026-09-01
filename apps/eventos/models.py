@@ -12,8 +12,8 @@ class Evento(models.Model):
     lugar = models.CharField(max_length=250, blank=True, default='')
     activo = models.BooleanField(default=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='programado')
-    grupo = models.ForeignKey('core.Grupo', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
-    subgrupo = models.ForeignKey('core.Subgrupo', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
+    asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
+    conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
     participantes = models.ManyToManyField('socios.Socio', through='EventoParticipante', related_name='eventos')
     creado = models.DateTimeField(auto_now_add=True)
 

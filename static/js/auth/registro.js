@@ -45,8 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('editUsuarioLastName').value = this.dataset.lastName || '';
             document.getElementById('editUsuarioEmail').value = this.dataset.email || '';
             document.getElementById('editUsuarioRol').value = this.dataset.rol || 'miembro';
-            document.getElementById('editUsuarioGrupo').value = this.dataset.grupo || '';
-            document.getElementById('editUsuarioSubgrupo').value = this.dataset.subgrupo || '';
+            document.getElementById('editUsuarioAsociacion').value = this.dataset.asociacion || '';
+            document.getElementById('editUsuarioConjunto').value = this.dataset.conjunto || '';
         });
     });
 });

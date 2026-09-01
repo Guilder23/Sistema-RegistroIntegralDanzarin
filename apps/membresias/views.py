@@ -6,18 +6,18 @@ from apps.core.permissions import get_role, scope_filter, registrar_auditoria
 
 
 def can_manage_members(user):
-    return get_role(user) in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}
+    return get_role(user) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}
 
 
 @login_required
 @user_passes_test(can_manage_members, login_url='/login/')
 def listar_membresias(request):
-    membresias = Membresia.objects.select_related('socio', 'grupo', 'subgrupo')
+    membresias = Membresia.objects.select_related('socio', 'asociacion', 'conjunto')
     if get_role(request.user) != 'superadministrador':
         profile = request.user.userprofile
-        membresias = membresias.filter(grupo_id=profile.grupo_id)
-        if get_role(request.user) == 'administrador_subgrupo':
-            membresias = membresias.filter(subgrupo_id=profile.subgrupo_id)
+        membresias = membresias.filter(asociacion_id=profile.asociacion_id)
+        if get_role(request.user) == 'administrador_conjunto':
+            membresias = membresias.filter(conjunto_id=profile.conjunto_id)
     q = request.GET.get('q', '').strip()
     if q:
         membresias = membresias.filter(socio__nombre__icontains=q) | membresias.filter(socio__apellido__icontains=q)
@@ -30,7 +30,7 @@ def cambiar_membresia(request, pk):
     membresia = get_object_or_404(Membresia, pk=pk)
     if get_role(request.user) != 'superadministrador':
         profile = request.user.userprofile
-        if membresia.grupo_id != profile.grupo_id or (get_role(request.user) == 'administrador_subgrupo' and membresia.subgrupo_id != profile.subgrupo_id):
+        if membresia.asociacion_id != profile.asociacion_id or (get_role(request.user) == 'administrador_conjunto' and membresia.conjunto_id != profile.conjunto_id):
             return redirect('membresias:listar_membresias')
     if request.method == 'POST':
         estado_anterior = membresia.estado

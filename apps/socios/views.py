@@ -19,8 +19,7 @@ from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime
 from apps.core.permissions import scope_socios, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
-from apps.core.models import Grupo, Subgrupo
-from apps.core.models import Grupo, Subgrupo
+from apps.core.models import Asociacion, Conjunto
 
 
 @login_required
@@ -48,7 +47,7 @@ def listar_socios(request):
 
     # Asegurar que cada usuario listado tenga un UserProfile para evitar errores en plantillas
     for s in page_obj.object_list:
-        s.membresia_visible = s.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('grupo', 'subgrupo').first() or s.membresias.order_by('-fecha_ingreso').first()
+        s.membresia_visible = s.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() or s.membresias.order_by('-fecha_ingreso').first()
         try:
             UserProfile.objects.get_or_create(user=s.user)
         except Exception:
@@ -59,8 +58,8 @@ def listar_socios(request):
         'q': q,
         'estado': estado,
         'is_admin': can_register_members(request.user),
-        'grupos': Grupo.objects.filter(activo=True),
-        'subgrupos': Subgrupo.objects.filter(activo=True).select_related('grupo'),
+        'asociaciones': Asociacion.objects.filter(activo=True),
+        'conjuntos': Conjunto.objects.filter(activo=True).select_related('asociacion'),
     })
 
 
@@ -97,15 +96,15 @@ def crear_socio(request):
         return redirect('socios:listar_socios')
 
     role = get_role(request.user)
-    if role == 'administrador_subgrupo':
-        grupo = request.user.userprofile.grupo
-        subgrupo = request.user.userprofile.subgrupo
+    if role == 'administrador_conjunto':
+        asociacion = request.user.userprofile.asociacion
+        conjunto = request.user.userprofile.conjunto
     else:
-        grupo_id = request.POST.get('grupo_id') or None
-        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
-        subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
-    if not grupo or not subgrupo:
-        messages.error(request, 'Selecciona un grupo y subgrupo válidos.')
+        asociacion_id = request.POST.get('asociacion_id') or None
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+        conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+    if not asociacion or not conjunto:
+        messages.error(request, 'Selecciona una asociación y conjunto válidos.')
         return redirect('socios:listar_socios')
 
     user = User.objects.create_user(username=username, email=email, password=password)
@@ -132,8 +131,8 @@ def crear_socio(request):
         modalidad=modalidad,
     )
     from .models import Membresia
-    Membresia.inscribir(socio, grupo, subgrupo, estado_pago='al_dia')
-    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'grupo': grupo.pk, 'subgrupo': subgrupo.pk})
+    Membresia.inscribir(socio, asociacion, conjunto, estado_pago='al_dia')
+    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk})
     messages.success(request, 'Socio registrado correctamente.')
     return redirect('socios:listar_socios')
 
@@ -260,22 +259,22 @@ def crear_admin(request):
         password = request.POST.get('password', '')
         first_name = request.POST.get('first_name', '').strip()
         last_name = request.POST.get('last_name', '').strip()
-        rol = request.POST.get('rol', 'administrador_grupo')
-        grupo_id = request.POST.get('grupo_id') or None
-        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
-        subgrupo_id = request.POST.get('subgrupo_id') or None
-        subgrupo = Subgrupo.objects.filter(pk=subgrupo_id, grupo=grupo, activo=True).first() if grupo and subgrupo_id else None
-        if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}:
+        rol = request.POST.get('rol', 'administrador_asociacion')
+        asociacion_id = request.POST.get('asociacion_id') or None
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+        conjunto_id = request.POST.get('conjunto_id') or None
+        conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
+        if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}:
             messages.error(request, 'Selecciona un tipo de administrador válido.')
             return redirect('socios:listar_admins')
         if not username or not email or not password:
             messages.error(request, 'Completa los campos obligatorios.')
             return redirect('socios:crear_admin')
-        if rol == 'administrador_grupo' and not grupo:
-            messages.error(request, 'El Administrador de Grupo debe tener un grupo asignado.')
+        if rol == 'administrador_asociacion' and not asociacion:
+            messages.error(request, 'El Administrador de Asociación debe tener una asociación asignada.')
             return redirect('socios:listar_admins')
-        if rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
-            messages.error(request, 'El Administrador de Subgrupo debe tener grupo y subgrupo asignados.')
+        if rol == 'administrador_conjunto' and (not asociacion or not conjunto):
+            messages.error(request, 'El Administrador de Conjunto debe tener asociación y conjunto asignados.')
             return redirect('socios:listar_admins')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'El nombre de usuario ya existe.')
@@ -286,14 +285,14 @@ def crear_admin(request):
         user.is_staff = True
         user.is_superuser = rol == 'superadministrador'
         user.save()
-        UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+        UserProfile.objects.filter(user=user).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
         registrar_auditoria(
             request.user,
             'creacion_admin',
             f'Admin {user.username} ({rol})',
-            nuevo={'username': user.username, 'rol': rol, 'grupo': grupo.nombre if grupo else None, 'subgrupo': subgrupo.nombre if subgrupo else None},
-            grupo=grupo,
-            subgrupo=subgrupo,
+            nuevo={'username': user.username, 'rol': rol, 'asociacion': asociacion.nombre if asociacion else None, 'conjunto': conjunto.nombre if conjunto else None},
+            asociacion=asociacion,
+            conjunto=conjunto,
         )
         messages.success(request, 'Administrador creado correctamente.')
         return redirect('socios:listar_admins')
@@ -611,7 +610,7 @@ def importar_socios_xlsx(request):
 def listar_admins(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
-    admins = User.objects.filter(is_staff=True).select_related('userprofile', 'userprofile__grupo', 'userprofile__subgrupo')
+    admins = User.objects.filter(is_staff=True).select_related('userprofile', 'userprofile__asociacion', 'userprofile__conjunto')
 
     if q:
         admins = admins.filter(
@@ -632,8 +631,8 @@ def listar_admins(request):
         'page_obj': page_obj,
         'q': q,
         'activo': activo,
-        'grupos': Grupo.objects.filter(activo=True),
-        'subgrupos': Subgrupo.objects.filter(activo=True).select_related('grupo'),
+        'asociaciones': Asociacion.objects.filter(activo=True),
+        'conjuntos': Conjunto.objects.filter(activo=True).select_related('asociacion'),
     })
 
 
@@ -652,29 +651,29 @@ def editar_admin(request, user_id):
         user.email = request.POST.get('email', user.email).strip()
         user.first_name = request.POST.get('first_name', user.first_name).strip()
         user.last_name = request.POST.get('last_name', user.last_name).strip()
-        rol = request.POST.get('rol', 'administrador_grupo')
-        grupo_id = request.POST.get('grupo_id') or None
-        grupo = Grupo.objects.filter(pk=grupo_id, activo=True).first() if grupo_id else None
-        subgrupo_id = request.POST.get('subgrupo_id') or None
-        subgrupo = Subgrupo.objects.filter(pk=subgrupo_id, grupo=grupo, activo=True).first() if grupo and subgrupo_id else None
-        if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}:
+        rol = request.POST.get('rol', 'administrador_asociacion')
+        asociacion_id = request.POST.get('asociacion_id') or None
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+        conjunto_id = request.POST.get('conjunto_id') or None
+        conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
+        if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}:
             messages.error(request, 'Selecciona un tipo de administrador válido.')
             return redirect('socios:listar_admins')
-        if (rol == 'administrador_grupo' and not grupo) or (rol == 'administrador_subgrupo' and (not grupo or not subgrupo)):
+        if (rol == 'administrador_asociacion' and not asociacion) or (rol == 'administrador_conjunto' and (not asociacion or not conjunto)):
             messages.error(request, 'El tipo de administrador requiere un ámbito válido.')
             return redirect('socios:listar_admins')
         password = request.POST.get('password')
         if password:
             user.set_password(password)
         user.save()
-        UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+        UserProfile.objects.filter(user=user).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
         registrar_auditoria(
             request.user,
             'modificacion_admin',
             f'Admin {user.username} ({rol})',
-            nuevo={'username': user.username, 'rol': rol, 'grupo': grupo.nombre if grupo else None, 'subgrupo': subgrupo.nombre if subgrupo else None},
-            grupo=grupo,
-            subgrupo=subgrupo,
+            nuevo={'username': user.username, 'rol': rol, 'asociacion': asociacion.nombre if asociacion else None, 'conjunto': conjunto.nombre if conjunto else None},
+            asociacion=asociacion,
+            conjunto=conjunto,
         )
         messages.success(request, 'Administrador actualizado.')
         return redirect('socios:listar_admins')

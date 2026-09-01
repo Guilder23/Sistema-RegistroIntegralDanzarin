@@ -44,13 +44,13 @@
         <td>{{ u.username }}</td>
         <td>{{ u.get_full_name }}</td>
         <td>{{ u.userprofile.get_rol_display }}</td>
-        <td>{% if u.userprofile.grupo %}{{ u.userprofile.grupo.nombre }}{% endif %}{% if u.userprofile.subgrupo %} / {{ u.userprofile.subgrupo.nombre }}{% endif %}{% if not u.userprofile.grupo %}Global{% endif %}</td>
+        <td>{% if u.userprofile.asociacion %}{{ u.userprofile.asociacion.nombre }}{% endif %}{% if u.userprofile.conjunto %} / {{ u.userprofile.conjunto.nombre }}{% endif %}{% if not u.userprofile.asociacion %}Global{% endif %}</td>
         <td>{{ u.email }}</td>
         <td class="text-center acciones-col">
-          <button type="button" class="btn btn-icon btn-info btn-ver-admin" data-toggle="modal" data-target="#modalVerAdmin" data-username="{{ u.username }}" data-fullname="{{ u.get_full_name }}" data-email="{{ u.email }}" data-rol="{{ u.userprofile.get_rol_display }}" data-ambito="{% if u.userprofile.grupo %}{{ u.userprofile.grupo.nombre }}{% endif %}{% if u.userprofile.subgrupo %} / {{ u.userprofile.subgrupo.nombre }}{% endif %}">
+          <button type="button" class="btn btn-icon btn-info btn-ver-admin" data-toggle="modal" data-target="#modalVerAdmin" data-username="{{ u.username }}" data-fullname="{{ u.get_full_name }}" data-email="{{ u.email }}" data-rol="{{ u.userprofile.get_rol_display }}" data-ambito="{% if u.userprofile.asociacion %}{{ u.userprofile.asociacion.nombre }}{% endif %}{% if u.userprofile.conjunto %} / {{ u.userprofile.conjunto.nombre }}{% endif %}">
             <i class="fas fa-eye"></i>
           </button>
-          <button type="button" class="btn btn-icon btn-warning btn-editar-admin" data-toggle="modal" data-target="#modalEditarAdmin" data-id="{{ u.id }}" data-username="{{ u.username }}" data-first-name="{{ u.first_name }}" data-last-name="{{ u.last_name }}" data-email="{{ u.email }}" data-rol="{{ u.userprofile.rol }}" data-grupo="{{ u.userprofile.grupo_id|default:'' }}" data-subgrupo="{{ u.userprofile.subgrupo_id|default:'' }}">
+          <button type="button" class="btn btn-icon btn-warning btn-editar-admin" data-toggle="modal" data-target="#modalEditarAdmin" data-id="{{ u.id }}" data-username="{{ u.username }}" data-first-name="{{ u.first_name }}" data-last-name="{{ u.last_name }}" data-email="{{ u.email }}" data-rol="{{ u.userprofile.rol }}" data-asociacion="{{ u.userprofile.asociacion_id|default:'' }}" data-conjunto="{{ u.userprofile.conjunto_id|default:'' }}">
             <i class="fas fa-edit"></i>
           </button>
           <button type="button" class="btn btn-icon btn-danger btn-eliminar-admin" data-toggle="modal" data-target="#modalEliminarAdmin" data-id="{{ u.id }}" data-username="{{ u.username }}">

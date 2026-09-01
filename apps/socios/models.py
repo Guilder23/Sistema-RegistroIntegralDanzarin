@@ -59,8 +59,8 @@ class Membresia(models.Model):
     ]
 
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE, related_name='membresias')
-    grupo = models.ForeignKey('core.Grupo', on_delete=models.PROTECT, related_name='membresias')
-    subgrupo = models.ForeignKey('core.Subgrupo', on_delete=models.PROTECT, related_name='membresias')
+    asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, related_name='membresias')
+    conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, related_name='membresias')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')
     estado_pago = models.CharField(max_length=20, choices=PAGO_CHOICES, default='al_dia')
     fecha_ingreso = models.DateField(auto_now_add=True)
@@ -69,30 +69,30 @@ class Membresia(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['socio', 'grupo', 'subgrupo'], name='unique_membresia_socio_subgrupo'),
+            models.UniqueConstraint(fields=['socio', 'asociacion', 'conjunto'], name='unique_membresia_socio_conjunto'),
             models.UniqueConstraint(
-                fields=['socio', 'grupo'],
+                fields=['socio', 'asociacion'],
                 condition=~Q(estado='baja'),
-                name='unique_membresia_vigente_por_grupo',
+                name='unique_membresia_vigente_por_asociacion',
             ),
         ]
         ordering = ['-fecha_ingreso']
 
     @classmethod
-    def inscribir(cls, socio, grupo, subgrupo, **kwargs):
-        if subgrupo.grupo_id != grupo.pk:
-            raise ValueError('El subgrupo debe pertenecer al grupo indicado.')
-        if cls.objects.filter(socio=socio, grupo=grupo).exclude(estado='baja').exists():
-            raise ValueError('El socio debe estar dado de baja antes de cambiar de subgrupo.')
-        return cls.objects.create(socio=socio, grupo=grupo, subgrupo=subgrupo, **kwargs)
+    def inscribir(cls, socio, asociacion, conjunto, **kwargs):
+        if conjunto.asociacion_id != asociacion.pk:
+            raise ValueError('El conjunto debe pertenecer a la asociación indicada.')
+        if cls.objects.filter(socio=socio, asociacion=asociacion).exclude(estado='baja').exists():
+            raise ValueError('El socio debe estar dado de baja antes de cambiar de conjunto.')
+        return cls.objects.create(socio=socio, asociacion=asociacion, conjunto=conjunto, **kwargs)
 
     def save(self, *args, **kwargs):
         if self.estado_pago == 'con_deuda':
             self.estado = 'suspendido'
         elif self.estado == 'suspendido' and self.estado_pago == 'al_dia':
             self.estado = 'activo'
-        if self.subgrupo.grupo_id != self.grupo_id:
-            raise ValueError('El subgrupo debe pertenecer al grupo de la membresía.')
+        if self.conjunto.asociacion_id != self.asociacion_id:
+            raise ValueError('El conjunto debe pertenecer a la asociación de la membresía.')
         super().save(*args, **kwargs)
 
 
@@ -101,13 +101,13 @@ class UserProfile(models.Model):
     foto = models.ImageField(upload_to='profiles/', null=True, blank=True)
     ROL_CHOICES = [
         ('superadministrador', 'Superadministrador'),
-        ('administrador_grupo', 'Administrador de Grupo'),
-        ('administrador_subgrupo', 'Administrador de Subgrupo'),
+        ('administrador_asociacion', 'Administrador de Asociacion'),
+        ('administrador_conjunto', 'Administrador de Conjunto'),
         ('miembro', 'Miembro'),
     ]
     rol = models.CharField(max_length=30, choices=ROL_CHOICES, default='miembro')
-    grupo = models.ForeignKey('core.Grupo', on_delete=models.SET_NULL, null=True, blank=True, related_name='administradores')
-    subgrupo = models.ForeignKey('core.Subgrupo', on_delete=models.SET_NULL, null=True, blank=True, related_name='administradores')
+    asociacion = models.ForeignKey('core.Asociacion', on_delete=models.SET_NULL, null=True, blank=True, related_name='administradores')
+    conjunto = models.ForeignKey('core.Conjunto', on_delete=models.SET_NULL, null=True, blank=True, related_name='administradores')
 
     class Meta:
         verbose_name = 'Perfil de usuario'
@@ -120,7 +120,7 @@ class UserProfile(models.Model):
 @receiver(post_save, sender=User)
 def ensure_user_profile(sender, instance, created, **kwargs):
     if created:
-        rol = 'superadministrador' if instance.is_superuser else ('administrador_grupo' if instance.is_staff else 'miembro')
+        rol = 'superadministrador' if instance.is_superuser else ('administrador_asociacion' if instance.is_staff else 'miembro')
         UserProfile.objects.create(user=instance, rol=rol)
 
 

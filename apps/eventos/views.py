@@ -10,7 +10,7 @@ from apps.core.permissions import can_manage_events, get_role, scope_filter, reg
 
 
 @login_required
-@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}, login_url='/login/')
+@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}, login_url='/login/')
 def listar_eventos(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
@@ -47,14 +47,14 @@ def crear_evento(request):
             messages.error(request, 'Nombre y fecha de evento son obligatorios.')
             return redirect('eventos:listar_eventos')
 
-        grupo = None
-        if get_role(request.user) == 'administrador_grupo':
-            grupo = request.user.userprofile.grupo
-        elif request.POST.get('grupo_id'):
-            from apps.core.models import Grupo
-            grupo = Grupo.objects.filter(pk=request.POST['grupo_id']).first()
-        if not grupo:
-            messages.error(request, 'Selecciona un grupo para el evento.')
+        asociacion = None
+        if get_role(request.user) == 'administrador_asociacion':
+            asociacion = request.user.userprofile.asociacion
+        elif request.POST.get('asociacion_id'):
+            from apps.core.models import Asociacion
+            asociacion = Asociacion.objects.filter(pk=request.POST['asociacion_id']).first()
+        if not asociacion:
+            messages.error(request, 'Selecciona una asociación para el evento.')
             return redirect('eventos:listar_eventos')
 
         evento = Evento.objects.create(
@@ -63,14 +63,14 @@ def crear_evento(request):
             fecha_evento=fecha_evento,
             lugar=lugar,
             activo=activo,
-            grupo=grupo,
+            asociacion=asociacion,
         )
         registrar_auditoria(
             request.user,
             'creacion_evento',
             f'Evento {evento.nombre}',
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
-            grupo=grupo,
+            asociacion=asociacion,
         )
         messages.success(request, 'Evento creado correctamente.')
         return redirect('eventos:listar_eventos')
@@ -99,7 +99,7 @@ def editar_evento(request, pk):
             f'Evento {evento.nombre}',
             anterior=anterior,
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
-            grupo=evento.grupo,
+            asociacion=evento.asociacion,
         )
         messages.success(request, 'Evento actualizado correctamente.')
         return redirect('eventos:listar_eventos')
@@ -116,13 +116,13 @@ def eliminar_evento(request, pk):
             messages.error(request, 'No se puede eliminar un evento que tiene souvenirs asignados. Puedes cambiar su estado a inactivo.')
             return redirect('eventos:listar_eventos')
         nombre = evento.nombre
-        grupo = evento.grupo
+        asociacion = evento.asociacion
         evento.delete()
         registrar_auditoria(
             request.user,
             'eliminacion_evento',
             f'Evento {nombre}',
-            grupo=grupo,
+            asociacion=asociacion,
         )
         messages.success(request, 'Evento eliminado correctamente.')
     return redirect('eventos:listar_eventos')
@@ -141,7 +141,7 @@ def cambiar_estado_evento(request, pk):
             'cambio_estado_evento',
             f'Evento {evento.nombre} ({evento.estado})',
             nuevo={'estado': evento.estado, 'activo': evento.activo},
-            grupo=evento.grupo,
+            asociacion=evento.asociacion,
         )
         messages.success(request, f'Evento {evento.get_estado_display().lower()}.')
 
@@ -149,7 +149,7 @@ def cambiar_estado_evento(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}, login_url='/login/')
+@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}, login_url='/login/')
 def ver_evento(request, pk):
     return redirect('eventos:listar_eventos')
 
@@ -164,7 +164,7 @@ def descargar_certificado(request, pk):
         raise Http404
     if role not in {'superadministrador', 'miembro'}:
         certificado = get_object_or_404(
-            scope_filter(Certificado.objects.all(), request.user, 'evento__grupo', 'evento__subgrupo'),
+            scope_filter(Certificado.objects.all(), request.user, 'evento__asociacion', 'evento__conjunto'),
             pk=pk,
         )
     return FileResponse(certificado.archivo.open('rb'), as_attachment=True, filename=f'certificado_{pk}.pdf')

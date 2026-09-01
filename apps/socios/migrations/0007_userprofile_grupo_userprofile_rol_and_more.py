@@ -14,18 +14,18 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='userprofile',
-            name='grupo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='administradores', to='core.grupo'),
+            name='asociacion',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='administradores', to='core.asociacion'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='rol',
-            field=models.CharField(choices=[('superadministrador', 'Superadministrador'), ('administrador_grupo', 'Administrador de Grupo'), ('administrador_subgrupo', 'Administrador de Subgrupo'), ('miembro', 'Miembro')], default='miembro', max_length=30),
+            field=models.CharField(choices=[('superadministrador', 'Superadministrador'), ('administrador_asociacion', 'Administrador de Asociacion'), ('administrador_conjunto', 'Administrador de Conjunto'), ('miembro', 'Miembro')], default='miembro', max_length=30),
         ),
         migrations.AddField(
             model_name='userprofile',
-            name='subgrupo',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='administradores', to='core.subgrupo'),
+            name='conjunto',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='administradores', to='core.conjunto'),
         ),
         migrations.CreateModel(
             name='Membresia',
@@ -36,9 +36,9 @@ class Migration(migrations.Migration):
                 ('fecha_ingreso', models.DateField(auto_now_add=True)),
                 ('antiguedad', models.PositiveIntegerField(default=0, verbose_name='Antigüedad (años)')),
                 ('observacion', models.TextField(blank=True, default='')),
-                ('grupo', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='membresias', to='core.grupo')),
+                ('asociacion', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='membresias', to='core.asociacion')),
                 ('socio', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='membresias', to='socios.socio')),
-                ('subgrupo', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='membresias', to='core.subgrupo')),
+                ('conjunto', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='membresias', to='core.conjunto')),
             ],
             options={
                 'ordering': ['-fecha_ingreso'],
@@ -46,6 +46,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddConstraint(
             model_name='membresia',
-            constraint=models.UniqueConstraint(fields=('socio', 'grupo', 'subgrupo'), name='unique_membresia_socio_subgrupo'),
+            constraint=models.UniqueConstraint(fields=('socio', 'asociacion', 'conjunto'), name='unique_membresia_socio_conjunto'),
         ),
     ]

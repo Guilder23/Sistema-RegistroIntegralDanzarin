@@ -145,7 +145,7 @@
     gap: 4px;
 }
 
-.tag-ambito-grupo {
+.tag-ambito-asociacion {
     display: inline-flex;
     align-items: center;
     padding: 4px 10px;
@@ -159,7 +159,7 @@
     position: static !important;
 }
 
-.tag-ambito-subgrupo {
+.tag-ambito-conjunto {
     display: inline-flex;
     align-items: center;
     padding: 3px 9px;
@@ -200,7 +200,7 @@
     position: static !important;
 }
 
-.tag-rol-grupo {
+.tag-rol-asociacion {
     display: inline-flex;
     align-items: center;
     padding: 2px 8px;
@@ -212,7 +212,7 @@
     position: static !important;
 }
 
-.tag-rol-subgrupo {
+.tag-rol-conjunto {
     display: inline-flex;
     align-items: center;
     padding: 2px 8px;

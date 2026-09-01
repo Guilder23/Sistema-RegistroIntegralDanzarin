@@ -21,24 +21,24 @@ def get_role(user):
 def is_administrative(user):
     return get_role(user) in {
         'superadministrador',
-        'administrador_grupo',
-        'administrador_subgrupo',
+        'administrador_asociacion',
+        'administrador_conjunto',
     }
 
 
 def can_manage_events(user):
-    return get_role(user) in {'superadministrador', 'administrador_grupo'}
+    return get_role(user) in {'superadministrador', 'administrador_asociacion'}
 
 
 def can_register_members(user):
-    return get_role(user) in {'superadministrador', 'administrador_subgrupo'}
+    return get_role(user) in {'superadministrador', 'administrador_conjunto'}
 
 
 def can_manage_users(user):
     return get_role(user) == 'superadministrador'
 
 
-def scope_filter(queryset, user, grupo_field='grupo', subgrupo_field='subgrupo'):
+def scope_filter(queryset, user, asociacion_field='asociacion', conjunto_field='conjunto'):
     """Limita un queryset al ámbito del usuario autenticado."""
     role = get_role(user)
     if role == 'superadministrador':
@@ -48,10 +48,10 @@ def scope_filter(queryset, user, grupo_field='grupo', subgrupo_field='subgrupo')
         profile = user.userprofile
     except UserProfile.DoesNotExist:
         return queryset.none()
-    if role == 'administrador_grupo' and profile.grupo_id:
-        return queryset.filter(**{f'{grupo_field}_id': profile.grupo_id})
-    if role == 'administrador_subgrupo' and profile.subgrupo_id:
-        return queryset.filter(**{f'{subgrupo_field}_id': profile.subgrupo_id})
+    if role == 'administrador_asociacion' and profile.asociacion_id:
+        return queryset.filter(**{f'{asociacion_field}_id': profile.asociacion_id})
+    if role == 'administrador_conjunto' and profile.conjunto_id:
+        return queryset.filter(**{f'{conjunto_field}_id': profile.conjunto_id})
     return queryset.none()
 
 
@@ -61,24 +61,24 @@ def scope_socios(queryset, user):
         return queryset
     if role == 'miembro':
         return queryset.filter(user=user)
-    return scope_filter(queryset, user, 'membresias__grupo', 'membresias__subgrupo').distinct()
+    return scope_filter(queryset, user, 'membresias__asociacion', 'membresias__conjunto').distinct()
 
 
-def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo=None, grupo=None, subgrupo=None):
+def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo=None, asociacion=None, conjunto=None):
     from .models import Auditoria
     from apps.socios.models import UserProfile
 
-    auditoria_grupo = grupo
-    auditoria_subgrupo = subgrupo
+    auditoria_asociacion = asociacion
+    auditoria_conjunto = conjunto
 
     if usuario and getattr(usuario, 'is_authenticated', False):
         try:
             profile = getattr(usuario, 'userprofile', None)
             if profile:
-                if not auditoria_grupo and profile.grupo:
-                    auditoria_grupo = profile.grupo
-                if not auditoria_subgrupo and profile.subgrupo:
-                    auditoria_subgrupo = profile.subgrupo
+                if not auditoria_asociacion and profile.asociacion:
+                    auditoria_asociacion = profile.asociacion
+                if not auditoria_conjunto and profile.conjunto:
+                    auditoria_conjunto = profile.conjunto
         except Exception:
             pass
 
@@ -88,7 +88,7 @@ def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo
         registro_afectado=registro_afectado,
         valor_anterior=anterior,
         valor_nuevo=nuevo,
-        grupo=auditoria_grupo,
-        subgrupo=auditoria_subgrupo,
+        asociacion=auditoria_asociacion,
+        conjunto=auditoria_conjunto,
     )
 

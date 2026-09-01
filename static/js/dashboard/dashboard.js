@@ -275,7 +275,7 @@ function initDashboardCharts() {
         });
     }
 
-    // 9. Gráfico de Barras Horizontales: Distribución por Grupo y Subgrupo
+    // 9. Gráfico de Barras Horizontales: Distribución por Asociacion y Conjunto
     const elDistribucion = document.getElementById('graficoDistribucion');
     if (elDistribucion && datos.distribucion) {
         new Chart(elDistribucion, {
