@@ -28,6 +28,7 @@ urlpatterns = [
     path('dashboard/', include(('apps.dashboard.urls', 'dashboard'), namespace='dashboard')),
     path('asociaciones/', include(('apps.asociaciones.urls', 'asociaciones'), namespace='asociaciones')),
     path('conjuntos/', include(('apps.conjuntos.urls', 'conjuntos'), namespace='conjuntos')),
+    path('bloques/', include(('apps.bloques.urls', 'bloques'), namespace='bloques')),
     path('membresias/', include(('apps.membresias.urls', 'membresias'), namespace='membresias')),
     path('auditoria/', include(('apps.auditoria.urls', 'auditoria'), namespace='auditoria')),
     path('secret-admin/', admin.site.urls),

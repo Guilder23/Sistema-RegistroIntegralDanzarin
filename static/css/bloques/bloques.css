@@ -1,0 +1,79 @@
+/* ============================================================
+   ESTILOS PARA BLOQUES
+   ============================================================ */
+
+.gestion-page {
+    padding: 0;
+}
+
+.gestion-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+}
+
+.gestion-page .page-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.gestion-page .page-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.95rem;
+}
+
+.gestion-page .card {
+    border: 1px solid #dfe7f1;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+
+.gestion-page .table th {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    background: #0f172a;
+    padding: 0.9rem 1rem;
+    border: none;
+}
+
+.gestion-page .table td {
+    vertical-align: middle;
+    padding: 0.95rem 1rem;
+    border-top: 1px solid #edf2f7;
+}
+
+.gestion-page .table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+.badge-estado {
+    display: inline-block;
+    padding: 0.38rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.badge-estado-activo {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-estado-inactivo {
+    background: #fee2e2;
+    color: #991b1b;
+}

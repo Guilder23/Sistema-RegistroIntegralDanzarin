@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'apps.reportes.apps.ReportesConfig',
     'apps.asociaciones.apps.AsociacionesConfig',
     'apps.conjuntos.apps.ConjuntosConfig',
+    'apps.bloques.apps.BloquesConfig',
     'apps.membresias.apps.MembresiasConfig',
     'apps.auditoria.apps.AuditoriaConfig',
 ]

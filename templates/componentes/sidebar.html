@@ -35,6 +35,11 @@
                     <i class="fas fa-sitemap"></i><span>Conjuntos</span>
                 </a>
             </li>
+            <li class="sidebar-item">
+                <a href="{% url 'bloques:listar_bloques' %}" class="sidebar-link {% if '/bloques/' in request.path %}active{% endif %}" title="Bloques">
+                    <i class="fas fa-cubes"></i><span>Bloques</span>
+                </a>
+            </li>
             {% endif %}
             <li class="sidebar-item">
                 <a href="{% url 'socios:listar_socios' %}" class="sidebar-link {% if '/socios/' in request.path and not '/socios/listar_admins' in request.path and not '/socios/perfil' in request.path and not '/socios/importar' in request.path %}active{% endif %}" title="Socios">
