@@ -5,7 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Socio
+from .models import Socio, Membresia
 from .models import UserProfile
 from .models import generar_codigo_socio
 from django.contrib.auth import update_session_auth_hash
@@ -20,6 +20,7 @@ from openpyxl.utils import get_column_letter
 from datetime import datetime
 from apps.core.permissions import scope_socios, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
+from apps.bloques.models import Bloque
 
 
 @login_required
@@ -47,19 +48,34 @@ def listar_socios(request):
 
     # Asegurar que cada usuario listado tenga un UserProfile para evitar errores en plantillas
     for s in page_obj.object_list:
-        s.membresia_visible = s.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() or s.membresias.order_by('-fecha_ingreso').first()
+        s.membresia_visible = s.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto', 'bloque').first() or s.membresias.order_by('-fecha_ingreso').first()
         try:
             UserProfile.objects.get_or_create(user=s.user)
         except Exception:
             pass
+
+    role = get_role(request.user)
+    asociaciones = Asociacion.objects.filter(activo=True)
+    conjuntos = Conjunto.objects.filter(activo=True).select_related('asociacion')
+    bloques = Bloque.objects.filter(activo=True).select_related('conjunto')
+    if role == 'administrador_asociacion':
+        asociaciones = asociaciones.filter(pk=request.user.userprofile.asociacion_id)
+        conjuntos = conjuntos.filter(asociacion_id=request.user.userprofile.asociacion_id)
+        bloques = bloques.filter(conjunto__asociacion_id=request.user.userprofile.asociacion_id)
+    elif role == 'administrador_conjunto':
+        asociaciones = asociaciones.filter(pk=request.user.userprofile.asociacion_id)
+        conjuntos = conjuntos.filter(pk=request.user.userprofile.conjunto_id)
+        bloques = bloques.filter(conjunto_id=request.user.userprofile.conjunto_id)
 
     return render(request, 'socios/socios.html', {
         'page_obj': page_obj,
         'q': q,
         'estado': estado,
         'is_admin': can_register_members(request.user),
-        'asociaciones': Asociacion.objects.filter(activo=True),
-        'conjuntos': Conjunto.objects.filter(activo=True).select_related('asociacion'),
+        'asociaciones': asociaciones,
+        'conjuntos': conjuntos,
+        'bloques': bloques,
+        'role': role,
     })
 
 
@@ -99,12 +115,16 @@ def crear_socio(request):
     if role == 'administrador_conjunto':
         asociacion = request.user.userprofile.asociacion
         conjunto = request.user.userprofile.conjunto
+    elif role == 'administrador_asociacion':
+        asociacion = request.user.userprofile.asociacion
+        conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first()
     else:
         asociacion_id = request.POST.get('asociacion_id') or None
         asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
         conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
-    if not asociacion or not conjunto:
-        messages.error(request, 'Selecciona una asociación y conjunto válidos.')
+    bloque = Bloque.objects.filter(pk=request.POST.get('bloque_id'), conjunto=conjunto, activo=True).first() if conjunto else None
+    if not asociacion or not conjunto or not bloque:
+        messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos.')
         return redirect('socios:listar_socios')
 
     user = User.objects.create_user(username=username, email=email, password=password)
@@ -129,10 +149,11 @@ def crear_socio(request):
         observacion=observacion,
         sexo=sexo,
         modalidad=modalidad,
+        creado_por=request.user,
     )
     from .models import Membresia
-    Membresia.inscribir(socio, asociacion, conjunto, estado_pago='al_dia')
-    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk})
+    Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
+    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk, 'bloque': bloque.pk}, asociacion=asociacion, conjunto=conjunto)
     messages.success(request, 'Socio registrado correctamente.')
     return redirect('socios:listar_socios')
 
@@ -346,6 +367,30 @@ def importar_socios_masivo(request):
     return render(request, 'socios/importar_masivo.html')
 
 
+def validar_filas_importacion(rows, user):
+    role = get_role(user)
+    errores = []
+    for fila, row in enumerate(rows, start=2):
+        valores = list(row) + [''] * max(0, 17 - len(row))
+        username, nombre = str(valores[0]).strip(), str(valores[1]).strip()
+        asociacion_nombre = str(valores[14]).strip()
+        conjunto_nombre = str(valores[15]).strip()
+        bloque_nombre = str(valores[16]).strip()
+        asociacion = Asociacion.objects.filter(nombre__iexact=asociacion_nombre, activo=True).first()
+        conjunto = Conjunto.objects.filter(nombre__iexact=conjunto_nombre, asociacion=asociacion, activo=True).first() if asociacion else None
+        bloque = Bloque.objects.filter(nombre__iexact=bloque_nombre, conjunto=conjunto, activo=True).first() if conjunto else None
+        fila_errores = []
+        if not username: fila_errores.append('falta username')
+        if not nombre: fila_errores.append('falta nombre')
+        if not asociacion: fila_errores.append(f'asociación "{asociacion_nombre}" no encontrada')
+        elif role == 'administrador_asociacion' and asociacion.pk != user.userprofile.asociacion_id: fila_errores.append('asociación fuera de tu ámbito')
+        if not conjunto: fila_errores.append(f'conjunto "{conjunto_nombre}" no pertenece a la asociación')
+        elif role == 'administrador_conjunto' and conjunto.pk != user.userprofile.conjunto_id: fila_errores.append('conjunto fuera de tu ámbito')
+        if not bloque: fila_errores.append(f'bloque "{bloque_nombre}" no pertenece al conjunto')
+        if fila_errores: errores.append(f'Fila {fila}: ' + '; '.join(fila_errores) + '.')
+    return errores
+
+
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
 def importar_socios_xlsx_preview(request):
@@ -365,7 +410,12 @@ def importar_socios_xlsx_preview(request):
             messages.error(request, 'El archivo estÃ¡ vacÃ­o.')
             return redirect('socios:importar_socios_masivo')
 
-        headers = [str(cell or '') for cell in rows[0]]
+        headers = [str(cell or '').strip() for cell in rows[0]]
+        required_headers = ['username', 'nombre', 'apellido_paterno', 'email', 'asociacion', 'conjunto', 'bloque']
+        missing_headers = [header for header in required_headers if header not in headers]
+        if missing_headers:
+            messages.error(request, f'Faltan columnas obligatorias: {", ".join(missing_headers)}.')
+            return redirect('socios:importar_socios_masivo')
         preview = [[str(cell or '') for cell in row] for row in rows[1:11]]
         
         def convert_cell_value(cell):
@@ -376,9 +426,9 @@ def importar_socios_xlsx_preview(request):
             return str(cell)
         
         preview_data = [
-            [convert_cell_value(cell) for cell in row[:14]]
+            [convert_cell_value(cell) for cell in row[:17]]
             for row in rows[1:]
-            if any(cell is not None for cell in row[:14])
+            if any(cell is not None for cell in row[:17])
         ]
 
         request.session['socios_import_preview'] = preview_data
@@ -386,6 +436,7 @@ def importar_socios_xlsx_preview(request):
         return render(request, 'socios/importar_masivo.html', {
             'preview_headers': headers,
             'preview_rows': preview,
+            'import_errors': validar_filas_importacion(preview_data, request.user),
         })
     except Exception as e:
         messages.error(request, f'Error al procesar xlsx: {e}')
@@ -400,11 +451,16 @@ def importar_socios_xlsx_confirm(request):
         messages.error(request, 'No hay datos para confirmar.')
         return redirect('socios:importar_socios_masivo')
 
+    import_errors = validar_filas_importacion(preview_data, request.user)
+    if import_errors:
+        messages.error(request, 'No se registró ningún socio: ' + ' '.join(import_errors[:8]))
+        return redirect('socios:importar_socios_masivo')
+
     created = 0
     skipped = 0
     errors = []
     for row in preview_data:
-        vals = [(c or '') for c in row[:14]]
+        vals = [(c or '') for c in (list(row) + [''] * max(0, 17 - len(row)))[:17]]
         username = vals[0]
         nombre = vals[1]
         apellido_paterno = vals[2]
@@ -419,6 +475,9 @@ def importar_socios_xlsx_confirm(request):
         razon = vals[11]
         carnet_ci = vals[12]
         carnet_complemento = vals[13]
+        asociacion = Asociacion.objects.get(nombre__iexact=str(vals[14]).strip(), activo=True)
+        conjunto = Conjunto.objects.get(nombre__iexact=str(vals[15]).strip(), asociacion=asociacion, activo=True)
+        bloque = Bloque.objects.get(nombre__iexact=str(vals[16]).strip(), conjunto=conjunto, activo=True)
         
         if not username:
             skipped += 1
@@ -467,14 +526,20 @@ def importar_socios_xlsx_confirm(request):
                 user.first_name = nombre
                 user.last_name = apellido_paterno or apellido
                 user.save()
-                Socio.objects.create(user=user, codigo_socio=generar_codigo_socio(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, apellido=apellido, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, razon=razon, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento)
+                socio = Socio.objects.create(user=user, codigo_socio=generar_codigo_socio(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, apellido=apellido, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, razon=razon, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento, creado_por=request.user)
                 created += 1
+            membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first()
+            if membresia:
+                membresia.bloque = bloque
+                membresia.save(update_fields=['bloque'])
+            else:
+                Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
         except Exception as e:
             skipped += 1
             errors.append(f"Error creando {username}: {str(e)}")
 
     if errors:
-        messages.warning(request, f'Socios importados: {created}, omitidos: {skipped}. Errores: {"; ".join(errors[:5])}')
+        messages.error(request, f'Socios importados: {created}, omitidos: {skipped}. Errores: {"; ".join(errors[:5])}')
     else:
         messages.success(request, f'Socios importados desde XLSX: {created}')
     return redirect('socios:listar_socios')
@@ -488,7 +553,7 @@ def descargar_plantilla_excel(request):
     ws.title = 'socios'
     
     # Encabezados
-    headers = ['username', 'nombre', 'apellido_paterno', 'apellido_materno', 'apellido', 'email', 'password', 'telefono', 'ciudad', 'direccion', 'fecha_nacimiento', 'razon', 'carnet_ci', 'carnet_complemento']
+    headers = ['username', 'nombre', 'apellido_paterno', 'apellido_materno', 'apellido', 'email', 'password', 'telefono', 'ciudad', 'direccion', 'fecha_nacimiento', 'razon', 'carnet_ci', 'carnet_complemento', 'asociacion', 'conjunto', 'bloque']
     ws.append(headers)
     
     # Estilo para el encabezado
@@ -531,7 +596,7 @@ def descargar_plantilla_excel(request):
     )
     
     # Ejemplo de fila con estilo
-    example_row = ['jdoe', 'Juan', 'Perez', 'Gomez', 'Perez Gomez', 'jdoe@example.com', 'Passw0rd!', '71234567', 'Oruro', 'DirecciÃ³n 123', '1990-01-01', 'Quiero participar', '1234567', '-1A']
+    example_row = ['jdoe', 'Juan', 'Perez', 'Gomez', 'Perez Gomez', 'jdoe@example.com', 'Passw0rd!', '71234567', 'Oruro', 'DirecciÃ³n 123', '1990-01-01', 'Quiero participar', '1234567', '-1A', 'Nombre exacto de asociación', 'Nombre exacto de conjunto', 'Nombre exacto de bloque']
     ws.append(example_row)
     
     # Aplicar bordes y colores alternados a las filas de datos
@@ -713,6 +778,7 @@ def editar_socio(request, socio_id):
         return redirect('socios:listar_socios')
 
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
+    membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first() or socio.membresias.order_by('-fecha_ingreso').first()
     socio.nombre = request.POST.get('nombre', '').strip()
     socio.apellido_paterno = request.POST.get('apellido_paterno', '').strip()
     socio.apellido_materno = request.POST.get('apellido_materno', '').strip()
@@ -727,6 +793,23 @@ def editar_socio(request, socio_id):
     socio.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
     socio.sexo = request.POST.get('sexo', '').strip()
     socio.modalidad = request.POST.get('modalidad', '').strip()
+    if membresia:
+        role = get_role(request.user)
+        conjunto = membresia.conjunto
+        if role == 'superadministrador':
+            asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
+            conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+        elif role == 'administrador_asociacion':
+            conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion_id=request.user.userprofile.asociacion_id, activo=True).first()
+        bloque_id = request.POST.get('bloque_id')
+        bloque = Bloque.objects.filter(pk=bloque_id, conjunto=conjunto, activo=True).first() if conjunto else None
+        if not bloque:
+            messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos para el socio.')
+            return redirect('socios:listar_socios')
+        membresia.asociacion = conjunto.asociacion
+        membresia.conjunto = conjunto
+        membresia.bloque = bloque
+        membresia.save(update_fields=['asociacion', 'conjunto', 'bloque'])
     socio.save()
     registrar_auditoria(request.user, 'modificacion_socio', f'Socio {socio.pk} - {socio}', nuevo={'nombre': socio.nombre, 'email': socio.email})
     messages.success(request, 'Datos del socio actualizados.')

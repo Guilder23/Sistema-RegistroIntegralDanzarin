@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.core.models import Asociacion, Conjunto
+from apps.bloques.models import Bloque
 from .models import Membresia, Socio
 
 
@@ -43,6 +44,7 @@ class RolesSociosTests(TestCase):
     def setUp(self):
         self.asociacion = Asociacion.objects.create(nombre='Asociacion Roles')
         self.conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto Roles')
+        self.bloque = Bloque.objects.create(conjunto=self.conjunto, nombre='Bloque Roles')
 
     def crear_usuario(self, username, rol):
         user = User.objects.create_user(username=username, password='secret123', is_staff=True)
@@ -52,17 +54,23 @@ class RolesSociosTests(TestCase):
         user.userprofile.save()
         return user
 
-    def test_administrador_asociacion_no_puede_registrar_socios(self):
+    def test_administrador_asociacion_puede_registrar_socios(self):
         self.client.force_login(self.crear_usuario('admin-asociacion', 'administrador_asociacion'))
-        response = self.client.post(reverse('socios:crear_socio'), {})
+        response = self.client.post(reverse('socios:crear_socio'), {
+            'username': 'socio-asociacion', 'password': 'secret123', 'nombre': 'Ana',
+            'apellido_paterno': 'Lopez', 'email': 'ana@example.com',
+            'conjunto_id': self.conjunto.pk, 'bloque_id': self.bloque.pk,
+        })
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(Socio.objects.count(), 0)
+        self.assertTrue(Socio.objects.filter(nombre='Ana').exists())
 
     def test_administrador_conjunto_puede_registrar_socio_con_membresia(self):
         self.client.force_login(self.crear_usuario('admin-conjunto', 'administrador_conjunto'))
         response = self.client.post(reverse('socios:crear_socio'), {
             'username': 'nuevo-socio', 'password': 'secret123', 'nombre': 'Luis',
             'apellido_paterno': 'Gomez', 'email': 'luis@example.com',
+            'bloque_id': self.bloque.pk,
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Membresia.objects.filter(asociacion=self.asociacion, conjunto=self.conjunto).exists())
+        self.assertEqual(Membresia.objects.get(socio__nombre='Luis').bloque, self.bloque)

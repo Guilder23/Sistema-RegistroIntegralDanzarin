@@ -116,6 +116,14 @@
                                 data-estado="{{ socio.membresia_visible.get_estado_display|default:'Sin membresía' }}"
                                 data-souvenir="{% if socio.recibio_souvenir %}Sí{% else %}No{% endif %}"
                                 data-fecha-ingreso="{{ socio.fecha_ingreso|date:'d/m/Y' }}"
+                                data-asociacion="{{ socio.membresia_visible.asociacion.nombre|escapejs }}"
+                                data-conjunto="{{ socio.membresia_visible.conjunto.nombre|escapejs }}"
+                                data-bloque="{{ socio.membresia_visible.bloque.nombre|default:'No asignado'|escapejs }}"
+                                data-asociacion-id="{{ socio.membresia_visible.asociacion_id }}"
+                                data-conjunto-id="{{ socio.membresia_visible.conjunto_id }}"
+                                data-bloque-id="{{ socio.membresia_visible.bloque_id|default:'' }}"
+                                data-creado-por="{% if socio.creado_por %}{{ socio.creado_por.get_full_name|default:socio.creado_por.username|escapejs }}{% else %}No disponible{% endif %}"
+                                data-rol-creador="{% if socio.creado_por %}{{ socio.creado_por.userprofile.get_rol_display|escapejs }}{% else %}No disponible{% endif %}"
                                 ><i class="fas fa-eye"></i></button>
                             {% if is_admin %}
                             <button class="btn btn-warning btn-sm btn-editar-socio" data-toggle="modal" data-target="#modalEditarSocio"
@@ -133,6 +141,9 @@
                                 data-fecha-nacimiento="{{ socio.fecha_nacimiento|date:'Y-m-d' }}"
                                 data-razon="{{ socio.razon }}"
                                 data-observacion="{{ socio.observacion }}"
+                                data-asociacion="{{ socio.membresia_visible.asociacion.nombre|escapejs }}"
+                                data-conjunto="{{ socio.membresia_visible.conjunto.nombre|escapejs }}"
+                                data-bloque-id="{{ socio.membresia_visible.bloque_id|default:'' }}"
                                 ><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger btn-sm btn-eliminar-socio" data-toggle="modal" data-target="#modalEliminarSocio"
                                 data-id="{{ socio.id }}"

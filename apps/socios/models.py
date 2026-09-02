@@ -34,6 +34,7 @@ class Socio(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')
     recibio_souvenir = models.BooleanField(default=False, verbose_name='Recibió souvenir')
     observacion = models.TextField(blank=True, default='', verbose_name='Observación')
+    creado_por = models.ForeignKey('auth.User', on_delete=models.SET_NULL, related_name='socios_creados', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Socio'
@@ -61,6 +62,7 @@ class Membresia(models.Model):
     socio = models.ForeignKey(Socio, on_delete=models.CASCADE, related_name='membresias')
     asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, related_name='membresias')
     conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, related_name='membresias')
+    bloque = models.ForeignKey('bloques.Bloque', on_delete=models.PROTECT, related_name='membresias', null=True, blank=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')
     estado_pago = models.CharField(max_length=20, choices=PAGO_CHOICES, default='al_dia')
     fecha_ingreso = models.DateField(auto_now_add=True)
@@ -79,12 +81,14 @@ class Membresia(models.Model):
         ordering = ['-fecha_ingreso']
 
     @classmethod
-    def inscribir(cls, socio, asociacion, conjunto, **kwargs):
+    def inscribir(cls, socio, asociacion, conjunto, bloque=None, **kwargs):
         if conjunto.asociacion_id != asociacion.pk:
             raise ValueError('El conjunto debe pertenecer a la asociación indicada.')
+        if bloque and bloque.conjunto_id != conjunto.pk:
+            raise ValueError('El bloque debe pertenecer al conjunto indicado.')
         if cls.objects.filter(socio=socio, asociacion=asociacion).exclude(estado='baja').exists():
             raise ValueError('El socio debe estar dado de baja antes de cambiar de conjunto.')
-        return cls.objects.create(socio=socio, asociacion=asociacion, conjunto=conjunto, **kwargs)
+        return cls.objects.create(socio=socio, asociacion=asociacion, conjunto=conjunto, bloque=bloque, **kwargs)
 
     def save(self, *args, **kwargs):
         if self.estado_pago == 'con_deuda':
@@ -93,6 +97,8 @@ class Membresia(models.Model):
             self.estado = 'activo'
         if self.conjunto.asociacion_id != self.asociacion_id:
             raise ValueError('El conjunto debe pertenecer a la asociación de la membresía.')
+        if self.bloque_id and self.bloque.conjunto_id != self.conjunto_id:
+            raise ValueError('El bloque debe pertenecer al conjunto de la membresía.')
         super().save(*args, **kwargs)
 
 

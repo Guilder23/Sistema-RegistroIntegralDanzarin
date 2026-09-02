@@ -21,8 +21,17 @@
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="col-md-6 form-group"><label>Asociación</label><select name="asociacion_id" class="form-control" required>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
-                        <div class="col-md-6 form-group"><label>Conjunto</label><select name="conjunto_id" class="form-control" required>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}">{{ conjunto.asociacion.nombre }} / {{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        {% if role == 'administrador_conjunto' %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><select class="form-control" disabled><option>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select class="form-control" disabled><option>{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}"></div>
+                        {% elif role == 'administrador_asociacion' %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><select id="crearSocioAsociacion" class="form-control" disabled><option value="{{ request.user.userprofile.asociacion_id }}">{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select name="conjunto_id" id="crearSocioConjunto" class="form-control" required><option value="">Selecciona</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        {% else %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><select name="asociacion_id" id="crearSocioAsociacion" class="form-control" required><option value="">Selecciona</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select name="conjunto_id" id="crearSocioConjunto" class="form-control" required><option value="">Selecciona</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        {% endif %}
+                        <div class="col-md-4 form-group"><label>Bloque</label><select name="bloque_id" id="crearSocioBloque" class="form-control" required><option value="">Selecciona</option>{% for bloque in bloques %}<option value="{{ bloque.id }}" data-conjunto-id="{{ bloque.conjunto_id }}">{{ bloque.nombre }}</option>{% endfor %}</select></div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
