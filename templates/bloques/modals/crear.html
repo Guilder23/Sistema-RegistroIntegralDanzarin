@@ -7,12 +7,16 @@
                     <h5>Nuevo bloque</h5>
                 </div>
                 <div class="modal-body">
+                    {% if role != 'administrador_conjunto' %}
                     <label>Asociación</label>
                     <select class="form-control" name="asociacion_id" id="crearBloqueAsociacion">
                         {% for asociacion in asociaciones %}
                             <option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>
                         {% endfor %}
                     </select>
+                    {% else %}
+                    <input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">
+                    {% endif %}
 
                     <label class="mt-3">Conjunto</label>
                     <select class="form-control" name="conjunto_id" id="crearBloqueConjunto">

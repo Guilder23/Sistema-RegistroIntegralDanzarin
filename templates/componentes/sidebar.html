@@ -35,6 +35,8 @@
                     <i class="fas fa-sitemap"></i><span>Conjuntos</span>
                 </a>
             </li>
+            {% endif %}
+            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' or request.user.userprofile.rol == 'administrador_conjunto' %}
             <li class="sidebar-item">
                 <a href="{% url 'bloques:listar_bloques' %}" class="sidebar-link {% if '/bloques/' in request.path %}active{% endif %}" title="Bloques">
                     <i class="fas fa-cubes"></i><span>Bloques</span>

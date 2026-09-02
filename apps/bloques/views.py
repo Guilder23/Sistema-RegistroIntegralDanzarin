@@ -8,12 +8,15 @@ from .models import Bloque
 
 
 def can_manage_bloques(user):
-    return get_role(user) in {'superadministrador', 'administrador_asociacion'}
+    return get_role(user) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}
 
 
 def scoped_bloques(user):
-    if get_role(user) == 'superadministrador':
+    role = get_role(user)
+    if role == 'superadministrador':
         return Bloque.objects.select_related('conjunto__asociacion').all()
+    if role == 'administrador_conjunto':
+        return Bloque.objects.filter(conjunto_id=user.userprofile.conjunto_id).select_related('conjunto__asociacion')
     return Bloque.objects.filter(conjunto__asociacion_id=user.userprofile.asociacion_id).select_related('conjunto__asociacion')
 
 
@@ -25,13 +28,12 @@ def listar_bloques(request):
     if q:
         bloques = bloques.filter(nombre__icontains=q)
 
-    asociaciones = (
-        Asociacion.objects.filter(activo=True)
-        if get_role(request.user) == 'superadministrador'
-        else Asociacion.objects.filter(pk=request.user.userprofile.asociacion_id)
-    )
+    role = get_role(request.user)
+    asociaciones = Asociacion.objects.filter(activo=True) if role == 'superadministrador' else Asociacion.objects.filter(pk=request.user.userprofile.asociacion_id)
     conjuntos = Conjunto.objects.filter(activo=True).select_related('asociacion')
-    if get_role(request.user) != 'superadministrador':
+    if role == 'administrador_conjunto':
+        conjuntos = conjuntos.filter(pk=request.user.userprofile.conjunto_id)
+    elif role != 'superadministrador':
         conjuntos = conjuntos.filter(asociacion_id=request.user.userprofile.asociacion_id)
 
     return render(request, 'bloques/bloques.html', {
@@ -39,6 +41,7 @@ def listar_bloques(request):
         'asociaciones': asociaciones,
         'conjuntos': conjuntos,
         'q': q,
+        'role': role,
     })
 
 
@@ -46,10 +49,13 @@ def listar_bloques(request):
 @user_passes_test(can_manage_bloques, login_url='/login/')
 def crear_bloque(request):
     if request.method == 'POST':
+        role = get_role(request.user)
         asociacion_id = request.POST.get('asociacion_id')
         conjunto_id = request.POST.get('conjunto_id')
-        if get_role(request.user) != 'superadministrador':
+        if role != 'superadministrador':
             asociacion_id = request.user.userprofile.asociacion_id
+        if role == 'administrador_conjunto':
+            conjunto_id = request.user.userprofile.conjunto_id
 
         asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first()
         conjunto = None
@@ -63,7 +69,7 @@ def crear_bloque(request):
             bloque, created = Bloque.objects.get_or_create(
                 conjunto=conjunto,
                 nombre=nombre,
-                defaults={'descripcion': descripcion, 'activo': True},
+                defaults={'descripcion': descripcion, 'activo': True, 'creado_por': request.user},
             )
             if created:
                 registrar_auditoria(
@@ -92,9 +98,18 @@ def editar_bloque(request, pk):
         bloque.descripcion = request.POST.get('descripcion', bloque.descripcion).strip()
         bloque.activo = request.POST.get('activo') == 'on'
 
+        role = get_role(request.user)
         conjunto_id = request.POST.get('conjunto_id')
+        if role == 'administrador_conjunto':
+            conjunto_id = request.user.userprofile.conjunto_id
         if conjunto_id:
-            conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=bloque.conjunto.asociacion, activo=True).first()
+            conjuntos_validos = Conjunto.objects.filter(activo=True)
+            if role == 'superadministrador':
+                conjunto = conjuntos_validos.filter(pk=conjunto_id).first()
+            elif role == 'administrador_asociacion':
+                conjunto = conjuntos_validos.filter(pk=conjunto_id, asociacion_id=request.user.userprofile.asociacion_id).first()
+            else:
+                conjunto = conjuntos_validos.filter(pk=request.user.userprofile.conjunto_id).first()
             if conjunto:
                 bloque.conjunto = conjunto
 

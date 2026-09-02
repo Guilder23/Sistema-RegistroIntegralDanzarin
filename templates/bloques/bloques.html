@@ -50,7 +50,8 @@
                                 data-nombre="{{ bloque.nombre }}"
                                 data-conjunto="{{ bloque.conjunto.nombre }}"
                                 data-asociacion="{{ bloque.conjunto.asociacion.nombre }}"
-                                data-descripcion="{{ bloque.descripcion }}">
+                                data-descripcion="{{ bloque.descripcion }}"
+                                data-creado-por="{% if bloque.creado_por %}{{ bloque.creado_por.get_full_name|default:bloque.creado_por.username|escapejs }}{% else %}No disponible{% endif %}">
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditarBloque"
@@ -58,6 +59,7 @@
                                 data-nombre="{{ bloque.nombre }}"
                                 data-descripcion="{{ bloque.descripcion }}"
                                 data-activo="{{ bloque.activo|yesno:'1,0' }}"
+                                data-asociacion-id="{{ bloque.conjunto.asociacion_id }}"
                                 data-conjunto-id="{{ bloque.conjunto.id }}">
                                 <i class="fas fa-edit"></i>
                             </button>

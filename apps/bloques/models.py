@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Bloque(models.Model):
@@ -7,6 +8,7 @@ class Bloque(models.Model):
     descripcion = models.TextField(blank=True, default='')
     activo = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='bloques_creados', null=True, blank=True)
 
     class Meta:
         ordering = ['conjunto__asociacion__nombre', 'conjunto__nombre', 'nombre']
