@@ -24,9 +24,20 @@ def scoped_bloques(user):
 @user_passes_test(can_manage_bloques, login_url='/login/')
 def listar_bloques(request):
     q = request.GET.get('q', '').strip()
+    asociacion_id = request.GET.get('asociacion_id', '').strip()
+    conjunto_id = request.GET.get('conjunto_id', '').strip()
+    activo = request.GET.get('activo', '').strip()
     bloques = scoped_bloques(request.user)
     if q:
         bloques = bloques.filter(nombre__icontains=q)
+    if asociacion_id:
+        bloques = bloques.filter(conjunto__asociacion_id=asociacion_id)
+    if conjunto_id:
+        bloques = bloques.filter(conjunto_id=conjunto_id)
+    if activo == 'si':
+        bloques = bloques.filter(activo=True)
+    elif activo == 'no':
+        bloques = bloques.filter(activo=False)
 
     role = get_role(request.user)
     asociaciones = Asociacion.objects.filter(activo=True) if role == 'superadministrador' else Asociacion.objects.filter(pk=request.user.userprofile.asociacion_id)
@@ -41,6 +52,9 @@ def listar_bloques(request):
         'asociaciones': asociaciones,
         'conjuntos': conjuntos,
         'q': q,
+        'asociacion_id': asociacion_id,
+        'conjunto_id': conjunto_id,
+        'activo': activo,
         'role': role,
     })
 

@@ -1,4 +1,18 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const filtrosForm = document.getElementById('bloquesFiltrosForm');
+    const busqueda = document.getElementById('inputBloqueBusqueda');
+    const asociacionFiltro = document.getElementById('selectBloqueAsociacion');
+    const conjuntoFiltro = document.getElementById('selectBloqueConjunto');
+    const estadoFiltro = document.getElementById('selectBloqueActivo');
+    let filtroTimer;
+    const enviarFiltros = function () { if (filtrosForm) filtrosForm.submit(); };
+    if (busqueda) busqueda.addEventListener('input', function () {
+        clearTimeout(filtroTimer);
+        filtroTimer = setTimeout(enviarFiltros, 300);
+    });
+    [asociacionFiltro, conjuntoFiltro, estadoFiltro].forEach(function (select) {
+        if (select) select.addEventListener('change', enviarFiltros);
+    });
     const editarForm = document.getElementById('formEditarBloque');
     const filtrarConjuntos = function (asociacionSelect, conjuntoSelect) {
         if (!asociacionSelect || !conjuntoSelect) return;
@@ -53,6 +67,15 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('verBloqueAsociacion').textContent = button.dataset.asociacion || '';
             document.getElementById('verBloqueDescripcion').textContent = button.dataset.descripcion || 'Sin descripción';
             document.getElementById('verBloqueCreadoPor').textContent = button.dataset.creadoPor || 'No disponible';
+        });
+    });
+
+    const eliminarForm = document.getElementById('formEliminarBloque');
+    document.querySelectorAll('.btn-eliminar-bloque').forEach(function (button) {
+        button.addEventListener('click', function () {
+            if (eliminarForm) eliminarForm.action = '/bloques/' + button.dataset.id + '/eliminar/';
+            const nombre = document.getElementById('eliminarBloqueNombre');
+            if (nombre) nombre.textContent = button.dataset.nombre || '';
         });
     });
 });

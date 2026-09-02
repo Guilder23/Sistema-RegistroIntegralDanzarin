@@ -12,7 +12,7 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding: 1.5rem 2rem;
-    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
     border-radius: 14px;
     color: #ffffff;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
@@ -35,7 +35,7 @@
     border: 1px solid #dfe7f1;
     border-radius: 14px;
     background: #ffffff;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
 }
 
 .gestion-page .table th {
@@ -44,7 +44,7 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #ffffff;
-    background: #0f172a;
+    background: #05413f;
     padding: 0.9rem 1rem;
     border: none;
 }
@@ -52,11 +52,11 @@
 .gestion-page .table td {
     vertical-align: middle;
     padding: 0.95rem 1rem;
-    border-top: 1px solid #edf2f7;
+    border-top: 1px solid #eef5f3;
 }
 
 .gestion-page .table tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: #f0fdf9;
 }
 
 .badge-estado {
@@ -76,4 +76,36 @@
 .badge-estado-inactivo {
     background: #fee2e2;
     color: #991b1b;
+}
+
+.gestion-page .page-header,
+.modal-crear-gestion .modal-header {
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+}
+
+.modal-ver-gestion .modal-header {
+    background: linear-gradient(135deg, #3d9b92 0%, #0f766e 100%);
+}
+
+.modal-editar-gestion .modal-header {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.modal-eliminar-gestion .modal-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.modal-crear-gestion .modal-header,
+.modal-ver-gestion .modal-header,
+.modal-editar-gestion .modal-header,
+.modal-eliminar-gestion .modal-header {
+    color: #fff;
+}
+
+.modal-crear-gestion .modal-header .close,
+.modal-ver-gestion .modal-header .close,
+.modal-editar-gestion .modal-header .close,
+.modal-eliminar-gestion .modal-header .close {
+    color: #fff;
+    opacity: .85;
 }
