@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .models import Socio, Membresia
@@ -19,6 +20,7 @@ from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime
 from apps.core.permissions import scope_socios, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
+from apps.core.permissions import scope_socios, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
 from apps.bloques.models import Bloque
 
@@ -76,6 +78,7 @@ def listar_socios(request):
         'conjuntos': conjuntos,
         'bloques': bloques,
         'role': role,
+        'can_manage_states': can_manage_member_states(request.user),
     })
 
 
@@ -103,11 +106,15 @@ def crear_socio(request):
     sexo = request.POST.get('sexo', '').strip()
     modalidad = request.POST.get('modalidad', '').strip()
 
-    if not username or not nombre or not (apellido_paterno or apellido) or not email or not password:
+    carnet_existente = Socio.objects.filter(
+        carnet_ci=carnet_ci,
+        carnet_complemento=carnet_complemento,
+    ).first() if carnet_ci else None
+    if not carnet_existente and (not username or not nombre or not (apellido_paterno or apellido) or not email or not password):
         messages.error(request, 'Completa los campos obligatorios.')
         return redirect('socios:listar_socios')
 
-    if User.objects.filter(username=username).exists():
+    if not carnet_existente and User.objects.filter(username=username).exists():
         messages.error(request, 'El nombre de usuario ya existe.')
         return redirect('socios:listar_socios')
 
@@ -127,32 +134,40 @@ def crear_socio(request):
         messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos.')
         return redirect('socios:listar_socios')
 
-    user = User.objects.create_user(username=username, email=email, password=password)
-    user.first_name = nombre
-    user.last_name = apellido_paterno or apellido
-    user.save()
-    socio = Socio.objects.create(
-        user=user,
-        codigo_socio=generar_codigo_socio(),
-        nombre=nombre,
-        apellido_paterno=apellido_paterno,
-        apellido_materno=apellido_materno,
-        apellido=apellido,
-        email=email,
-        telefono=telefono,
-        ciudad=ciudad,
-        direccion=direccion,
-        fecha_nacimiento=fecha_nacimiento,
-        razon=razon,
-        carnet_ci=carnet_ci,
-        carnet_complemento=carnet_complemento,
-        observacion=observacion,
-        sexo=sexo,
-        modalidad=modalidad,
-        creado_por=request.user,
-    )
-    from .models import Membresia
-    Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
+    with transaction.atomic():
+        if carnet_existente:
+            socio = carnet_existente
+        else:
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.first_name = nombre
+            user.last_name = apellido_paterno or apellido
+            user.save()
+            socio = Socio.objects.create(
+                user=user,
+                codigo_socio=generar_codigo_socio(),
+                nombre=nombre,
+                apellido_paterno=apellido_paterno,
+                apellido_materno=apellido_materno,
+                apellido=apellido,
+                email=email,
+                telefono=telefono,
+                ciudad=ciudad,
+                direccion=direccion,
+                fecha_nacimiento=fecha_nacimiento,
+                razon=razon,
+                carnet_ci=carnet_ci,
+                carnet_complemento=carnet_complemento,
+                observacion=observacion,
+                sexo=sexo,
+                modalidad=modalidad,
+                creado_por=request.user,
+            )
+        from .models import Membresia
+        try:
+            Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
+        except ValueError as error:
+            messages.error(request, str(error))
+            return redirect('socios:listar_socios')
     registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk, 'bloque': bloque.pk}, asociacion=asociacion, conjunto=conjunto)
     messages.success(request, 'Socio registrado correctamente.')
     return redirect('socios:listar_socios')
@@ -169,6 +184,7 @@ def perfil_socio(request):
         socio = None
 
     entregas = socio.entregas_souvenir.select_related('entregado_por', 'souvenir', 'evento').all() if socio else []
+    membresia_principal = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if socio else None
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -177,6 +193,7 @@ def perfil_socio(request):
         'page_obj': page_obj,
         'is_admin': request.user.is_staff,
         'user_profile': profile,
+        'membresia_principal': membresia_principal,
     })
 
 
@@ -213,46 +230,30 @@ def cambiar_contrasena(request):
         return redirect('socios:perfil_socio')
 
     user = request.user
-    current = request.POST.get('current_password', '')
     new1 = request.POST.get('new_password1', '')
     new2 = request.POST.get('new_password2', '')
-
-    # Validar que los tres campos estÃ©n presentes
+    current = request.POST.get('current_password', '')
     if not current or not new1 or not new2:
         messages.error(request, 'Completa los 3 campos requeridos para cambiar la contraseÃ±a.')
         return redirect('socios:perfil_socio')
-
     if not user.check_password(current):
         messages.error(request, 'La contraseÃ±a actual es incorrecta.')
         return redirect('socios:perfil_socio')
-
     if new1 != new2:
         messages.error(request, 'Las nuevas contraseÃ±as no coinciden.')
         return redirect('socios:perfil_socio')
-
-    try:
-        user.set_password(new1)
-        user.save()
-        # Mantener la sesiÃ³n activa
-        update_session_auth_hash(request, user)
-        messages.success(request, 'ContraseÃ±a actualizada correctamente.')
-    except Exception:
-        messages.error(request, 'No se pudo actualizar la contraseÃ±a.')
-
+    user.set_password(new1)
+    user.save()
+    update_session_auth_hash(request, user)
+    messages.success(request, 'ContraseÃ±a actualizada correctamente.')
     return redirect('socios:perfil_socio')
 
 
 @login_required
 def subir_foto(request):
-    if request.method != 'POST':
-        return redirect('socios:perfil_socio')
-
     foto = request.FILES.get('foto')
     user_id = request.POST.get('user_id')
-
-    # Si el usuario es admin puede subir foto para otro usuario
     if user_id and request.user.is_staff:
-        from django.contrib.auth.models import User
         target = User.objects.filter(id=user_id).first()
         if not target:
             messages.error(request, 'Usuario no encontrado.')
@@ -260,14 +261,12 @@ def subir_foto(request):
         profile, _ = UserProfile.objects.get_or_create(user=target)
     else:
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
-
     if foto:
         profile.foto = foto
         profile.save()
         messages.success(request, 'Foto de perfil actualizada.')
     else:
         messages.error(request, 'No se recibiÃ³ archivo.')
-
     return redirect('socios:perfil_socio')
 
 
@@ -817,7 +816,7 @@ def editar_socio(request, socio_id):
 
 
 @login_required
-@user_passes_test(can_register_members, login_url='/login/')
+@user_passes_test(can_manage_member_states, login_url='/login/')
 def activar_socio(request, socio_id):
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     anteriores = list(socio.membresias.filter(estado__in=['suspendido', 'castigado']).values_list('id', flat=True))
@@ -828,7 +827,7 @@ def activar_socio(request, socio_id):
 
 
 @login_required
-@user_passes_test(can_register_members, login_url='/login/')
+@user_passes_test(can_manage_member_states, login_url='/login/')
 def desactivar_socio(request, socio_id):
     socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
     anteriores = list(socio.membresias.values_list('id', flat=True))

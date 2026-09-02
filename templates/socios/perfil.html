@@ -82,6 +82,10 @@
           {% endif %}
         </div>
         <div class="info-item">
+          <strong>Estado de pago</strong>
+          {% if membresia_principal %}<span class="perfil-status {% if membresia_principal.estado_pago == 'al_dia' %}activo{% else %}inactivo{% endif %}">{{ membresia_principal.get_estado_pago_display }}</span>{% else %}<span>-</span>{% endif %}
+        </div>
+        <div class="info-item">
           <strong>Fecha de ingreso</strong>
           <span>{% if socio %}{{ socio.fecha_ingreso|date:'j \d\e F \d\e Y' }}{% else %}-{% endif %}</span>
         </div>

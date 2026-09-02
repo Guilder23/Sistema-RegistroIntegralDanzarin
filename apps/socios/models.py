@@ -88,13 +88,25 @@ class Membresia(models.Model):
             raise ValueError('El bloque debe pertenecer al conjunto indicado.')
         if cls.objects.filter(socio=socio, asociacion=asociacion).exclude(estado='baja').exists():
             raise ValueError('El socio debe estar dado de baja antes de cambiar de conjunto.')
+        existente = cls.objects.filter(socio=socio, asociacion=asociacion, conjunto=conjunto).first()
+        if existente:
+            if existente.estado != 'baja':
+                raise ValueError('El socio ya está activo en este conjunto.')
+            existente.bloque = bloque
+            existente.estado = 'activo'
+            existente.estado_pago = kwargs.pop('estado_pago', 'al_dia')
+            existente.save()
+            return existente
         return cls.objects.create(socio=socio, asociacion=asociacion, conjunto=conjunto, bloque=bloque, **kwargs)
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
         if self.estado_pago == 'con_deuda':
             self.estado = 'suspendido'
         elif self.estado == 'suspendido' and self.estado_pago == 'al_dia':
             self.estado = 'activo'
+        if update_fields is not None and 'estado' not in update_fields:
+            kwargs['update_fields'] = set(update_fields) | {'estado'}
         if self.conjunto.asociacion_id != self.asociacion_id:
             raise ValueError('El conjunto debe pertenecer a la asociación de la membresía.')
         if self.bloque_id and self.bloque.conjunto_id != self.conjunto_id:

@@ -150,12 +150,12 @@
                                 data-nombre="{{ socio.nombre }} {% if socio.apellido_paterno %}{{ socio.apellido_paterno }}{% endif %} {% if socio.apellido_materno %}{{ socio.apellido_materno }}{% endif %}"
                                 ><i class="fas fa-trash"></i></button>
                             <a href="{% url 'socios:historial_souvenirs' socio.id %}" class="btn btn-secondary btn-sm" title="Historial de souvenirs"><i class="fas fa-history"></i></a>
-                            {% if socio.membresia_visible.estado == 'activo' %}
+                            {% if can_manage_states and socio.membresia_visible.estado == 'activo' %}
                             <form method="post" action="{% url 'socios:desactivar_socio' socio.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button class="btn btn-secondary btn-sm" type="submit" title="Desactivar socio"><i class="fas fa-user-slash"></i></button>
                             </form>
-                            {% else %}
+                            {% elif can_manage_states %}
                             <form method="post" action="{% url 'socios:activar_socio' socio.id %}" class="d-inline">
                                 {% csrf_token %}
                                 <button class="btn btn-success btn-sm" type="submit" title="Activar socio"><i class="fas fa-user-check"></i></button>

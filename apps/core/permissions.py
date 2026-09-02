@@ -32,6 +32,8 @@ def can_manage_events(user):
 
 def can_register_members(user):
     return get_role(user) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}
+def can_manage_member_states(user):
+    return get_role(user) in {'superadministrador', 'administrador_conjunto'}
 
 
 def can_manage_users(user):

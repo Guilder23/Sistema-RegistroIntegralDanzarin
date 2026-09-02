@@ -74,3 +74,59 @@ class RolesSociosTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Membresia.objects.filter(asociacion=self.asociacion, conjunto=self.conjunto).exists())
         self.assertEqual(Membresia.objects.get(socio__nombre='Luis').bloque, self.bloque)
+
+    def test_mismo_socio_puede_pertenecer_a_otra_asociacion_por_carnet(self):
+        usuario = self.crear_usuario('admin-asociacion-2', 'administrador_asociacion')
+        otra_asociacion = Asociacion.objects.create(nombre='Asociacion B')
+        otro_conjunto = Conjunto.objects.create(asociacion=otra_asociacion, nombre='Conjunto B')
+        otro_bloque = Bloque.objects.create(conjunto=otro_conjunto, nombre='Bloque B')
+        self.client.force_login(usuario)
+        primera = self.client.post(reverse('socios:crear_socio'), {
+            'username': 'persona-a', 'password': 'secret123', 'nombre': 'Persona',
+            'apellido_paterno': 'Prueba', 'email': 'persona@example.com',
+            'conjunto_id': self.conjunto.pk, 'bloque_id': self.bloque.pk,
+            'carnet_ci': '12345', 'carnet_complemento': 'A',
+        })
+        self.assertEqual(primera.status_code, 302)
+
+        administrador_super = User.objects.create_superuser('super-inscripcion', 'super@example.com', 'secret123')
+        self.client.force_login(administrador_super)
+        segunda = self.client.post(reverse('socios:crear_socio'), {
+            'nombre': 'Persona', 'carnet_ci': '12345', 'carnet_complemento': 'A',
+            'asociacion_id': otra_asociacion.pk, 'conjunto_id': otro_conjunto.pk,
+            'bloque_id': otro_bloque.pk,
+        })
+
+        self.assertEqual(segunda.status_code, 302)
+        socio = Socio.objects.get(carnet_ci='12345', carnet_complemento='A')
+        self.assertEqual(Membresia.objects.filter(socio=socio).count(), 2)
+
+    def test_no_permite_dos_conjuntos_activos_en_la_misma_asociacion(self):
+        socio_user = User.objects.create_user('persona-activa', password='secret123')
+        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido='Activa', email='activa@example.com', carnet_ci='54321', carnet_complemento='B')
+        Membresia.objects.create(socio=socio, asociacion=self.asociacion, conjunto=self.conjunto, bloque=self.bloque)
+        otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto Dos')
+        otro_bloque = Bloque.objects.create(conjunto=otro_conjunto, nombre='Bloque Dos')
+        self.client.force_login(User.objects.create_superuser('super-activa', 'activa@example.com', 'secret123'))
+
+        response = self.client.post(reverse('socios:crear_socio'), {
+            'nombre': 'Persona', 'carnet_ci': '54321', 'carnet_complemento': 'B',
+            'asociacion_id': self.asociacion.pk, 'conjunto_id': otro_conjunto.pk,
+            'bloque_id': otro_bloque.pk,
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Membresia.objects.filter(socio=socio, asociacion=self.asociacion).count(), 1)
+
+    def test_deuda_suspendida_y_pago_al_dia_activa_con_update_fields(self):
+        socio_user = User.objects.create_user('persona-pago', password='secret123')
+        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido='Pago', email='pago@example.com')
+        membresia = Membresia.objects.create(socio=socio, asociacion=self.asociacion, conjunto=self.conjunto, bloque=self.bloque)
+
+        membresia.estado_pago = 'con_deuda'
+        membresia.save(update_fields=['estado_pago'])
+        self.assertEqual(membresia.estado, 'suspendido')
+
+        membresia.estado_pago = 'al_dia'
+        membresia.save(update_fields=['estado_pago'])
+        self.assertEqual(membresia.estado, 'activo')
