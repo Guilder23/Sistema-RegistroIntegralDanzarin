@@ -22,12 +22,15 @@ class SouvenirEntrega(models.Model):
 
 class Souvenir(models.Model):
     nombre = models.CharField(max_length=200)
+    asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
+    conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
     evento = models.ForeignKey('eventos.Evento', on_delete=models.SET_NULL, null=True, blank=True, related_name='souvenirs')
     descripcion = models.TextField(blank=True, default='')
     imagen = models.ImageField(upload_to='souvenirs/', null=True, blank=True)
     stock = models.IntegerField(default=0)
     activo = models.BooleanField(default=True)
     creado = models.DateTimeField(auto_now_add=True)
+    creado_por = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='souvenirs_creados')
 
     class Meta:
         verbose_name = 'Souvenir'
