@@ -170,7 +170,7 @@
                         <th>Ámbito (Asociación / Conjunto)</th>
                         <th>Acción</th>
                         <th>Registro Afectado</th>
-                        <th>Detalles del Cambio</th>
+                        <th class="columna-detalles">Detalles del Cambio</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -255,7 +255,7 @@
                         <td>
                             <span class="font-weight-semibold text-dark">{{ reg.registro_afectado }}</span>
                         </td>
-                        <td>
+                        <td class="columna-detalles">
                             {% if reg.valor_anterior or reg.valor_nuevo %}
                                 <div class="detalles-cambio">
                                     {% if reg.valor_anterior %}

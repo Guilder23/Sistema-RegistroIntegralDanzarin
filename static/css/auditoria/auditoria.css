@@ -134,6 +134,25 @@
     background-color: #f0fdf9;
 }
 
+.auditoria-page .table-responsive {
+    overflow-x: auto;
+}
+
+.auditoria-page .columna-detalles {
+    min-width: 560px;
+    width: 560px;
+    max-width: 560px;
+    white-space: nowrap;
+}
+
+.auditoria-page .detalles-cambio {
+    max-width: 540px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    padding-bottom: 0.25rem;
+}
+
 /* ==========================================
    TAGS PERSONALIZADOS DE ÁMBITO (TERCERA COLUMNA)
    ========================================== */
