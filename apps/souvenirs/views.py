@@ -4,6 +4,12 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models import Prefetch
+from django.http import Http404, HttpResponse
+from django.contrib.staticfiles import finders
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
+from PIL import Image
+from io import BytesIO
 
 from apps.eventos.models import Evento
 from apps.socios.models import Socio
@@ -122,6 +128,47 @@ def registrar_entrega(request):
         'souvenirs': souvenirs, 'asociaciones': asociaciones,
         'conjuntos': conjuntos, 'role': role,
     })
+
+
+@login_required
+def descargar_certificado_entrega(request, pk):
+    entrega = get_object_or_404(
+        SouvenirEntrega.objects.select_related('socio__user', 'evento', 'souvenir'),
+        pk=pk,
+    )
+    if entrega.socio.user_id != request.user.id or not entrega.souvenir:
+        raise Http404
+
+    plantilla = finders.find('img/PlantillaCertificado.png')
+    if not plantilla:
+        raise Http404('No se encontró la plantilla del certificado.')
+
+    with Image.open(plantilla) as imagen:
+        imagen_width, imagen_height = imagen.size
+    page_width = 842
+    page_height = page_width * imagen_height / imagen_width
+    buffer = BytesIO()
+    documento = canvas.Canvas(buffer, pagesize=(page_width, page_height))
+    documento.drawImage(ImageReader(plantilla), 0, 0, width=page_width, height=page_height)
+
+    nombre = str(entrega.socio)
+    evento = entrega.evento.nombre if entrega.evento else 'la actividad registrada'
+    fecha = entrega.fecha_entrega.strftime('%d/%m/%Y')
+    texto = f'Se reconoce a {nombre} por su participación en {evento}.'
+    documento.setFillColorRGB(0.04, 0.12, 0.23)
+    documento.setFont('Helvetica-Bold', 24)
+    documento.drawCentredString(page_width / 2, page_height * 0.60, nombre)
+    documento.setFont('Helvetica', 14)
+    documento.drawCentredString(page_width / 2, page_height * 0.53, texto[:110])
+    documento.setFont('Helvetica', 12)
+    documento.drawCentredString(page_width / 2, page_height * 0.47, f'Souvenir entregado: {entrega.souvenir.nombre}')
+    documento.drawCentredString(page_width / 2, page_height * 0.42, f'Fecha de entrega: {fecha}')
+    documento.save()
+    buffer.seek(0)
+
+    respuesta = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+    respuesta['Content-Disposition'] = f'attachment; filename="certificado_{entrega.socio.codigo_socio or entrega.socio_id}.pdf"'
+    return respuesta
 
 
 @login_required

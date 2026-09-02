@@ -192,6 +192,7 @@
               <th>Fecha</th>
               <th>Entregado por</th>
               <th>Observación</th>
+              <th>Certificado</th>
             </tr>
           </thead>
           <tbody>
@@ -200,6 +201,13 @@
               <td>{{ e.fecha_entrega|date:'j \d\e F \d\e Y' }}</td>
               <td>{% if e.entregado_por %}{{ e.entregado_por.get_full_name }}{% else %}-{% endif %}</td>
               <td>{{ e.observacion|default:'Sin observación' }}</td>
+              <td>
+                {% if e.souvenir %}
+                <a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado">
+                  <i class="fas fa-download"></i> Descargar
+                </a>
+                {% else %}-{% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>

@@ -168,7 +168,7 @@ def perfil_socio(request):
     except Socio.DoesNotExist:
         socio = None
 
-    entregas = socio.entregas_souvenir.select_related('entregado_por').all() if socio else []
+    entregas = socio.entregas_souvenir.select_related('entregado_por', 'souvenir', 'evento').all() if socio else []
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 

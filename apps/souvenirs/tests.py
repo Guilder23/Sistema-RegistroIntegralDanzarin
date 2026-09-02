@@ -76,3 +76,36 @@ class EntregaSouvenirScopeTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertFalse(SouvenirEntrega.objects.exists())
+
+    def test_miembro_descarga_certificado_de_su_entrega(self):
+        entrega = SouvenirEntrega.objects.create(
+            socio=self.socio,
+            evento=self.evento,
+            souvenir=self.souvenir,
+            entregado_por=self.admin,
+        )
+        self.client.force_login(self.socio.user)
+
+        response = self.client.get(reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertTrue(response.content.startswith(b'%PDF'))
+
+    def test_miembro_no_descarga_certificado_de_otro_socio(self):
+        otro_usuario = User.objects.create_user('otro-socio', password='secret123')
+        otro_socio = Socio.objects.create(
+            user=otro_usuario, nombre='Otro', apellido='Socio',
+            email='otro@example.com',
+        )
+        entrega = SouvenirEntrega.objects.create(
+            socio=otro_socio,
+            evento=self.evento,
+            souvenir=self.souvenir,
+            entregado_por=self.admin,
+        )
+        self.client.force_login(self.socio.user)
+
+        response = self.client.get(reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk]))
+
+        self.assertEqual(response.status_code, 404)
