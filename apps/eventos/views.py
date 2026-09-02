@@ -6,7 +6,48 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import FileResponse, Http404
 
 from .models import Evento
+from apps.core.models import Asociacion, Conjunto
 from apps.core.permissions import can_manage_events, get_role, scope_filter, registrar_auditoria
+
+
+def opciones_ambito_evento(user):
+    if get_role(user) == 'superadministrador':
+        return (
+            Asociacion.objects.filter(activo=True),
+            Conjunto.objects.filter(activo=True).select_related('asociacion'),
+        )
+
+    asociacion_id = getattr(getattr(user, 'userprofile', None), 'asociacion_id', None)
+    return (
+        Asociacion.objects.filter(pk=asociacion_id, activo=True),
+        Conjunto.objects.filter(asociacion_id=asociacion_id, activo=True).select_related('asociacion'),
+    )
+
+
+def obtener_ambito_evento(request):
+    """Obtiene un ámbito válido y garantiza que conjunto pertenece a asociación."""
+    asociacion_id = request.POST.get('asociacion_id')
+    conjunto_id = request.POST.get('conjunto_id')
+    asociacion, conjunto = None, None
+
+    if get_role(request.user) == 'administrador_asociacion':
+        asociacion = getattr(request.user.userprofile, 'asociacion', None)
+    elif asociacion_id:
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first()
+
+    if not asociacion:
+        return None, None
+
+    if request.POST.get('tipo_ambito') == 'conjunto':
+        conjunto = Conjunto.objects.filter(
+            pk=conjunto_id,
+            asociacion=asociacion,
+            activo=True,
+        ).first()
+        if not conjunto:
+            return None, None
+
+    return asociacion, conjunto
 
 
 @login_required
@@ -30,7 +71,14 @@ def listar_eventos(request):
 
     paginator = Paginator(eventos, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'eventos/eventos.html', {'page_obj': page_obj, 'q': q, 'activo': activo})
+    asociaciones, conjuntos = opciones_ambito_evento(request.user)
+    return render(request, 'eventos/eventos.html', {
+        'page_obj': page_obj,
+        'q': q,
+        'activo': activo,
+        'asociaciones': asociaciones,
+        'conjuntos': conjuntos,
+    })
 
 
 @login_required
@@ -47,14 +95,9 @@ def crear_evento(request):
             messages.error(request, 'Nombre y fecha de evento son obligatorios.')
             return redirect('eventos:listar_eventos')
 
-        asociacion = None
-        if get_role(request.user) == 'administrador_asociacion':
-            asociacion = request.user.userprofile.asociacion
-        elif request.POST.get('asociacion_id'):
-            from apps.core.models import Asociacion
-            asociacion = Asociacion.objects.filter(pk=request.POST['asociacion_id']).first()
+        asociacion, conjunto = obtener_ambito_evento(request)
         if not asociacion:
-            messages.error(request, 'Selecciona una asociación para el evento.')
+            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
             return redirect('eventos:listar_eventos')
 
         evento = Evento.objects.create(
@@ -64,6 +107,8 @@ def crear_evento(request):
             lugar=lugar,
             activo=activo,
             asociacion=asociacion,
+            conjunto=conjunto,
+            creado_por=request.user,
         )
         registrar_auditoria(
             request.user,
@@ -71,6 +116,7 @@ def crear_evento(request):
             f'Evento {evento.nombre}',
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
             asociacion=asociacion,
+            conjunto=conjunto,
         )
         messages.success(request, 'Evento creado correctamente.')
         return redirect('eventos:listar_eventos')
@@ -90,6 +136,13 @@ def editar_evento(request, pk):
         evento.lugar = request.POST.get('lugar', evento.lugar).strip()
         evento.activo = request.POST.get('activo') == 'on'
 
+        asociacion, conjunto = obtener_ambito_evento(request)
+        if not asociacion:
+            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
+            return redirect('eventos:listar_eventos')
+        evento.asociacion = asociacion
+        evento.conjunto = conjunto
+
         if fecha_evento:
             evento.fecha_evento = fecha_evento
         evento.save()
@@ -100,6 +153,7 @@ def editar_evento(request, pk):
             anterior=anterior,
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
             asociacion=evento.asociacion,
+            conjunto=evento.conjunto,
         )
         messages.success(request, 'Evento actualizado correctamente.')
         return redirect('eventos:listar_eventos')

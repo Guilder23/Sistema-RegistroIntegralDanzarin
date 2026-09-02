@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.core.files.base import ContentFile
 from reportlab.pdfgen import canvas
 from io import BytesIO
@@ -16,6 +17,7 @@ class Evento(models.Model):
     conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
     participantes = models.ManyToManyField('socios.Socio', through='EventoParticipante', related_name='eventos')
     creado = models.DateTimeField(auto_now_add=True)
+    creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='eventos_creados', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Evento'

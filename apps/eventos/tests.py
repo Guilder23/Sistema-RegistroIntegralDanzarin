@@ -34,3 +34,48 @@ class RolesEventosTests(TestCase):
         self.client.force_login(self.usuario('miembro', 'miembro'))
         self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
         self.assertEqual(Evento.objects.count(), 0)
+
+    def test_superadministrador_puede_crear_evento_para_asociacion(self):
+        self.client.force_login(self.usuario('superadmin', 'superadministrador'))
+        datos = self.datos_evento() | {
+            'tipo_ambito': 'asociacion',
+            'asociacion_id': self.asociacion.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        evento = Evento.objects.get()
+        self.assertEqual(evento.asociacion, self.asociacion)
+        self.assertIsNone(evento.conjunto)
+        self.assertEqual(evento.creado_por.username, 'superadmin')
+
+    def test_superadministrador_puede_crear_evento_para_conjunto(self):
+        self.client.force_login(self.usuario('superadmin-conjunto', 'superadministrador'))
+        datos = self.datos_evento() | {
+            'tipo_ambito': 'conjunto',
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': self.conjunto.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        evento = Evento.objects.get()
+        self.assertEqual(evento.asociacion, self.asociacion)
+        self.assertEqual(evento.conjunto, self.conjunto)
+
+    def test_no_permite_conjunto_de_otra_asociacion(self):
+        otra_asociacion = Asociacion.objects.create(nombre='Otra Asociacion')
+        otro_conjunto = Conjunto.objects.create(asociacion=otra_asociacion, nombre='Otro Conjunto')
+        self.client.force_login(self.usuario('superadmin-invalido', 'superadministrador'))
+        datos = self.datos_evento() | {
+            'tipo_ambito': 'conjunto',
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': otro_conjunto.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Evento.objects.exists())
