@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 from .models import Asociacion, Conjunto
+from .permissions import get_role
 
 
 class GestionRolesTests(TestCase):
@@ -42,5 +43,19 @@ class GestionRolesTests(TestCase):
 		usuario = User.objects.get(username='miembro')
 		self.assertTrue(hasattr(usuario, 'socio_profile'))
 		self.assertTrue(usuario.socio_profile.membresias.filter(asociacion=self.asociacion, conjunto=self.conjunto).exists())
+
+	def test_administradores_tienen_acceso_al_dashboard(self):
+		administrador_asociacion = User.objects.create_user('admin-asoc', password='secret123', is_staff=True)
+		administrador_asociacion.userprofile.rol = 'administrador_asociacion'
+		administrador_asociacion.userprofile.asociacion = self.asociacion
+		administrador_asociacion.userprofile.save()
+		administrador_conjunto = User.objects.create_user('admin-conj', password='secret123', is_staff=True)
+		administrador_conjunto.userprofile.rol = 'administrador_conjunto'
+		administrador_conjunto.userprofile.asociacion = self.asociacion
+		administrador_conjunto.userprofile.conjunto = self.conjunto
+		administrador_conjunto.userprofile.save()
+
+		self.assertEqual(get_role(administrador_asociacion), 'administrador_asociacion')
+		self.assertEqual(get_role(administrador_conjunto), 'administrador_conjunto')
 
 # Create your tests here.
