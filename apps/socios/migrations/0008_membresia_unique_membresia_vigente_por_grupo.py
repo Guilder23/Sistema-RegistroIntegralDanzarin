@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddConstraint(
             model_name='membresia',
-            constraint=models.UniqueConstraint(condition=models.Q(('estado', 'baja'), _negated=True), fields=('socio', 'grupo'), name='unique_membresia_vigente_por_grupo'),
+            constraint=models.UniqueConstraint(condition=models.Q(('estado', 'baja'), _negated=True), fields=('socio', 'asociacion'), name='unique_membresia_vigente_por_asociacion'),
         ),
     ]

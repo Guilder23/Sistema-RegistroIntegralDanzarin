@@ -19,6 +19,33 @@
                         <textarea id="editarEventoDescripcion" name="descripcion" class="form-control" rows="3"></textarea>
                     </div>
                     <div class="form-row">
+                        <div class="col-md-4 form-group">
+                            <label for="editarEventoTipoAmbito">Crear para</label>
+                            <select id="editarEventoTipoAmbito" name="tipo_ambito" class="form-control" required>
+                                <option value="asociacion">Asociación</option>
+                                <option value="conjunto">Conjunto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label for="editarEventoAsociacion">Asociación</label>
+                            <select id="editarEventoAsociacion" name="asociacion_id" class="form-control" required>
+                                <option value="">Selecciona una asociación</option>
+                                {% for asociacion in asociaciones %}
+                                <option value="{{ asociacion.pk }}">{{ asociacion.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 form-group" id="editarEventoConjuntoGrupo" style="display: none;">
+                            <label for="editarEventoConjunto">Conjunto</label>
+                            <select id="editarEventoConjunto" name="conjunto_id" class="form-control">
+                                <option value="">Selecciona un conjunto</option>
+                                {% for conjunto in conjuntos %}
+                                <option value="{{ conjunto.pk }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Fecha del evento</label>
                             <input id="editarEventoFecha" type="date" name="fecha_evento" class="form-control" required>

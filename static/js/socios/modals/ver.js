@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('verSouvenir', button.getAttribute('data-souvenir') || '');
         setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');
         setText('verObservacion', button.getAttribute('data-observacion') || '');
+        setText('verAsociacion', button.getAttribute('data-asociacion') || 'No asignada');
+        setText('verConjunto', button.getAttribute('data-conjunto') || 'No asignado');
+        setText('verBloque', button.getAttribute('data-bloque') || 'No asignado');
+        setText('verCreadoPor', button.getAttribute('data-creado-por') || 'No disponible');
+        setText('verRolCreador', button.getAttribute('data-rol-creador') || 'No disponible');
     });
     // Fallback: poblar también al hacer click en el botón
     document.querySelectorAll('.btn-ver-socio').forEach(btn => {
@@ -43,6 +48,11 @@ document.addEventListener('DOMContentLoaded', function () {
             setText('verSouvenir', button.getAttribute('data-souvenir') || '');
             setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');
             setText('verObservacion', button.getAttribute('data-observacion') || '');
+            setText('verAsociacion', button.getAttribute('data-asociacion') || 'No asignada');
+            setText('verConjunto', button.getAttribute('data-conjunto') || 'No asignado');
+            setText('verBloque', button.getAttribute('data-bloque') || 'No asignado');
+            setText('verCreadoPor', button.getAttribute('data-creado-por') || 'No disponible');
+            setText('verRolCreador', button.getAttribute('data-rol-creador') || 'No disponible');
         });
     });
 });

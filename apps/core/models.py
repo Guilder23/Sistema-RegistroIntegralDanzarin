@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db import models
 
 
-class Grupo(models.Model):
+class Asociacion(models.Model):
 	nombre = models.CharField(max_length=150, unique=True)
 	activo = models.BooleanField(default=True)
 	creado = models.DateTimeField(auto_now_add=True)
@@ -14,20 +14,20 @@ class Grupo(models.Model):
 		return self.nombre
 
 
-class Subgrupo(models.Model):
-	grupo = models.ForeignKey(Grupo, on_delete=models.CASCADE, related_name='subgrupos')
+class Conjunto(models.Model):
+	asociacion = models.ForeignKey(Asociacion, on_delete=models.CASCADE, related_name='conjuntos')
 	nombre = models.CharField(max_length=150)
 	activo = models.BooleanField(default=True)
 	creado = models.DateTimeField(auto_now_add=True)
 
 	class Meta:
 		constraints = [
-			models.UniqueConstraint(fields=['grupo', 'nombre'], name='unique_subgrupo_por_grupo'),
+			models.UniqueConstraint(fields=['asociacion', 'nombre'], name='unique_conjunto_por_asociacion'),
 		]
-		ordering = ['grupo__nombre', 'nombre']
+		ordering = ['asociacion__nombre', 'nombre']
 
 	def __str__(self):
-		return f'{self.grupo} / {self.nombre}'
+		return f'{self.asociacion} / {self.nombre}'
 
 
 class Auditoria(models.Model):
@@ -37,8 +37,8 @@ class Auditoria(models.Model):
 	registro_afectado = models.CharField(max_length=255)
 	valor_anterior = models.JSONField(null=True, blank=True)
 	valor_nuevo = models.JSONField(null=True, blank=True)
-	grupo = models.ForeignKey(Grupo, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
-	subgrupo = models.ForeignKey(Subgrupo, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
+	asociacion = models.ForeignKey(Asociacion, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
+	conjunto = models.ForeignKey(Conjunto, on_delete=models.SET_NULL, null=True, blank=True, related_name='auditorias')
 
 	class Meta:
 		ordering = ['-fecha_hora']

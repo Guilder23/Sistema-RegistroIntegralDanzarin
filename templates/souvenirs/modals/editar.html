@@ -14,12 +14,23 @@
                         <label>Nombre</label>
                         <input id="editarSouvenirNombre" type="text" name="nombre" class="form-control" required>
                     </div>
+                    {% if role == 'superadministrador' %}
+                    <div class="form-row">
+                        <div class="col-md-4 form-group"><label>Crear para</label><select id="editarSouvenirTipo" name="tipo_ambito" class="form-control"><option value="asociacion">Asociación</option><option value="conjunto">Conjunto</option></select></div>
+                        <div class="col-md-4 form-group"><label>Asociación</label><select name="asociacion_id" id="editarSouvenirAsociacion" class="form-control">{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select name="conjunto_id" id="editarSouvenirConjunto" class="form-control"><option value="">Sin conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                    </div>
+                    {% elif role == 'administrador_asociacion' %}
+                    <div class="form-row"><div class="col-md-6 form-group"><label>Asociación</label><select class="form-control" disabled><option>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div><div class="col-md-6 form-group"><label>Conjunto</label><select name="conjunto_id" id="editarSouvenirConjunto" class="form-control">{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div></div>
+                    {% else %}
+                    <input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">
+                    {% endif %}
                     <div class="form-group">
                         <label>Evento</label>
                         <select id="editarSouvenirEvento" name="evento_id" class="form-control">
                             <option value="">Sin evento</option>
                             {% for evento in eventos %}
-                            <option value="{{ evento.id }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>
+                            <option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>
                             {% endfor %}
                         </select>
                     </div>

@@ -8,8 +8,8 @@ function setupAdminModals() {
         if (!role || !group || !subgroup) return;
 
         const updateScope = function () {
-            const requiresGroup = role.value === 'administrador_grupo' || role.value === 'administrador_subgrupo';
-            const requiresSubgroup = role.value === 'administrador_subgrupo';
+            const requiresGroup = role.value === 'administrador_asociacion' || role.value === 'administrador_conjunto';
+            const requiresSubgroup = role.value === 'administrador_conjunto';
             group.disabled = !requiresGroup;
             group.required = requiresGroup;
             subgroup.disabled = !requiresSubgroup;
@@ -17,8 +17,8 @@ function setupAdminModals() {
             if (!requiresGroup) group.value = '';
             if (!requiresSubgroup) subgroup.value = '';
             Array.from(subgroup.options).forEach(function (option) {
-                if (!option.dataset.grupoId) return;
-                option.hidden = !requiresSubgroup || option.dataset.grupoId !== group.value;
+                if (!option.dataset.asociacionId) return;
+                option.hidden = !requiresSubgroup || option.dataset.asociacionId !== group.value;
             });
             if (requiresSubgroup && subgroup.selectedOptions[0]?.hidden) subgroup.value = '';
         };
@@ -28,8 +28,8 @@ function setupAdminModals() {
         updateScope();
     }
 
-    configureScope('crearAdminRol', 'crearAdminGrupo', 'crearAdminSubgrupo');
-    configureScope('editarAdminRol', 'editarAdminGrupo', 'editarAdminSubgrupo');
+    configureScope('crearAdminRol', 'crearAdminAsociacion', 'crearAdminConjunto');
+    configureScope('editarAdminRol', 'editarAdminAsociacion', 'editarAdminConjunto');
 
     const verButtons = document.querySelectorAll('.btn-ver-admin');
     const editarButtons = document.querySelectorAll('.btn-editar-admin');
@@ -62,9 +62,9 @@ function setupAdminModals() {
             const firstName = button.getAttribute('data-first-name') || '';
             const lastName = button.getAttribute('data-last-name') || '';
             const email = button.getAttribute('data-email') || '';
-            const rol = button.getAttribute('data-rol') || 'administrador_grupo';
-            const grupo = button.getAttribute('data-grupo') || '';
-            const subgrupo = button.getAttribute('data-subgrupo') || '';
+            const rol = button.getAttribute('data-rol') || 'administrador_asociacion';
+            const asociacion = button.getAttribute('data-asociacion') || '';
+            const conjunto = button.getAttribute('data-conjunto') || '';
             const form = document.getElementById('formEditarAdmin');
             if (form) {
                 form.action = `/socios/admins/${id}/editar/`;
@@ -78,11 +78,11 @@ function setupAdminModals() {
             if (lastNameEl) lastNameEl.value = lastName;
             if (emailEl) emailEl.value = email;
             const rolEl = document.getElementById('editarAdminRol');
-            const grupoEl = document.getElementById('editarAdminGrupo');
-            const subgrupoEl = document.getElementById('editarAdminSubgrupo');
+            const asociacionEl = document.getElementById('editarAdminAsociacion');
+            const conjuntoEl = document.getElementById('editarAdminConjunto');
             if (rolEl) rolEl.value = rol;
-            if (grupoEl) grupoEl.value = grupo;
-            if (subgrupoEl) subgrupoEl.value = subgrupo;
+            if (asociacionEl) asociacionEl.value = asociacion;
+            if (conjuntoEl) conjuntoEl.value = conjunto;
         });
     });
 

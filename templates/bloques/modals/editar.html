@@ -1,0 +1,43 @@
+<div class="modal fade modal-editar-gestion" id="modalEditarBloque" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="post" id="formEditarBloque">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Editar bloque</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    {% if role == 'superadministrador' %}
+                    <label>Asociación</label>
+                    <select class="form-control" name="asociacion_id" id="editarBloqueAsociacion">
+                        {% for asociacion in asociaciones %}
+                            <option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    {% endif %}
+                    <label class="mt-3">Conjunto</label>
+                    <select class="form-control" name="conjunto_id" id="editarBloqueConjunto">
+                        {% for conjunto in conjuntos %}
+                            <option value="{{ conjunto.id }}" data-asociacion="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="mt-3">Nombre</label>
+                    <input class="form-control" id="editarBloqueNombre" name="nombre" required>
+
+                    <label class="mt-3">Descripción</label>
+                    <textarea class="form-control" id="editarBloqueDescripcion" name="descripcion" rows="3"></textarea>
+
+                    <div class="custom-control custom-switch mt-3">
+                        <input type="checkbox" class="custom-control-input" id="editarBloqueActivo" name="activo">
+                        <label class="custom-control-label" for="editarBloqueActivo">Activo</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

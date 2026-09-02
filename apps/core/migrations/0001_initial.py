@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Grupo',
+            name='Asociacion',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nombre', models.CharField(max_length=150, unique=True)),
@@ -42,20 +42,20 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Subgrupo',
+            name='Conjunto',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nombre', models.CharField(max_length=150)),
                 ('activo', models.BooleanField(default=True)),
                 ('creado', models.DateTimeField(auto_now_add=True)),
-                ('grupo', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='subgrupos', to='core.grupo')),
+                ('asociacion', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='conjuntos', to='core.asociacion')),
             ],
             options={
-                'ordering': ['grupo__nombre', 'nombre'],
+                'ordering': ['asociacion__nombre', 'nombre'],
             },
         ),
         migrations.AddConstraint(
-            model_name='subgrupo',
-            constraint=models.UniqueConstraint(fields=('grupo', 'nombre'), name='unique_subgrupo_por_grupo'),
+            model_name='conjunto',
+            constraint=models.UniqueConstraint(fields=('asociacion', 'nombre'), name='unique_conjunto_por_asociacion'),
         ),
     ]

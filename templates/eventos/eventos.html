@@ -49,6 +49,7 @@
                 <thead>
                     <tr>
                         <th>Nombre</th>
+                        <th>Creado para</th>
                         <th>Fecha</th>
                         <th>Lugar</th>
                         <th>Estado</th>
@@ -59,6 +60,7 @@
                     {% for evento in page_obj.object_list %}
                     <tr>
                         <td>{{ evento.nombre }}</td>
+                        <td>{% if evento.conjunto %}Conjunto: {{ evento.conjunto.nombre }}{% else %}Asociación: {{ evento.asociacion.nombre }}{% endif %}</td>
                         <td>{{ evento.fecha_evento|date:'d/m/Y' }}</td>
                         <td>{{ evento.lugar|default:'-' }}</td>
                         <td>
@@ -72,6 +74,12 @@
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
                                 data-fecha="{{ evento.fecha_evento|date:'d/m/Y' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
+                                data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
+                                data-asociacion-id="{{ evento.asociacion_id }}"
+                                data-conjunto-id="{{ evento.conjunto_id|default:'' }}"
+                                data-asociacion-nombre="{{ evento.asociacion.nombre|escapejs }}"
+                                data-conjunto-nombre="{{ evento.conjunto.nombre|default:''|escapejs }}"
+                                data-creado-por="{% if evento.creado_por %}{{ evento.creado_por.get_full_name|default:evento.creado_por.username|escapejs }}{% else %}No disponible{% endif %}"
                                 data-activo="{{ evento.activo|yesno:'Activo,Inactivo' }}"
                                 data-creado="{{ evento.creado|date:'d/m/Y H:i' }}">
                                 <i class="fas fa-eye"></i>
@@ -82,6 +90,9 @@
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
                                 data-fecha="{{ evento.fecha_evento|date:'Y-m-d' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
+                                data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
+                                data-asociacion-id="{{ evento.asociacion_id }}"
+                                data-conjunto-id="{{ evento.conjunto_id|default:'' }}"
                                 data-activo="{{ evento.activo }}">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -101,7 +112,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="5" class="text-center py-4">No hay eventos registrados.</td></tr>
+                    <tr><td colspan="6" class="text-center py-4">No hay eventos registrados.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

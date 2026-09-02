@@ -11,6 +11,19 @@
                 </div>
                 <div class="modal-body">
                     <div class="form-row">
+                        {% if role == 'superadministrador' %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><select name="asociacion_id" id="editarSocioAsociacion" class="form-control">{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select name="conjunto_id" id="editarSocioConjunto" class="form-control">{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        {% elif role == 'administrador_asociacion' %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><input id="editarSocioAsociacionNombre" class="form-control" disabled></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select name="conjunto_id" id="editarSocioConjunto" class="form-control">{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        {% else %}
+                        <div class="col-md-4 form-group"><label>Asociación</label><input id="editarSocioAsociacionNombre" class="form-control" disabled></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><input id="editarSocioConjuntoNombre" class="form-control" disabled></div>
+                        {% endif %}
+                        <div class="col-md-4 form-group"><label>Bloque</label><select name="bloque_id" id="editarSocioBloque" class="form-control">{% for bloque in bloques %}<option value="{{ bloque.id }}" data-conjunto-id="{{ bloque.conjunto_id }}">{{ bloque.nombre }}</option>{% endfor %}</select></div>
+                    </div>
+                    <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Nombres</label>
                             <input type="text" name="nombre" id="editarNombre" class="form-control" required>

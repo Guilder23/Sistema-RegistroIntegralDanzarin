@@ -6,11 +6,52 @@ from django.shortcuts import redirect, render, get_object_or_404
 from django.http import FileResponse, Http404
 
 from .models import Evento
+from apps.core.models import Asociacion, Conjunto
 from apps.core.permissions import can_manage_events, get_role, scope_filter, registrar_auditoria
 
 
+def opciones_ambito_evento(user):
+    if get_role(user) == 'superadministrador':
+        return (
+            Asociacion.objects.filter(activo=True),
+            Conjunto.objects.filter(activo=True).select_related('asociacion'),
+        )
+
+    asociacion_id = getattr(getattr(user, 'userprofile', None), 'asociacion_id', None)
+    return (
+        Asociacion.objects.filter(pk=asociacion_id, activo=True),
+        Conjunto.objects.filter(asociacion_id=asociacion_id, activo=True).select_related('asociacion'),
+    )
+
+
+def obtener_ambito_evento(request):
+    """Obtiene un ámbito válido y garantiza que conjunto pertenece a asociación."""
+    asociacion_id = request.POST.get('asociacion_id')
+    conjunto_id = request.POST.get('conjunto_id')
+    asociacion, conjunto = None, None
+
+    if get_role(request.user) == 'administrador_asociacion':
+        asociacion = getattr(request.user.userprofile, 'asociacion', None)
+    elif asociacion_id:
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first()
+
+    if not asociacion:
+        return None, None
+
+    if request.POST.get('tipo_ambito') == 'conjunto':
+        conjunto = Conjunto.objects.filter(
+            pk=conjunto_id,
+            asociacion=asociacion,
+            activo=True,
+        ).first()
+        if not conjunto:
+            return None, None
+
+    return asociacion, conjunto
+
+
 @login_required
-@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}, login_url='/login/')
+@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}, login_url='/login/')
 def listar_eventos(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
@@ -30,7 +71,14 @@ def listar_eventos(request):
 
     paginator = Paginator(eventos, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'eventos/eventos.html', {'page_obj': page_obj, 'q': q, 'activo': activo})
+    asociaciones, conjuntos = opciones_ambito_evento(request.user)
+    return render(request, 'eventos/eventos.html', {
+        'page_obj': page_obj,
+        'q': q,
+        'activo': activo,
+        'asociaciones': asociaciones,
+        'conjuntos': conjuntos,
+    })
 
 
 @login_required
@@ -47,14 +95,9 @@ def crear_evento(request):
             messages.error(request, 'Nombre y fecha de evento son obligatorios.')
             return redirect('eventos:listar_eventos')
 
-        grupo = None
-        if get_role(request.user) == 'administrador_grupo':
-            grupo = request.user.userprofile.grupo
-        elif request.POST.get('grupo_id'):
-            from apps.core.models import Grupo
-            grupo = Grupo.objects.filter(pk=request.POST['grupo_id']).first()
-        if not grupo:
-            messages.error(request, 'Selecciona un grupo para el evento.')
+        asociacion, conjunto = obtener_ambito_evento(request)
+        if not asociacion:
+            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
             return redirect('eventos:listar_eventos')
 
         evento = Evento.objects.create(
@@ -63,14 +106,17 @@ def crear_evento(request):
             fecha_evento=fecha_evento,
             lugar=lugar,
             activo=activo,
-            grupo=grupo,
+            asociacion=asociacion,
+            conjunto=conjunto,
+            creado_por=request.user,
         )
         registrar_auditoria(
             request.user,
             'creacion_evento',
             f'Evento {evento.nombre}',
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
-            grupo=grupo,
+            asociacion=asociacion,
+            conjunto=conjunto,
         )
         messages.success(request, 'Evento creado correctamente.')
         return redirect('eventos:listar_eventos')
@@ -90,6 +136,13 @@ def editar_evento(request, pk):
         evento.lugar = request.POST.get('lugar', evento.lugar).strip()
         evento.activo = request.POST.get('activo') == 'on'
 
+        asociacion, conjunto = obtener_ambito_evento(request)
+        if not asociacion:
+            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
+            return redirect('eventos:listar_eventos')
+        evento.asociacion = asociacion
+        evento.conjunto = conjunto
+
         if fecha_evento:
             evento.fecha_evento = fecha_evento
         evento.save()
@@ -99,7 +152,8 @@ def editar_evento(request, pk):
             f'Evento {evento.nombre}',
             anterior=anterior,
             nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
-            grupo=evento.grupo,
+            asociacion=evento.asociacion,
+            conjunto=evento.conjunto,
         )
         messages.success(request, 'Evento actualizado correctamente.')
         return redirect('eventos:listar_eventos')
@@ -116,13 +170,13 @@ def eliminar_evento(request, pk):
             messages.error(request, 'No se puede eliminar un evento que tiene souvenirs asignados. Puedes cambiar su estado a inactivo.')
             return redirect('eventos:listar_eventos')
         nombre = evento.nombre
-        grupo = evento.grupo
+        asociacion = evento.asociacion
         evento.delete()
         registrar_auditoria(
             request.user,
             'eliminacion_evento',
             f'Evento {nombre}',
-            grupo=grupo,
+            asociacion=asociacion,
         )
         messages.success(request, 'Evento eliminado correctamente.')
     return redirect('eventos:listar_eventos')
@@ -141,7 +195,7 @@ def cambiar_estado_evento(request, pk):
             'cambio_estado_evento',
             f'Evento {evento.nombre} ({evento.estado})',
             nuevo={'estado': evento.estado, 'activo': evento.activo},
-            grupo=evento.grupo,
+            asociacion=evento.asociacion,
         )
         messages.success(request, f'Evento {evento.get_estado_display().lower()}.')
 
@@ -149,7 +203,7 @@ def cambiar_estado_evento(request, pk):
 
 
 @login_required
-@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo'}, login_url='/login/')
+@user_passes_test(lambda u: get_role(u) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}, login_url='/login/')
 def ver_evento(request, pk):
     return redirect('eventos:listar_eventos')
 
@@ -164,7 +218,7 @@ def descargar_certificado(request, pk):
         raise Http404
     if role not in {'superadministrador', 'miembro'}:
         certificado = get_object_or_404(
-            scope_filter(Certificado.objects.all(), request.user, 'evento__grupo', 'evento__subgrupo'),
+            scope_filter(Certificado.objects.all(), request.user, 'evento__asociacion', 'evento__conjunto'),
             pk=pk,
         )
     return FileResponse(certificado.archivo.open('rb'), as_attachment=True, filename=f'certificado_{pk}.pdf')

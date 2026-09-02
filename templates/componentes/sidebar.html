@@ -24,15 +24,22 @@
             </li>
             {% if request.user.userprofile.rol == 'superadministrador' %}
             <li class="sidebar-item">
-                <a href="{% url 'grupos:listar_grupos' %}" class="sidebar-link {% if '/grupos/' in request.path %}active{% endif %}" title="Grupos">
-                    <i class="fas fa-layer-group"></i><span>Grupos</span>
+                <a href="{% url 'asociaciones:listar_asociaciones' %}" class="sidebar-link {% if '/asociaciones/' in request.path %}active{% endif %}" title="Asociaciones">
+                    <i class="fas fa-layer-group"></i><span>Asociaciones</span>
                 </a>
             </li>
             {% endif %}
-            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_grupo' %}
+            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' %}
             <li class="sidebar-item">
-                <a href="{% url 'subgrupos:listar_subgrupos' %}" class="sidebar-link {% if '/subgrupos/' in request.path %}active{% endif %}" title="Subgrupos">
-                    <i class="fas fa-sitemap"></i><span>Subgrupos</span>
+                <a href="{% url 'conjuntos:listar_conjuntos' %}" class="sidebar-link {% if '/conjuntos/' in request.path %}active{% endif %}" title="Conjuntos">
+                    <i class="fas fa-sitemap"></i><span>Conjuntos</span>
+                </a>
+            </li>
+            {% endif %}
+            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' or request.user.userprofile.rol == 'administrador_conjunto' %}
+            <li class="sidebar-item">
+                <a href="{% url 'bloques:listar_bloques' %}" class="sidebar-link {% if '/bloques/' in request.path %}active{% endif %}" title="Bloques">
+                    <i class="fas fa-cubes"></i><span>Bloques</span>
                 </a>
             </li>
             {% endif %}

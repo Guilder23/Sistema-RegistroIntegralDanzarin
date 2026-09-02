@@ -1,0 +1,66 @@
+/* ============================================================================
+   ESTILOS PARA CONJUNTOS - DISEÑO INSTITUCIONAL VERDE
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
+   ============================================================================ */
+
+.gestion-page {
+    padding: 0;
+}
+
+.gestion-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
+}
+
+.gestion-page .page-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+}
+
+.gestion-page .page-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.95rem;
+}
+
+.gestion-page .card {
+    border: 1px solid #d1e7e4;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.gestion-page .card-tabla {
+    overflow: hidden;
+}
+
+.gestion-page .table th {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #ffffff;
+    background: #05413f;
+    padding: 0.9rem 1rem;
+    border: none;
+}
+
+.gestion-page .table td {
+    vertical-align: middle;
+    padding: 0.95rem 1rem;
+    border-top: 1px solid #eef5f3;
+}
+
+.gestion-page .table tbody tr:hover {
+    background-color: #f0fdf9;
+}

@@ -220,7 +220,7 @@ def descargar_reporte_socios_pdf(request):
     estilos = getSampleStyleSheet()
     filas = [['Código', 'Socio', 'Correo', 'CI / Carnet', 'Ciudad', 'Estado', 'Pago']]
     for socio in socios:
-        membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('grupo', 'subgrupo').first()
+        membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first()
         filas.append([
             socio.codigo_socio or '-',
             str(socio),

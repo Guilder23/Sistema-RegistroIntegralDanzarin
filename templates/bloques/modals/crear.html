@@ -1,0 +1,41 @@
+<div class="modal fade modal-crear-gestion" id="modalCrearBloque" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form method="post" action="{% url 'bloques:crear_bloque' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Nuevo bloque</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    {% if role != 'administrador_conjunto' %}
+                    <label>Asociación</label>
+                    <select class="form-control" name="asociacion_id" id="crearBloqueAsociacion">
+                        {% for asociacion in asociaciones %}
+                            <option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">
+                    {% endif %}
+
+                    <label class="mt-3">Conjunto</label>
+                    <select class="form-control" name="conjunto_id" id="crearBloqueConjunto">
+                        {% for conjunto in conjuntos %}
+                            <option value="{{ conjunto.id }}" data-asociacion="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <label class="mt-3">Nombre</label>
+                    <input class="form-control" name="nombre" required>
+
+                    <label class="mt-3">Descripción</label>
+                    <textarea class="form-control" name="descripcion" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

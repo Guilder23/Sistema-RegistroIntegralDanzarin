@@ -35,9 +35,9 @@
                         <input id="editarAdminPassword" type="password" name="password" class="form-control">
                     </div>
                     <div class="form-row">
-                        <div class="col-md-4 form-group"><label>Tipo</label><select id="editarAdminRol" name="rol" class="form-control" required><option value="superadministrador">Superadministrador</option><option value="administrador_grupo">Administrador de Grupo</option><option value="administrador_subgrupo">Administrador de Subgrupo</option></select></div>
-                        <div class="col-md-4 form-group"><label>Grupo</label><select id="editarAdminGrupo" name="grupo_id" class="form-control" required><option value="">Selecciona un grupo</option>{% for grupo in grupos %}<option value="{{ grupo.id }}">{{ grupo.nombre }}</option>{% endfor %}</select></div>
-                        <div class="col-md-4 form-group"><label>Subgrupo</label><select id="editarAdminSubgrupo" name="subgrupo_id" class="form-control"><option value="">Solo para subgrupo</option>{% for subgrupo in subgrupos %}<option value="{{ subgrupo.id }}" data-grupo-id="{{ subgrupo.grupo_id }}">{{ subgrupo.grupo.nombre }} / {{ subgrupo.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Tipo</label><select id="editarAdminRol" name="rol" class="form-control" required><option value="superadministrador">Superadministrador</option><option value="administrador_asociacion">Administrador de Asociación</option><option value="administrador_conjunto">Administrador de Conjunto</option></select></div>
+                        <div class="col-md-4 form-group"><label>Asociación</label><select id="editarAdminAsociacion" name="asociacion_id" class="form-control" required><option value="">Selecciona una asociación</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Conjunto</label><select id="editarAdminConjunto" name="conjunto_id" class="form-control"><option value="">Solo para conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.asociacion.nombre }} / {{ conjunto.nombre }}</option>{% endfor %}</select></div>
                     </div>
                 </div>
                 <div class="modal-footer">

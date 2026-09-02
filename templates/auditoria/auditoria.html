@@ -17,11 +17,11 @@
             </h1>
             <p class="page-subtitle text-muted mb-0">
                 {% if role == 'superadministrador' %}
-                    <span class="header-scope-badge badge-primary"><i class="fas fa-globe mr-1"></i> Ámbito General</span> Registro total de acciones de Superadministradores, Grupos y Subgrupos.
-                {% elif role == 'administrador_grupo' %}
-                    <span class="header-scope-badge badge-info"><i class="fas fa-layer-group mr-1"></i> Grupo: {{ user_profile.grupo.nombre|default:'Asignado' }}</span> Registro de tus cambios y de tus subgrupos.
-                {% elif role == 'administrador_subgrupo' %}
-                    <span class="header-scope-badge badge-success"><i class="fas fa-sitemap mr-1"></i> Subgrupo: {{ user_profile.subgrupo.nombre|default:'Asignado' }}</span> Registro exclusivo de tus cambios.
+                    <span class="header-scope-badge badge-primary"><i class="fas fa-globe mr-1"></i> Ámbito General</span> Registro total de acciones de Superadministradores, Asociaciones y Conjuntos.
+                {% elif role == 'administrador_asociacion' %}
+                    <span class="header-scope-badge badge-info"><i class="fas fa-layer-group mr-1"></i> Asociación: {{ user_profile.asociacion.nombre|default:'Asignada' }}</span> Registro de tus cambios y de tus conjuntos.
+                {% elif role == 'administrador_conjunto' %}
+                    <span class="header-scope-badge badge-success"><i class="fas fa-sitemap mr-1"></i> Conjunto: {{ user_profile.conjunto.nombre|default:'Asignado' }}</span> Registro exclusivo de tus cambios.
                 {% endif %}
             </p>
         </div>
@@ -43,7 +43,7 @@
             <h6 class="mb-0 font-weight-bold text-dark">
                 <i class="fas fa-filter text-primary mr-2"></i>Filtros de Búsqueda y Ámbito
             </h6>
-            {% if q or origen != 'todos' or accion or grupo_id or subgrupo_id or usuario_id or desde or hasta %}
+            {% if q or origen != 'todos' or accion or asociacion_id or conjunto_id or usuario_id or desde or hasta %}
                 <a href="{% url 'auditoria:listar_auditoria' %}" class="btn btn-sm btn-outline-secondary">
                     <i class="fas fa-times mr-1"></i>Limpiar Filtros
                 </a>
@@ -70,43 +70,43 @@
                         <option value="todos" {% if origen == 'todos' or not origen %}selected{% endif %}>Todos los niveles</option>
                         <option value="mis_cambios" {% if origen == 'mis_cambios' %}selected{% endif %}>Solo mis cambios (Superadmin)</option>
                         <option value="superadmin" {% if origen == 'superadmin' %}selected{% endif %}>Superadministradores</option>
-                        <option value="admin_grupo" {% if origen == 'admin_grupo' %}selected{% endif %}>Administradores de Grupo</option>
-                        <option value="admin_subgrupo" {% if origen == 'admin_subgrupo' %}selected{% endif %}>Administradores de Subgrupo</option>
+                        <option value="admin_asociacion" {% if origen == 'admin_asociacion' %}selected{% endif %}>Administradores de Asociación</option>
+                        <option value="admin_conjunto" {% if origen == 'admin_conjunto' %}selected{% endif %}>Administradores de Conjunto</option>
                     </select>
                 </div>
-                {% elif role == 'administrador_grupo' %}
+                {% elif role == 'administrador_asociacion' %}
                 <div class="col-lg-3 col-md-6 mb-3">
                     <label class="form-label text-muted small font-weight-bold">Ámbito de Historial</label>
                     <select class="form-control" name="origen" onchange="this.form.submit()">
-                        <option value="todos" {% if origen == 'todos' or not origen %}selected{% endif %}>Todo mi grupo y subgrupos</option>
-                        <option value="mis_cambios" {% if origen == 'mis_cambios' %}selected{% endif %}>Solo mis cambios (Admin de grupo)</option>
-                        <option value="subgrupos" {% if origen == 'subgrupos' %}selected{% endif %}>Solo cambios de subgrupos</option>
+                        <option value="todos" {% if origen == 'todos' or not origen %}selected{% endif %}>Todo mi asociacion y conjuntos</option>
+                        <option value="mis_cambios" {% if origen == 'mis_cambios' %}selected{% endif %}>Solo mis cambios (Admin de asociacion)</option>
+                        <option value="conjuntos" {% if origen == 'conjuntos' %}selected{% endif %}>Solo cambios de conjuntos</option>
                     </select>
                 </div>
                 {% endif %}
 
-                <!-- 3. Filtro por Grupo (Solo Superadmin) -->
-                {% if role == 'superadministrador' and grupos %}
+                <!-- 3. Filtro por Asociacion (Solo Superadmin) -->
+                {% if role == 'superadministrador' and asociaciones %}
                 <div class="col-lg-3 col-md-6 mb-3">
-                    <label class="form-label text-muted small font-weight-bold">Grupo</label>
-                    <select class="form-control" name="grupo_id" onchange="this.form.submit()">
-                        <option value="">Todos los grupos</option>
-                        {% for g in grupos %}
-                        <option value="{{ g.id }}" {% if grupo_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>
+                    <label class="form-label text-muted small font-weight-bold">Asociacion</label>
+                    <select class="form-control" name="asociacion_id" onchange="this.form.submit()">
+                        <option value="">Todos los asociaciones</option>
+                        {% for g in asociaciones %}
+                        <option value="{{ g.id }}" {% if asociacion_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>
                         {% endfor %}
                     </select>
                 </div>
                 {% endif %}
 
-                <!-- 4. Filtro por Subgrupo (Superadmin y Admin de Grupo) -->
-                {% if role == 'superadministrador' or role == 'administrador_grupo' %}
+                <!-- 4. Filtro por Conjunto (Superadmin y Admin de Asociacion) -->
+                {% if role == 'superadministrador' or role == 'administrador_asociacion' %}
                 <div class="col-lg-2 col-md-6 mb-3">
-                    <label class="form-label text-muted small font-weight-bold">Subgrupo</label>
-                    <select class="form-control" name="subgrupo_id" onchange="this.form.submit()">
+                    <label class="form-label text-muted small font-weight-bold">Conjunto</label>
+                    <select class="form-control" name="conjunto_id" onchange="this.form.submit()">
                         <option value="">Todos</option>
-                        {% for sg in subgrupos %}
-                        <option value="{{ sg.id }}" {% if subgrupo_id == sg.id|stringformat:"s" %}selected{% endif %}>
-                            {% if role == 'superadministrador' %}{{ sg.grupo.nombre }} / {% endif %}{{ sg.nombre }}
+                        {% for sg in conjuntos %}
+                        <option value="{{ sg.id }}" {% if conjunto_id == sg.id|stringformat:"s" %}selected{% endif %}>
+                            {% if role == 'superadministrador' %}{{ sg.asociacion.nombre }} / {% endif %}{{ sg.nombre }}
                         </option>
                         {% endfor %}
                     </select>
@@ -114,7 +114,7 @@
                 {% endif %}
 
                 <!-- 5. Filtro por Usuario -->
-                {% if role == 'superadministrador' or role == 'administrador_grupo' %}
+                {% if role == 'superadministrador' or role == 'administrador_asociacion' %}
                 <div class="col-lg-3 col-md-6 mb-3">
                     <label class="form-label text-muted small font-weight-bold">Usuario Específico</label>
                     <select class="form-control" name="usuario_id" onchange="this.form.submit()">
@@ -167,10 +167,10 @@
                     <tr>
                         <th style="width: 160px;">Fecha y Hora</th>
                         <th>Administrador / Usuario</th>
-                        <th>Ámbito (Grupo / Subgrupo)</th>
+                        <th>Ámbito (Asociación / Conjunto)</th>
                         <th>Acción</th>
                         <th>Registro Afectado</th>
-                        <th>Detalles del Cambio</th>
+                        <th class="columna-detalles">Detalles del Cambio</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -191,10 +191,10 @@
                                         <div class="small mt-1">
                                             {% if reg.usuario.is_superuser or reg.usuario.userprofile.rol == 'superadministrador' %}
                                                 <span class="tag-rol-superadmin">Superadmin</span>
-                                            {% elif reg.usuario.userprofile.rol == 'administrador_grupo' %}
-                                                <span class="tag-rol-grupo">Admin Grupo</span>
-                                            {% elif reg.usuario.userprofile.rol == 'administrador_subgrupo' %}
-                                                <span class="tag-rol-subgrupo">Admin Subgrupo</span>
+                                            {% elif reg.usuario.userprofile.rol == 'administrador_asociacion' %}
+                                                <span class="tag-rol-asociacion">Admin Asociación</span>
+                                            {% elif reg.usuario.userprofile.rol == 'administrador_conjunto' %}
+                                                <span class="tag-rol-conjunto">Admin Conjunto</span>
                                             {% else %}
                                                 <span class="tag-rol-usuario">Usuario</span>
                                             {% endif %}
@@ -208,31 +208,31 @@
                         </td>
                         <td>
                             <div class="ambito-tag-container">
-                                {% if reg.grupo or reg.usuario.userprofile.grupo %}
+                                {% if reg.asociacion or reg.usuario.userprofile.asociacion %}
                                     <div class="mb-1">
-                                        <span class="tag-ambito-grupo">
+                                        <span class="tag-ambito-asociacion">
                                             <i class="fas fa-layer-group text-primary mr-1"></i>
-                                            {% if reg.grupo %}
-                                                {{ reg.grupo.nombre }}
+                                            {% if reg.asociacion %}
+                                                {{ reg.asociacion.nombre }}
                                             {% else %}
-                                                {{ reg.usuario.userprofile.grupo.nombre }}
+                                                {{ reg.usuario.userprofile.asociacion.nombre }}
                                             {% endif %}
                                         </span>
                                     </div>
                                 {% endif %}
-                                {% if reg.subgrupo or reg.usuario.userprofile.subgrupo %}
+                                {% if reg.conjunto or reg.usuario.userprofile.conjunto %}
                                     <div>
-                                        <span class="tag-ambito-subgrupo">
+                                        <span class="tag-ambito-conjunto">
                                             <i class="fas fa-sitemap text-info mr-1"></i>
-                                            {% if reg.subgrupo %}
-                                                {{ reg.subgrupo.nombre }}
+                                            {% if reg.conjunto %}
+                                                {{ reg.conjunto.nombre }}
                                             {% else %}
-                                                {{ reg.usuario.userprofile.subgrupo.nombre }}
+                                                {{ reg.usuario.userprofile.conjunto.nombre }}
                                             {% endif %}
                                         </span>
                                     </div>
                                 {% endif %}
-                                {% if not reg.grupo and not reg.subgrupo and not reg.usuario.userprofile.grupo and not reg.usuario.userprofile.subgrupo %}
+                                {% if not reg.asociacion and not reg.conjunto and not reg.usuario.userprofile.asociacion and not reg.usuario.userprofile.conjunto %}
                                     <span class="tag-ambito-global">Global</span>
                                 {% endif %}
                             </div>
@@ -255,7 +255,7 @@
                         <td>
                             <span class="font-weight-semibold text-dark">{{ reg.registro_afectado }}</span>
                         </td>
-                        <td>
+                        <td class="columna-detalles">
                             {% if reg.valor_anterior or reg.valor_nuevo %}
                                 <div class="detalles-cambio">
                                     {% if reg.valor_anterior %}
@@ -298,12 +298,12 @@
             <ul class="pagination pagination-sm mb-0">
                 {% if page_obj.has_previous %}
                 <li class="page-item">
-                    <a class="page-link" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Primera">
+                    <a class="page-link" href="?page=1{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if asociacion_id %}&asociacion_id={{ asociacion_id }}{% endif %}{% if conjunto_id %}&conjunto_id={{ conjunto_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Primera">
                         <i class="fas fa-angles-left"></i>
                     </a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if asociacion_id %}&asociacion_id={{ asociacion_id }}{% endif %}{% if conjunto_id %}&conjunto_id={{ conjunto_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
                         <i class="fas fa-angle-left"></i> Anterior
                     </a>
                 </li>
@@ -313,12 +313,12 @@
 
                 {% if page_obj.has_next %}
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if asociacion_id %}&asociacion_id={{ asociacion_id }}{% endif %}{% if conjunto_id %}&conjunto_id={{ conjunto_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}">
                         Siguiente <i class="fas fa-angle-right"></i>
                     </a>
                 </li>
                 <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if grupo_id %}&grupo_id={{ grupo_id }}{% endif %}{% if subgrupo_id %}&subgrupo_id={{ subgrupo_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Última">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if origen %}&origen={{ origen }}{% endif %}{% if accion %}&accion={{ accion }}{% endif %}{% if asociacion_id %}&asociacion_id={{ asociacion_id }}{% endif %}{% if conjunto_id %}&conjunto_id={{ conjunto_id }}{% endif %}{% if usuario_id %}&usuario_id={{ usuario_id }}{% endif %}{% if desde %}&desde={{ desde }}{% endif %}{% if hasta %}&hasta={{ hasta }}{% endif %}" aria-label="Última">
                         <i class="fas fa-angles-right"></i>
                     </a>
                 </li>

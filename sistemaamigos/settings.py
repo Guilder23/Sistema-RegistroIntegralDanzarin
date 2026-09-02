@@ -58,8 +58,9 @@ INSTALLED_APPS = [
     'apps.eventos.apps.EventosConfig',
     'apps.dashboard.apps.DashboardConfig',
     'apps.reportes.apps.ReportesConfig',
-    'apps.grupos.apps.GruposConfig',
-    'apps.subgrupos.apps.SubgruposConfig',
+    'apps.asociaciones.apps.AsociacionesConfig',
+    'apps.conjuntos.apps.ConjuntosConfig',
+    'apps.bloques.apps.BloquesConfig',
     'apps.membresias.apps.MembresiasConfig',
     'apps.auditoria.apps.AuditoriaConfig',
 ]

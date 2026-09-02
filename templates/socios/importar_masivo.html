@@ -60,9 +60,15 @@
                     </tbody>
                 </table>
             </div>
+            {% if import_errors %}
+            <div class="alert alert-danger">
+                <strong>No se puede confirmar el registro:</strong>
+                <ul class="mb-0">{% for error in import_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+            </div>
+            {% endif %}
             <form method="post" action="{% url 'socios:importar_socios_xlsx_confirm' %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-success">Confirmar registro de socios</button>
+                {% if not import_errors %}<button type="submit" class="btn btn-success">Confirmar registro de socios</button>{% endif %}
                 <a href="{% url 'socios:listar_socios' %}" class="btn btn-light">Cancelar</a>
             </form>
         </div>

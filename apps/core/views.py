@@ -118,20 +118,20 @@ def registrar_usuario(request):
 		password = request.POST.get('password', '')
 		password2 = request.POST.get('password2', '')
 		rol = request.POST.get('rol', 'miembro')
-		roles_validos = {'superadministrador', 'administrador_grupo', 'administrador_subgrupo', 'miembro'}
+		roles_validos = {'superadministrador', 'administrador_asociacion', 'administrador_conjunto', 'miembro'}
 		if rol not in roles_validos:
 			rol = 'miembro'
-		from apps.core.models import Grupo, Subgrupo
-		grupo = Grupo.objects.filter(pk=request.POST.get('grupo_id'), activo=True).first()
-		subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
-		if rol == 'administrador_grupo' and not grupo:
-			messages.error(request, 'El Administrador de Grupo debe tener un grupo asignado.')
+		from apps.core.models import Asociacion, Conjunto
+		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
+		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		if rol == 'administrador_asociacion' and not asociacion:
+			messages.error(request, 'El Administrador de Asociación debe tener una asociación asignada.')
 			return redirect('core:registro')
-		if rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
-			messages.error(request, 'El Administrador de Subgrupo debe tener grupo y subgrupo asignados.')
+		if rol == 'administrador_conjunto' and (not asociacion or not conjunto):
+			messages.error(request, 'El Administrador de Conjunto debe tener asociación y conjunto asignados.')
 			return redirect('core:registro')
-		if rol == 'miembro' and (not grupo or not subgrupo):
-			messages.error(request, 'El Miembro / Socio debe tener grupo y subgrupo asignados.')
+		if rol == 'miembro' and (not asociacion or not conjunto):
+			messages.error(request, 'El Miembro / Socio debe tener asociación y conjunto asignados.')
 			return redirect('core:registro')
 
 		if not username or not password:
@@ -157,7 +157,7 @@ def registrar_usuario(request):
 		user.is_superuser = rol == 'superadministrador'
 		user.save()
 		from apps.socios.models import UserProfile
-		UserProfile.objects.filter(user=user).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+		UserProfile.objects.filter(user=user).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
 		if rol == 'miembro':
 			from apps.socios.models import Socio, Membresia, generar_codigo_socio
 			socio = Socio.objects.create(
@@ -167,7 +167,7 @@ def registrar_usuario(request):
 				apellido=last_name,
 				email=email,
 			)
-			Membresia.inscribir(socio, grupo, subgrupo, estado_pago='al_dia')
+			Membresia.inscribir(socio, asociacion, conjunto, estado_pago='al_dia')
 
 		messages.success(request, 'Usuario creado correctamente.')
 		return redirect('core:registro')
@@ -207,8 +207,8 @@ def registrar_usuario(request):
 			'q': q,
 			'rol': rol,
 			'estado': estado,
-			'grupos': __import__('apps.core.models', fromlist=['Grupo']).Grupo.objects.filter(activo=True),
-			'subgrupos': __import__('apps.core.models', fromlist=['Subgrupo']).Subgrupo.objects.filter(activo=True).select_related('grupo'),
+		'asociaciones': __import__('apps.core.models', fromlist=['Asociacion']).Asociacion.objects.filter(activo=True),
+		'conjuntos': __import__('apps.core.models', fromlist=['Conjunto']).Conjunto.objects.filter(activo=True).select_related('asociacion'),
 		},
 	)
 
@@ -228,12 +228,12 @@ def editar_usuario(request, user_id):
 		first_name = request.POST.get('first_name', '').strip()
 		last_name = request.POST.get('last_name', '').strip()
 		rol = request.POST.get('rol', 'miembro')
-		from apps.core.models import Grupo, Subgrupo
-		grupo = Grupo.objects.filter(pk=request.POST.get('grupo_id'), activo=True).first()
-		subgrupo = Subgrupo.objects.filter(pk=request.POST.get('subgrupo_id'), grupo=grupo, activo=True).first() if grupo else None
-		if rol not in {'superadministrador', 'administrador_grupo', 'administrador_subgrupo', 'miembro'}:
+		from apps.core.models import Asociacion, Conjunto
+		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
+		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto', 'miembro'}:
 			rol = 'miembro'
-		if rol == 'administrador_grupo' and not grupo or rol == 'administrador_subgrupo' and (not grupo or not subgrupo):
+		if rol == 'administrador_asociacion' and not asociacion or rol == 'administrador_conjunto' and (not asociacion or not conjunto):
 			messages.error(request, 'El rol seleccionado requiere un ámbito válido.')
 			return redirect('core:registro')
 
@@ -262,7 +262,7 @@ def editar_usuario(request, user_id):
 
 		objetivo.save()
 		from apps.socios.models import UserProfile
-		UserProfile.objects.filter(user=objetivo).update(rol=rol, grupo=grupo, subgrupo=subgrupo)
+		UserProfile.objects.filter(user=objetivo).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
 		messages.success(request, 'Usuario actualizado correctamente.')
 
 	return redirect('core:registro')
