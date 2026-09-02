@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
+from django.db.models import Prefetch
 
 from apps.eventos.models import Evento
 from apps.socios.models import Socio
@@ -32,20 +33,31 @@ def registrar_entrega(request):
         socio_id = request.POST.get('socio_id')
         evento_id = request.POST.get('evento_id')
         souvenir_id = request.POST.get('souvenir_id')
+        asociacion_id = request.POST.get('asociacion_id')
+        conjunto_id = request.POST.get('conjunto_id')
         observacion = request.POST.get('observacion', '').strip()
 
+        role = get_role(request.user)
+        if role == 'administrador_conjunto':
+            asociacion_id = request.user.userprofile.asociacion_id
+            conjunto_id = request.user.userprofile.conjunto_id
+        elif role == 'administrador_asociacion':
+            asociacion_id = request.user.userprofile.asociacion_id
+
+        asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first()
+        conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
+        if not asociacion or not conjunto:
+            messages.error(request, 'Selecciona una asociación y conjunto válidos.')
+            return redirect('souvenirs:registrar_entrega')
+
         socio = Socio.objects.filter(id=socio_id)
-        if get_role(request.user) != 'superadministrador':
-            socio = socio.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
-            if get_role(request.user) == 'administrador_conjunto':
-                socio = socio.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
+        socio = socio.filter(membresias__asociacion=asociacion, membresias__conjunto=conjunto, membresias__estado='activo')
         socio = socio.distinct().first()
         if not socio:
             messages.error(request, 'Selecciona un socio válido.')
             return redirect('souvenirs:registrar_entrega')
 
-        _, _, eventos_permitidos = opciones_souvenirs(request.user)
-        evento = eventos_permitidos.filter(id=evento_id).first()
+        evento = evento_valido(evento_id, asociacion, conjunto)
         if not evento:
             messages.error(request, 'Selecciona un evento válido.')
             return redirect('souvenirs:registrar_entrega')
@@ -54,9 +66,10 @@ def registrar_entrega(request):
             messages.warning(request, 'Este socio ya registró una entrega para el evento seleccionado.')
             return redirect('souvenirs:listar_entregas')
 
-        souvenir = None
-        if souvenir_id:
-            souvenir = souvenirs_scope(request.user).filter(id=souvenir_id, activo=True).first()
+        souvenir = souvenirs_scope(request.user).filter(id=souvenir_id, activo=True, evento=evento, asociacion=asociacion).filter(Q(conjunto=conjunto) | Q(conjunto__isnull=True)).first()
+        if not souvenir:
+            messages.error(request, 'Selecciona un souvenir perteneciente al evento y ámbito seleccionados.')
+            return redirect('souvenirs:registrar_entrega')
 
         SouvenirEntrega.objects.create(
             socio=socio,
@@ -86,15 +99,29 @@ def registrar_entrega(request):
         messages.success(request, 'Entrega de souvenir registrada.')
         return redirect('souvenirs:listar_entregas')
 
-    socios = Socio.objects.filter(membresias__estado='activo')
-    if get_role(request.user) != 'superadministrador':
+    role = get_role(request.user)
+    asociaciones, conjuntos, eventos = opciones_souvenirs(request.user)
+    socios = Socio.objects.filter(membresias__estado='activo').prefetch_related('membresias').distinct().order_by('apellido', 'nombre')
+    if role == 'administrador_asociacion':
         socios = socios.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
-        if get_role(request.user) == 'administrador_conjunto':
-            socios = socios.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
-    socios = socios.distinct().order_by('apellido', 'nombre')
-    _, _, eventos = opciones_souvenirs(request.user)
+    elif role == 'administrador_conjunto':
+        socios = socios.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
+    socios_data = []
+    for socio in socios:
+        for membresia in socio.membresias.all():
+            if membresia.estado == 'activo':
+                socios_data.append({
+                    'value': str(socio.id),
+                    'label': str(socio),
+                    'asociacionId': str(membresia.asociacion_id),
+                    'conjuntoId': str(membresia.conjunto_id),
+                })
     souvenirs = souvenirs_scope(request.user).filter(activo=True).order_by('-creado')
-    return render(request, 'souvenirs/entregas/registrar_entrega.html', {'socios': socios, 'eventos': eventos, 'souvenirs': souvenirs})
+    return render(request, 'souvenirs/entregas/registrar_entrega.html', {
+        'socios': socios, 'socios_data': socios_data, 'eventos': eventos,
+        'souvenirs': souvenirs, 'asociaciones': asociaciones,
+        'conjuntos': conjuntos, 'role': role,
+    })
 
 
 @login_required

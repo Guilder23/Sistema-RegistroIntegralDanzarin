@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const socioSuggestions = document.getElementById('socioSuggestions');
     const formRegistrarEntrega = document.getElementById('formRegistrarEntrega');
     const sociosData = document.getElementById('sociosData');
+    const asociacionSelect = document.getElementById('selectEntregaAsociacion');
+    const conjuntoSelect = document.getElementById('selectEntregaConjunto');
 
     const socios = sociosData ? JSON.parse(sociosData.textContent) : [];
     const souvenirOptions = souvenirSelect ? Array.from(souvenirSelect.querySelectorAll('option')).map(option => ({
@@ -13,7 +15,37 @@ document.addEventListener('DOMContentLoaded', function () {
         text: option.textContent,
         eventoId: option.dataset.evento || '',
         disabled: option.value === '',
+        asociacionId: option.dataset.asociacionId || '',
+        conjuntoId: option.dataset.conjuntoId || '',
     })) : [];
+
+    const eventoOptions = eventoSelect ? Array.from(eventoSelect.options).map(option => ({
+        element: option,
+        value: option.value,
+        asociacionId: option.dataset.asociacionId || '',
+        conjuntoId: option.dataset.conjuntoId || '',
+    })) : [];
+
+    const getScopeReady = function () {
+        return Boolean(asociacionSelect?.value && conjuntoSelect?.value);
+    };
+
+    const filterEvents = function () {
+        const asociacionId = asociacionSelect?.value || '';
+        const conjuntoId = conjuntoSelect?.value || '';
+        eventoOptions.forEach(optionData => {
+            if (!optionData.value) return;
+            const valid = optionData.asociacionId === asociacionId
+                && (!optionData.conjuntoId || optionData.conjuntoId === conjuntoId);
+            optionData.element.hidden = !valid;
+            optionData.element.disabled = !valid;
+        });
+        if (eventoSelect) {
+            eventoSelect.disabled = !getScopeReady();
+            if (!getScopeReady() || eventoSelect.selectedOptions[0]?.disabled) eventoSelect.value = '';
+        }
+        renderSouvenirs();
+    };
 
     const renderSouvenirs = function () {
         if (!souvenirSelect) return;
@@ -30,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const filtered = souvenirOptions.filter(option => option.eventoId === selectedEvento || option.value === '');
+        const filtered = souvenirOptions.filter(option => option.eventoId === selectedEvento && option.asociacionId === (asociacionSelect?.value || '') && (option.conjuntoId === '' || option.conjuntoId === (conjuntoSelect?.value || '')));
         filtered.forEach(optionData => {
             const option = document.createElement('option');
             option.value = optionData.value;
@@ -40,6 +72,13 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         souvenirSelect.disabled = false;
+    };
+
+    const sociosDisponibles = function () {
+        const asociacionId = asociacionSelect?.value || '';
+        const conjuntoId = conjuntoSelect?.value || '';
+        const eventoId = eventoSelect?.value || '';
+        return socios.filter(socio => socio.asociacionId === asociacionId && socio.conjuntoId === conjuntoId && Boolean(eventoId));
     };
 
     const clearSuggestions = function () {
@@ -57,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const matches = socios.filter(socio => socio.label.toLowerCase().includes(searchTerm));
+        const matches = sociosDisponibles().filter(socio => socio.label.toLowerCase().includes(searchTerm));
         if (!matches.length) {
             const noMatch = document.createElement('div');
             noMatch.className = 'autocomplete-no-match';
@@ -85,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     if (socioSearch) {
+        socioSearch.disabled = true;
         socioSearch.addEventListener('input', function (event) {
             socioIdInput.value = '';
             renderSuggestions(event.target.value);
@@ -106,11 +146,34 @@ document.addEventListener('DOMContentLoaded', function () {
                 socioSearch.focus();
                 alert('Selecciona un socio de la lista antes de guardar.');
             }
+            if (!eventoSelect.value || !souvenirSelect.value || !getScopeReady()) {
+                event.preventDefault();
+                alert('Selecciona asociación, conjunto, evento y souvenir antes de guardar.');
+            }
         });
     }
 
     if (eventoSelect) {
-        eventoSelect.addEventListener('change', renderSouvenirs);
+        eventoSelect.addEventListener('change', function () {
+            socioSearch.disabled = !eventoSelect.value;
+            socioIdInput.value = '';
+            socioSearch.value = '';
+            renderSouvenirs();
+        });
         renderSouvenirs();
     }
+    asociacionSelect?.addEventListener('change', function () {
+        if (conjuntoSelect && !conjuntoSelect.disabled) conjuntoSelect.value = '';
+        socioSearch.disabled = true;
+        socioIdInput.value = '';
+        socioSearch.value = '';
+        filterEvents();
+    });
+    conjuntoSelect?.addEventListener('change', function () {
+        socioSearch.disabled = true;
+        socioIdInput.value = '';
+        socioSearch.value = '';
+        filterEvents();
+    });
+    filterEvents();
 });
