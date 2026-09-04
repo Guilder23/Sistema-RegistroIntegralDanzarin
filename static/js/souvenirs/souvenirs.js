@@ -1,11 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
     const configurarDependencias = function (tipo, asociacion, conjunto, evento) {
         const conjuntoGrupo = conjunto?.closest('.form-group');
+        const conjuntoFijo = conjunto?.dataset.fijo === 'true';
         const actualizar = function () {
-            const conjuntoActivo = tipo ? tipo.value === 'conjunto' : Boolean(conjunto);
+            const conjuntoActivo = conjuntoFijo || (tipo ? tipo.value === 'conjunto' : Boolean(conjunto));
             if (conjunto) {
                 conjunto.required = conjuntoActivo;
-                conjunto.disabled = !conjuntoActivo;
+                conjunto.disabled = conjuntoFijo || !conjuntoActivo;
                 if (conjuntoGrupo) conjuntoGrupo.style.display = conjuntoActivo ? '' : 'none';
                 Array.from(conjunto.options).forEach(option => {
                     const visible = !option.value || !asociacion || !asociacion.value || option.dataset.asociacionId === asociacion.value;
@@ -17,13 +18,20 @@ document.addEventListener('DOMContentLoaded', function () {
             if (evento) {
                 Array.from(evento.options).forEach(option => {
                     const asociacionValida = !option.value || !asociacion || !asociacion.value || option.dataset.asociacionId === asociacion.value;
-                    const conjuntoValido = !option.value || !conjunto
-                        || (conjunto.value
-                            ? (!option.dataset.conjuntoId || option.dataset.conjuntoId === conjunto.value)
-                            : !option.dataset.conjuntoId);
+                    const conjuntoValido = !option.value || (
+                        conjunto && conjunto.value
+                            ? option.dataset.conjuntoId === conjunto.value
+                            : !option.dataset.conjuntoId
+                    );
                     option.hidden = !(asociacionValida && conjuntoValido);
                     option.disabled = option.hidden;
                 });
+                if (evento.selectedOptions[0]?.disabled) evento.value = '';
+                const ayuda = evento.closest('.form-group')?.querySelector('.eventos-ayuda');
+                if (ayuda) {
+                    const disponibles = Array.from(evento.options).some(option => option.value && !option.disabled);
+                    ayuda.textContent = disponibles ? 'Selecciona un evento del ámbito elegido.' : 'No hay eventos disponibles para el ámbito seleccionado.';
+                }
             }
         };
         tipo?.addEventListener('change', actualizar);

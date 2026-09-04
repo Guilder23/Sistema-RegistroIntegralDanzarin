@@ -93,6 +93,25 @@ class RolesEventosTests(TestCase):
 
         self.assertEqual(nombres, ['Evento Propio', 'Evento Asociación'])
 
+    def test_conjunto_solo_puede_ver_evento_de_asociacion(self):
+        administrador = self.usuario('conjunto-solo-ver', 'administrador_conjunto')
+        evento = Evento.objects.create(
+            nombre='Evento Asociación Solo Ver',
+            fecha_inicio='2026-09-01',
+            fecha_fin='2026-09-02',
+            asociacion=self.asociacion,
+        )
+
+        self.client.force_login(administrador)
+        response = self.client.get(reverse('eventos:listar_eventos'))
+
+        self.assertContains(response, evento.nombre)
+        self.assertNotContains(response, f'data-id="{evento.pk}"')
+        self.assertEqual(
+            self.client.post(reverse('eventos:editar_evento', args=[evento.pk])).status_code,
+            404,
+        )
+
     def test_conjunto_puede_crear_eventos_y_miembro_no(self):
         self.client.force_login(self.usuario('conjunto', 'administrador_conjunto'))
         response = self.client.post(reverse('eventos:crear_evento'), self.datos_evento())

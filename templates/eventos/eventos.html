@@ -87,7 +87,7 @@
                                 data-creado="{{ evento.creado|date:'d/m/Y H:i' }}">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm btn-editar-evento" data-toggle="modal" data-target="#modalEditarEvento"
+                            {% if role != 'administrador_conjunto' or evento.conjunto %}<button type="button" class="btn btn-warning btn-sm btn-editar-evento" data-toggle="modal" data-target="#modalEditarEvento"
                                 data-id="{{ evento.pk }}"
                                 data-nombre="{{ evento.nombre|escapejs }}"
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
@@ -99,14 +99,14 @@
                                 data-conjunto-id="{{ evento.conjunto_id|default:'' }}"
                                 data-activo="{{ evento.activo }}">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <form method="post" action="{% url 'eventos:cambiar_estado_evento' evento.pk %}" class="d-inline">
+                            </button>{% endif %}
+                            {% if role != 'administrador_conjunto' or evento.conjunto %}<form method="post" action="{% url 'eventos:cambiar_estado_evento' evento.pk %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn {% if evento.activo %}btn-secondary{% else %}btn-success{% endif %} btn-sm" title="{% if evento.activo %}Desactivar evento{% else %}Activar evento{% endif %}">
                                     <i class="fas {% if evento.activo %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
                                 </button>
-                            </form>
-                            {% if not evento.souvenirs.exists %}
+                            </form>{% endif %}
+                            {% if not evento.souvenirs.exists and role != 'administrador_conjunto' or evento.conjunto and not evento.souvenirs.exists %}
                             <button type="button" class="btn btn-danger btn-sm btn-eliminar-evento" data-toggle="modal" data-target="#modalEliminarEvento"
                                 data-id="{{ evento.pk }}"
                                 data-nombre="{{ evento.nombre|escapejs }}">

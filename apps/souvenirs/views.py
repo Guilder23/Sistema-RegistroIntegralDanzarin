@@ -182,7 +182,10 @@ def listar_souvenirs(request):
     if role == 'administrador_asociacion':
         objetos = objetos.filter(asociacion_id=request.user.userprofile.asociacion_id)
     elif role == 'administrador_conjunto':
-        objetos = objetos.filter(conjunto_id=request.user.userprofile.conjunto_id)
+        objetos = objetos.filter(
+            Q(asociacion_id=request.user.userprofile.asociacion_id, conjunto__isnull=True)
+            | Q(conjunto_id=request.user.userprofile.conjunto_id)
+        )
 
     if q:
         objetos = objetos.filter(
@@ -237,12 +240,13 @@ def crear_souvenir(request):
             messages.error(request, 'Nombre requerido.')
             return redirect('souvenirs:listar_souvenirs')
 
-        evento = None
-        if evento_id:
-            evento = evento_valido(evento_id, asociacion, conjunto)
-            if not evento:
-                messages.error(request, 'El evento no pertenece al ámbito seleccionado.')
-                return redirect('souvenirs:listar_souvenirs')
+        evento = evento_valido(evento_id, asociacion, conjunto)
+        if not evento:
+            messages.error(request, 'Debes seleccionar un evento válido para el ámbito seleccionado.')
+            return redirect('souvenirs:listar_souvenirs')
+        if Souvenir.objects.filter(evento=evento).exists():
+            messages.error(request, 'Ese evento ya tiene un souvenir asignado.')
+            return redirect('souvenirs:listar_souvenirs')
 
         if not asociacion:
             messages.error(request, 'Selecciona una asociación válida para el souvenir.')
@@ -253,7 +257,7 @@ def crear_souvenir(request):
             request.user,
             'creacion_souvenir',
             f'Souvenir {souvenir.nombre}',
-            nuevo={'nombre': souvenir.nombre, 'stock': souvenir.stock, 'evento': evento.nombre if evento else None},
+            nuevo={'nombre': souvenir.nombre, 'stock': souvenir.stock, 'evento': evento.nombre},
             asociacion=asociacion,
             conjunto=conjunto,
         )
@@ -275,13 +279,13 @@ def editar_souvenir(request, pk):
         s.stock = int(request.POST.get('stock') or s.stock)
         if request.FILES.get('imagen'):
             s.imagen = request.FILES.get('imagen')
-        if evento_id:
-            s.evento = evento_valido(evento_id, asociacion, conjunto)
-            if not s.evento:
-                messages.error(request, 'El evento no pertenece al ámbito seleccionado.')
-                return redirect('souvenirs:listar_souvenirs')
-        else:
-            s.evento = None
+        s.evento = evento_valido(evento_id, asociacion, conjunto)
+        if not s.evento:
+            messages.error(request, 'Debes seleccionar un evento válido para el ámbito seleccionado.')
+            return redirect('souvenirs:listar_souvenirs')
+        if Souvenir.objects.filter(evento=s.evento).exclude(pk=s.pk).exists():
+            messages.error(request, 'Ese evento ya tiene otro souvenir asignado.')
+            return redirect('souvenirs:listar_souvenirs')
         if not asociacion:
             messages.error(request, 'Selecciona una asociación válida para el souvenir.')
             return redirect('souvenirs:listar_souvenirs')
@@ -374,7 +378,7 @@ def opciones_souvenirs(user):
     elif role == 'administrador_conjunto':
         asociaciones = asociaciones.filter(pk=user.userprofile.asociacion_id)
         conjuntos = conjuntos.filter(pk=user.userprofile.conjunto_id)
-        eventos = eventos.filter(asociacion_id=user.userprofile.asociacion_id).filter(Q(conjunto__isnull=True) | Q(conjunto_id=user.userprofile.conjunto_id))
+        eventos = eventos.filter(conjunto_id=user.userprofile.conjunto_id)
     return asociaciones, conjuntos, eventos.order_by('-fecha_inicio')
 
 
@@ -395,11 +399,11 @@ def ambito_souvenir(request, existing=None):
 
 
 def evento_valido(evento_id, asociacion, conjunto):
-    if not asociacion:
+    if not asociacion or not evento_id:
         return None
     eventos = Evento.objects.filter(pk=evento_id, activo=True, asociacion=asociacion)
     if conjunto:
-        eventos = eventos.filter(Q(conjunto__isnull=True) | Q(conjunto=conjunto))
+        eventos = eventos.filter(conjunto=conjunto)
     else:
         eventos = eventos.filter(conjunto__isnull=True)
     return eventos.first()

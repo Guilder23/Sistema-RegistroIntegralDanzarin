@@ -77,6 +77,44 @@ class EntregaSouvenirScopeTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertFalse(SouvenirEntrega.objects.exists())
 
+    def test_admin_conjunto_ve_su_conjunto_y_solo_sus_eventos(self):
+        evento_asociacion = Evento.objects.create(
+            nombre='Evento Asociación', fecha_inicio=date(2026, 9, 3),
+            fecha_fin=date(2026, 9, 3), asociacion=self.asociacion,
+        )
+
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('souvenirs:listar_souvenirs'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.conjunto.nombre)
+        self.assertContains(response, self.evento.nombre)
+        self.assertNotContains(response, self.otro_evento.nombre)
+        self.assertNotContains(response, evento_asociacion.nombre)
+
+    def test_admin_conjunto_solo_puede_ver_souvenir_de_asociacion(self):
+        evento_asociacion = Evento.objects.create(
+            nombre='Evento Asociación Souvenir Solo Ver',
+            fecha_inicio=date(2026, 9, 5),
+            fecha_fin=date(2026, 9, 6),
+            asociacion=self.asociacion,
+        )
+        souvenir_asociacion = Souvenir.objects.create(
+            nombre='Souvenir Asociación Solo Ver',
+            asociacion=self.asociacion,
+            evento=evento_asociacion,
+        )
+
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse('souvenirs:listar_souvenirs'))
+
+        self.assertContains(response, souvenir_asociacion.nombre)
+        self.assertNotContains(response, f'data-id="{souvenir_asociacion.pk}"')
+        self.assertEqual(
+            self.client.post(reverse('souvenirs:editar_souvenir', args=[souvenir_asociacion.pk])).status_code,
+            404,
+        )
+
     def test_miembro_descarga_certificado_de_su_entrega(self):
         entrega = SouvenirEntrega.objects.create(
             danzarin=self.danzarin,
@@ -109,3 +147,86 @@ class EntregaSouvenirScopeTests(TestCase):
         response = self.client.get(reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk]))
 
         self.assertEqual(response.status_code, 404)
+
+
+class GestionSouvenirAmbitoTests(TestCase):
+    def setUp(self):
+        self.asociacion = Asociacion.objects.create(nombre='Asociacion Souvenirs')
+        self.conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto Souvenirs')
+        self.otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Otro Conjunto')
+        self.evento_asociacion = Evento.objects.create(
+            nombre='Evento Asociación', fecha_inicio=date(2026, 10, 1),
+            fecha_fin=date(2026, 10, 2), asociacion=self.asociacion,
+        )
+        self.evento_conjunto = Evento.objects.create(
+            nombre='Evento Conjunto', fecha_inicio=date(2026, 10, 3),
+            fecha_fin=date(2026, 10, 4), asociacion=self.asociacion,
+            conjunto=self.conjunto,
+        )
+        self.admin = User.objects.create_user('admin-asociacion-souvenir', password='secret123', is_staff=True)
+        self.admin.userprofile.rol = 'administrador_asociacion'
+        self.admin.userprofile.asociacion = self.asociacion
+        self.admin.userprofile.save()
+
+    def datos_souvenir(self, evento, tipo_ambito, conjunto_id=''):
+        return {
+            'nombre': f'Souvenir {evento.nombre}',
+            'tipo_ambito': tipo_ambito,
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': conjunto_id,
+            'evento_id': evento.pk,
+            'stock': '2',
+        }
+
+    def test_admin_asociacion_puede_crear_souvenir_para_asociacion(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('souvenirs:crear_souvenir'),
+            self.datos_souvenir(self.evento_asociacion, 'asociacion'),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        souvenir = Souvenir.objects.get()
+        self.assertIsNone(souvenir.conjunto)
+        self.assertEqual(souvenir.evento, self.evento_asociacion)
+
+    def test_admin_asociacion_puede_crear_souvenir_para_su_conjunto(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('souvenirs:crear_souvenir'),
+            self.datos_souvenir(self.evento_conjunto, 'conjunto', self.conjunto.pk),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        souvenir = Souvenir.objects.get()
+        self.assertEqual(souvenir.conjunto, self.conjunto)
+        self.assertEqual(souvenir.evento, self.evento_conjunto)
+
+    def test_souvenir_de_conjunto_no_puede_usar_evento_de_asociacion(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('souvenirs:crear_souvenir'),
+            self.datos_souvenir(self.evento_asociacion, 'conjunto', self.conjunto.pk),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Souvenir.objects.exists())
+
+    def test_no_se_puede_crear_dos_souvenirs_para_un_evento(self):
+        Souvenir.objects.create(
+            nombre='Souvenir existente',
+            asociacion=self.asociacion,
+            evento=self.evento_asociacion,
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('souvenirs:crear_souvenir'),
+            self.datos_souvenir(self.evento_asociacion, 'asociacion'),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Souvenir.objects.filter(evento=self.evento_asociacion).count(), 1)

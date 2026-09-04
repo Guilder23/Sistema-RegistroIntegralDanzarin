@@ -24,7 +24,7 @@ class Souvenir(models.Model):
     nombre = models.CharField(max_length=200)
     asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
     conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
-    evento = models.ForeignKey('eventos.Evento', on_delete=models.SET_NULL, null=True, blank=True, related_name='souvenirs')
+    evento = models.ForeignKey('eventos.Evento', on_delete=models.PROTECT, related_name='souvenirs')
     descripcion = models.TextField(blank=True, default='')
     imagen = models.ImageField(upload_to='souvenirs/', null=True, blank=True)
     stock = models.IntegerField(default=0)
@@ -35,6 +35,9 @@ class Souvenir(models.Model):
     class Meta:
         verbose_name = 'Souvenir'
         verbose_name_plural = 'Souvenirs'
+        constraints = [
+            models.UniqueConstraint(fields=['evento'], name='unique_souvenir_por_evento'),
+        ]
 
     def __str__(self):
         return self.nombre

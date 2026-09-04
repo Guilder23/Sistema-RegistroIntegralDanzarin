@@ -31,7 +31,7 @@
             </div>
             <div class="form-group">
                 <label>Evento</label>
-                <select id="selectEvento" name="evento_id" class="form-control" required disabled><option value="">Selecciona asociación y conjunto primero</option>{% for evento in eventos %}<option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>{% endfor %}</select>
+                <select id="selectEvento" name="evento_id" class="form-control" required disabled><option value="">Selecciona asociación y conjunto primero</option>{% for evento in eventos %}<option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} ({{ evento.fecha_inicio|date:'d/m/Y' }} - {{ evento.fecha_fin|date:'d/m/Y' }})</option>{% endfor %}</select>
             </div>
             <div class="form-group autocomplete-group">
                 <label>Danzarín</label>
