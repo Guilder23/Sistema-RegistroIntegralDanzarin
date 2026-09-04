@@ -1,0 +1,226 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Gestión de Danzarines{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/danzarines/danzarines.css' %}">
+<link rel="stylesheet" href="{% static 'css/danzarines/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/danzarines/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/danzarines/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/danzarines/modals/eliminar.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <div class="page-header">
+        <div class="page-header-content">
+            <h1 class="page-title"><i class="fas fa-users"></i> Gestión de Danzarines</h1>
+            <p class="page-subtitle">Administra los danzarines del Club carnaval Oruro</p>
+        </div>
+        {% if is_admin %}
+        <div class="page-header-actions">
+            <button class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearDanzarin">
+                <i class="fas fa-plus"></i> Nuevo Danzarín
+            </button>
+            <a class="btn btn-secondary btn-lg" href="{% url 'danzarines:importar_danzarines_masivo' %}">
+                <i class="fas fa-file-import"></i> Registro masivo
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card card-filtros mb-3">
+        <div class="card-body py-3">
+            <form method="get" class="filtros-danzarines-form" id="danzarinesFiltrosForm">
+                <div class="filtros-danzarines-linea">
+                    <div class="filtro-busqueda">
+                        <div class="input-group input-group-sm">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-white border-right-0"><i class="fas fa-search text-muted"></i></span>
+                            </div>
+                            <input id="inputDanzarinBusqueda" type="text" class="form-control form-control-sm border-left-0" name="q" value="{{ q }}" placeholder="Buscar por nombre, apellido, ci o correo...">
+                        </div>
+                    </div>
+                    <div class="filtro-item">
+                        <select id="selectDanzarinEstado" class="form-control form-control-sm" name="estado">
+                            <option value="">Todos los estados</option>
+                            <option value="activo" {% if estado == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="suspendido" {% if estado == 'suspendido' %}selected{% endif %}>Suspendido</option>
+                            <option value="castigado" {% if estado == 'castigado' %}selected{% endif %}>Castigado</option>
+                            <option value="baja" {% if estado == 'baja' %}selected{% endif %}>Dado de baja</option>
+                        </select>
+                    </div>
+                    <div class="filtro-item"><select id="selectDanzarinAsociacion" class="form-control form-control-sm" name="asociacion_id"><option value="">Todas las asociaciones</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}" {% if asociacion_id == asociacion.id|stringformat:'s' %}selected{% endif %}>{{ asociacion.nombre }}</option>{% endfor %}</select></div>
+                    <div class="filtro-item"><select id="selectDanzarinConjunto" class="form-control form-control-sm" name="conjunto_id"><option value="">Todos los conjuntos</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}" {% if conjunto_id == conjunto.id|stringformat:'s' %}selected{% endif %}>{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                    <div class="filtro-item"><select id="selectDanzarinBloque" class="form-control form-control-sm" name="bloque_id"><option value="">Todos los bloques</option>{% for bloque in bloques %}<option value="{{ bloque.id }}" data-conjunto-id="{{ bloque.conjunto_id }}" {% if bloque_id == bloque.id|stringformat:'s' %}selected{% endif %}>{{ bloque.nombre }}</option>{% endfor %}</select></div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card card-tabla">
+        <div class="table-responsive">
+            <table class="table table-sm tabla-danzarines mb-0">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>CI/Carnet</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Ingreso</th>
+                        <th>Souvenir</th>
+                        <th class="text-center acciones-col-head">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for danzarin in page_obj %}
+                    <tr>
+                        <td>
+                            {% if danzarin.user.userprofile.foto %}
+                                <img src="{{ danzarin.user.userprofile.foto.url }}" alt="foto" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"/>
+                            {% else %}
+                                <div style="width:40px;height:40px;background:#f0f0f0;border-radius:4px;display:inline-block;"></div>
+                            {% endif %}
+                        </td>
+                        <td><span class="codigo-badge">{{ danzarin.codigo_danzarin|default:'-' }}</span></td>
+                        <td>{{ danzarin.nombre }} {% if danzarin.apellido_paterno %}{{ danzarin.apellido_paterno }}{% endif %} {% if danzarin.apellido_materno %}{{ danzarin.apellido_materno }}{% endif %}</td>
+                        <td>{{ danzarin.carnet_ci }}{% if danzarin.carnet_complemento %} {{ danzarin.carnet_complemento }}{% endif %}</td>
+                        <td>{{ danzarin.email }}</td>
+                        <td>{{ danzarin.telefono|default:'-' }}</td>
+                        <td>
+                            <span class="badge-estado {% if danzarin.membresia_visible.estado == 'activo' %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {{ danzarin.membresia_visible.get_estado_display|default:'Sin membresía' }}
+                            </span>
+                        </td>
+                        <td>{{ danzarin.fecha_ingreso|date:'d/m/Y' }}</td>
+                        <td>
+                            <span class="badge-estado {% if danzarin.recibio_souvenir %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
+                                {% if danzarin.recibio_souvenir %}Entregado{% else %}Pendiente{% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center acciones-col">
+                            <button class="btn btn-info btn-sm btn-ver-danzarin" data-toggle="modal" data-target="#modalVerDanzarin"
+                                data-codigo-danzarin="{{ danzarin.codigo_danzarin|default:'' }}"
+                                data-nombre="{{ danzarin.nombre }}"
+                                data-apellido-paterno="{{ danzarin.apellido_paterno }}"
+                                data-apellido-materno="{{ danzarin.apellido_materno }}"
+                                data-email="{{ danzarin.email }}"
+                                data-telefono="{{ danzarin.telefono }}"
+                                data-ciudad="{{ danzarin.ciudad }}"
+                                data-direccion="{{ danzarin.direccion }}"
+                                data-carnet-ci="{{ danzarin.carnet_ci }}"
+                                data-carnet-complemento="{{ danzarin.carnet_complemento }}"
+                                data-fecha-nacimiento="{{ danzarin.fecha_nacimiento|date:'Y-m-d' }}"
+                                data-estado="{{ danzarin.membresia_visible.get_estado_display|default:'Sin membresía' }}"
+                                data-souvenir="{% if danzarin.recibio_souvenir %}Sí{% else %}No{% endif %}"
+                                data-fecha-ingreso="{{ danzarin.fecha_ingreso|date:'d/m/Y' }}"
+                                data-asociacion="{{ danzarin.membresia_visible.asociacion.nombre|escapejs }}"
+                                data-conjunto="{{ danzarin.membresia_visible.conjunto.nombre|escapejs }}"
+                                data-bloque="{{ danzarin.membresia_visible.bloque.nombre|default:'No asignado'|escapejs }}"
+                                data-asociacion-id="{{ danzarin.membresia_visible.asociacion_id }}"
+                                data-conjunto-id="{{ danzarin.membresia_visible.conjunto_id }}"
+                                data-bloque-id="{{ danzarin.membresia_visible.bloque_id|default:'' }}"
+                                data-creado-por="{% if danzarin.creado_por %}{{ danzarin.creado_por.get_full_name|default:danzarin.creado_por.username|escapejs }}{% else %}No disponible{% endif %}"
+                                data-rol-creador="{% if danzarin.creado_por %}{{ danzarin.creado_por.userprofile.get_rol_display|escapejs }}{% else %}No disponible{% endif %}"
+                                ><i class="fas fa-eye"></i></button>
+                            {% if is_admin %}
+                            <button class="btn btn-warning btn-sm btn-editar-danzarin" data-toggle="modal" data-target="#modalEditarDanzarin"
+                                data-id="{{ danzarin.id }}"
+                                data-nombre="{{ danzarin.nombre }}"
+                                data-apellido-paterno="{{ danzarin.apellido_paterno }}"
+                                data-apellido-materno="{{ danzarin.apellido_materno }}"
+                                data-email="{{ danzarin.email }}"
+                                data-telefono="{{ danzarin.telefono }}"
+                                data-ciudad="{{ danzarin.ciudad }}"
+                                data-direccion="{{ danzarin.direccion }}"
+                                data-carnet-ci="{{ danzarin.carnet_ci }}"
+                                data-carnet-complemento="{{ danzarin.carnet_complemento }}"
+                                data-fecha-nacimiento="{{ danzarin.fecha_nacimiento|date:'Y-m-d' }}"
+                                data-observacion="{{ danzarin.observacion }}"
+                                data-asociacion="{{ danzarin.membresia_visible.asociacion.nombre|escapejs }}"
+                                data-conjunto="{{ danzarin.membresia_visible.conjunto.nombre|escapejs }}"
+                                data-bloque-id="{{ danzarin.membresia_visible.bloque_id|default:'' }}"
+                                ><i class="fas fa-edit"></i></button>
+                            <button class="btn btn-danger btn-sm btn-eliminar-danzarin" data-toggle="modal" data-target="#modalEliminarDanzarin"
+                                data-id="{{ danzarin.id }}"
+                                data-nombre="{{ danzarin.nombre }} {% if danzarin.apellido_paterno %}{{ danzarin.apellido_paterno }}{% endif %} {% if danzarin.apellido_materno %}{{ danzarin.apellido_materno }}{% endif %}"
+                                ><i class="fas fa-trash"></i></button>
+                            <a href="{% url 'danzarines:historial_souvenirs' danzarin.id %}" class="btn btn-secondary btn-sm" title="Historial de souvenirs"><i class="fas fa-history"></i></a>
+                            <a href="{% url 'danzarines:descargar_danzarin_pdf' danzarin.id %}" class="btn btn-danger btn-sm" title="Descargar ficha PDF"><i class="fas fa-file-pdf"></i></a>
+                            {% if can_manage_states and danzarin.membresia_visible.estado == 'activo' %}
+                            <form method="post" action="{% url 'danzarines:desactivar_danzarin' danzarin.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-secondary btn-sm" type="submit" title="Desactivar danzarín"><i class="fas fa-user-slash"></i></button>
+                            </form>
+                            {% elif can_manage_states %}
+                            <form method="post" action="{% url 'danzarines:activar_danzarin' danzarin.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button class="btn btn-success btn-sm" type="submit" title="Activar danzarín"><i class="fas fa-user-check"></i></button>
+                            </form>
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="10" class="text-center py-4">No hay danzarines registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}&asociacion_id={{ asociacion_id|urlencode }}&conjunto_id={{ conjunto_id|urlencode }}&bloque_id={{ bloque_id|urlencode }}">Anterior</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ q|urlencode }}&estado={{ estado|urlencode }}&asociacion_id={{ asociacion_id|urlencode }}&conjunto_id={{ conjunto_id|urlencode }}&bloque_id={{ bloque_id|urlencode }}">Siguiente</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% if is_admin %}
+    {% include 'danzarines/modals/crear.html' %}
+    {% include 'danzarines/modals/editar.html' %}
+    {% include 'danzarines/modals/eliminar.html' %}
+    {% endif %}
+    {% include 'danzarines/modals/ver.html' %}
+
+        {% if is_admin %}
+        <div class="modal fade" id="modalCrearAdmin" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <form method="post" action="{% url 'danzarines:crear_admin' %}">
+                        {% csrf_token %}
+                        <div class="modal-header"><h5 class="modal-title">Crear Administrador</h5></div>
+                        <div class="modal-body">
+                            <div class="form-group"><label>Usuario</label><input class="form-control" name="username" required></div>
+                            <div class="form-group"><label>Correo</label><input class="form-control" name="email" type="email" required></div>
+                            <div class="form-group"><label>Contraseña</label><input class="form-control" name="password" type="password" required></div>
+                            <div class="form-group"><label>Nombre</label><input class="form-control" name="first_name"></div>
+                            <div class="form-group"><label>Apellido</label><input class="form-control" name="last_name"></div>
+                        </div>
+                        <div class="modal-footer"><button class="btn btn-primary" type="submit">Crear</button><button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script src="{% static 'js/danzarines/modals/crear.js' %}"></script>
+<script src="{% static 'js/danzarines/modals/ver.js' %}"></script>
+<script src="{% static 'js/danzarines/modals/editar.js' %}"></script>
+<script src="{% static 'js/danzarines/modals/eliminar.js' %}"></script>
+<script src="{% static 'js/danzarines/danzarines.js' %}"></script>
+{% endblock %}

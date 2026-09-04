@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q
-from apps.socios.models import Membresia
+from apps.danzarines.models import Membresia
 from apps.core.models import Asociacion, Conjunto
 from apps.core.permissions import get_role, scope_filter, registrar_auditoria, can_manage_member_states
 
@@ -15,7 +15,7 @@ def can_manage_members(user):
 @user_passes_test(can_manage_members, login_url='/login/')
 def listar_membresias(request):
     role = get_role(request.user)
-    membresias = Membresia.objects.select_related('socio', 'asociacion', 'conjunto')
+    membresias = Membresia.objects.select_related('danzarin', 'asociacion', 'conjunto')
     if role != 'superadministrador':
         profile = request.user.userprofile
         membresias = membresias.filter(asociacion_id=profile.asociacion_id)
@@ -27,7 +27,7 @@ def listar_membresias(request):
     estado = request.GET.get('estado', '').strip()
     estado_pago = request.GET.get('estado_pago', '').strip()
     if q:
-        membresias = membresias.filter(Q(socio__nombre__icontains=q) | Q(socio__apellido__icontains=q) | Q(socio__apellido_paterno__icontains=q) | Q(socio__apellido_materno__icontains=q) | Q(socio__carnet_ci__icontains=q))
+        membresias = membresias.filter(Q(danzarin__nombre__icontains=q) | Q(danzarin__apellido__icontains=q) | Q(danzarin__apellido_paterno__icontains=q) | Q(danzarin__apellido_materno__icontains=q) | Q(danzarin__carnet_ci__icontains=q))
     if asociacion_id:
         membresias = membresias.filter(asociacion_id=asociacion_id)
     if conjunto_id:
@@ -75,7 +75,7 @@ def cambiar_membresia(request, pk):
         registrar_auditoria(
             request.user,
             'modificacion_membresia',
-            f'Membresía {membresia.pk} / Socio {membresia.socio_id}',
+            f'Membresía {membresia.pk} / Danzarin {membresia.danzarin_id}',
             {'estado': estado_anterior, 'estado_pago': pago_anterior},
             {'estado': membresia.estado, 'estado_pago': membresia.estado_pago},
         )

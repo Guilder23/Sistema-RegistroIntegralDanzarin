@@ -20,20 +20,106 @@ class RolesEventosTests(TestCase):
         return user
 
     def datos_evento(self):
-        return {'nombre': 'Ensayo general', 'fecha_evento': '2026-09-01', 'activo': 'on'}
+        return {
+            'nombre': 'Ensayo general',
+            'fecha_inicio': '2026-09-01',
+            'fecha_fin': '2026-09-01',
+            'activo': 'on',
+            'tipo_ambito': 'conjunto',
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': self.conjunto.pk,
+        }
 
     def test_administrador_asociacion_puede_crear_eventos_de_su_asociacion(self):
         self.client.force_login(self.usuario('asociacion', 'administrador_asociacion'))
-        response = self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        datos = self.datos_evento() | {'tipo_ambito': 'asociacion', 'conjunto_id': ''}
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Evento.objects.filter(asociacion=self.asociacion).exists())
 
-    def test_conjunto_y_miembro_no_pueden_crear_eventos(self):
+    def test_administrador_asociacion_puede_crear_evento_para_un_conjunto_suyo(self):
+        self.client.force_login(self.usuario('asociacion-conjunto', 'administrador_asociacion'))
+        datos = self.datos_evento() | {'tipo_ambito': 'conjunto'}
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evento.objects.get().conjunto, self.conjunto)
+
+    def test_administrador_conjunto_no_puede_crear_evento_para_asociacion(self):
+        self.client.force_login(self.usuario('conjunto-asociacion', 'administrador_conjunto'))
+        datos = self.datos_evento() | {'tipo_ambito': 'asociacion', 'conjunto_id': ''}
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Evento.objects.exists())
+
+    def test_conjunto_ve_eventos_de_su_asociacion_y_suyo_propio(self):
+        administrador = self.usuario('conjunto-visualizador', 'administrador_conjunto')
+        otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Otro Conjunto')
+        otra_asociacion = Asociacion.objects.create(nombre='Otra Asociacion')
+
+        Evento.objects.create(
+            nombre='Evento Asociación',
+            fecha_inicio='2026-09-01',
+            fecha_fin='2026-09-02',
+            asociacion=self.asociacion,
+        )
+        Evento.objects.create(
+            nombre='Evento Propio',
+            fecha_inicio='2026-09-03',
+            fecha_fin='2026-09-04',
+            asociacion=self.asociacion,
+            conjunto=self.conjunto,
+        )
+        Evento.objects.create(
+            nombre='Evento Otro Conjunto',
+            fecha_inicio='2026-09-05',
+            fecha_fin='2026-09-06',
+            asociacion=self.asociacion,
+            conjunto=otro_conjunto,
+        )
+        Evento.objects.create(
+            nombre='Evento Otra Asociación',
+            fecha_inicio='2026-09-07',
+            fecha_fin='2026-09-08',
+            asociacion=otra_asociacion,
+        )
+
+        self.client.force_login(administrador)
+        response = self.client.get(reverse('eventos:listar_eventos'))
+        nombres = [evento.nombre for evento in response.context['page_obj'].object_list]
+
+        self.assertEqual(nombres, ['Evento Propio', 'Evento Asociación'])
+
+    def test_conjunto_solo_puede_ver_evento_de_asociacion(self):
+        administrador = self.usuario('conjunto-solo-ver', 'administrador_conjunto')
+        evento = Evento.objects.create(
+            nombre='Evento Asociación Solo Ver',
+            fecha_inicio='2026-09-01',
+            fecha_fin='2026-09-02',
+            asociacion=self.asociacion,
+        )
+
+        self.client.force_login(administrador)
+        response = self.client.get(reverse('eventos:listar_eventos'))
+
+        self.assertContains(response, evento.nombre)
+        self.assertNotContains(response, f'data-id="{evento.pk}"')
+        self.assertEqual(
+            self.client.post(reverse('eventos:editar_evento', args=[evento.pk])).status_code,
+            404,
+        )
+
+    def test_conjunto_puede_crear_eventos_y_miembro_no(self):
         self.client.force_login(self.usuario('conjunto', 'administrador_conjunto'))
-        self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        response = self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evento.objects.count(), 1)
         self.client.force_login(self.usuario('miembro', 'miembro'))
         self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
-        self.assertEqual(Evento.objects.count(), 0)
+        self.assertEqual(Evento.objects.count(), 1)
 
     def test_superadministrador_puede_crear_evento_para_asociacion(self):
         self.client.force_login(self.usuario('superadmin', 'superadministrador'))
@@ -49,6 +135,36 @@ class RolesEventosTests(TestCase):
         self.assertEqual(evento.asociacion, self.asociacion)
         self.assertIsNone(evento.conjunto)
         self.assertEqual(evento.creado_por.username, 'superadmin')
+
+    def test_evento_guarda_fecha_de_inicio_y_fecha_fin(self):
+        self.client.force_login(self.usuario('asociacion-rango', 'administrador_asociacion'))
+        datos = self.datos_evento() | {
+            'fecha_inicio': '2026-09-01',
+            'fecha_fin': '2026-09-05',
+            'tipo_ambito': 'asociacion',
+            'asociacion_id': self.asociacion.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        evento = Evento.objects.get()
+        self.assertEqual(str(evento.fecha_inicio), '2026-09-01')
+        self.assertEqual(str(evento.fecha_fin), '2026-09-05')
+
+    def test_no_permite_fecha_fin_anterior_al_inicio(self):
+        self.client.force_login(self.usuario('asociacion-fecha-invalida', 'administrador_asociacion'))
+        datos = self.datos_evento() | {
+            'fecha_inicio': '2026-09-05',
+            'fecha_fin': '2026-09-01',
+            'tipo_ambito': 'asociacion',
+            'asociacion_id': self.asociacion.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Evento.objects.exists())
 
     def test_superadministrador_puede_crear_evento_para_conjunto(self):
         self.client.force_login(self.usuario('superadmin-conjunto', 'superadministrador'))

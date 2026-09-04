@@ -1,5 +1,5 @@
 <div class="modal fade modal-crear-gestion" id="modalCrearSouvenir" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-socio-dialog" role="document">
+    <div class="modal-dialog modal-lg modal-danzarin-dialog" role="document">
         <div class="modal-content">
             <form method="post" action="{% url 'souvenirs:crear_souvenir' %}" enctype="multipart/form-data">
                 {% csrf_token %}
@@ -16,29 +16,31 @@
                     </div>
                     {% if role == 'superadministrador' %}
                     <div class="form-row">
-                        <div class="col-md-4 form-group"><label>Crear para</label><select id="crearSouvenirTipo" class="form-control"><option value="asociacion">Asociación</option><option value="conjunto">Conjunto</option></select></div>
+                        <div class="col-md-4 form-group"><label>Crear para</label><select id="crearSouvenirTipo" name="tipo_ambito" class="form-control"><option value="asociacion">Asociación</option><option value="conjunto">Conjunto</option></select></div>
                         <div class="col-md-4 form-group"><label>Asociación</label><select name="asociacion_id" id="crearSouvenirAsociacion" class="form-control" required><option value="">Selecciona</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
                         <div class="col-md-4 form-group" id="crearSouvenirConjuntoGrupo" style="display: none;"><label>Conjunto</label><select name="conjunto_id" id="crearSouvenirConjunto" class="form-control" disabled><option value="">Selecciona un conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
                     </div>
                     {% elif role == 'administrador_asociacion' %}
                     <div class="form-row">
-                        <div class="col-md-6 form-group"><label>Asociación</label><select class="form-control" disabled><option>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
-                        <div class="col-md-6 form-group"><label>Conjunto</label><select name="conjunto_id" id="crearSouvenirConjunto" class="form-control" required><option value="">Selecciona</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Crear para</label><select id="crearSouvenirTipo" name="tipo_ambito" class="form-control"><option value="asociacion">Asociación</option><option value="conjunto">Conjunto</option></select></div>
+                        <div class="col-md-4 form-group"><label>Asociación</label><select class="form-control" disabled><option>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
+                        <div class="col-md-4 form-group" id="crearSouvenirConjuntoGrupo"><label>Conjunto</label><select name="conjunto_id" id="crearSouvenirConjunto" class="form-control"><option value="">Selecciona</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select></div>
                     </div>
                     {% else %}
                     <div class="form-row">
-                        <div class="col-md-6 form-group"><label>Asociación</label><select class="form-control" disabled><option>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
-                        <div class="col-md-6 form-group"><label>Conjunto</label><select class="form-control" disabled><option>{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}"></div>
+                        <div class="col-md-6 form-group"><label>Asociación</label><select id="crearSouvenirAsociacion" class="form-control" disabled><option value="{{ request.user.userprofile.asociacion_id }}" selected>{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}"></div>
+                        <div class="col-md-6 form-group"><label>Conjunto</label><select id="crearSouvenirConjunto" class="form-control" data-fijo="true" disabled><option value="{{ request.user.userprofile.conjunto_id }}" selected>{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}"></div>
                     </div>
                     {% endif %}
                     <div class="form-group">
                         <label>Evento</label>
-                        <select name="evento_id" id="crearSouvenirEvento" class="form-control">
-                            <option value="">Sin evento</option>
+                        <select name="evento_id" id="crearSouvenirEvento" class="form-control" required>
+                            <option value="">Selecciona un evento</option>
                             {% for evento in eventos %}
-                            <option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>
+                            <option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} ({{ evento.fecha_inicio|date:'d/m/Y' }} - {{ evento.fecha_fin|date:'d/m/Y' }})</option>
                             {% endfor %}
                         </select>
+                        <small id="crearSouvenirEventoAyuda" class="form-text text-muted eventos-ayuda">Los eventos se cargan según el ámbito seleccionado.</small>
                     </div>
                     <div class="form-group">
                         <label>Descripción</label>

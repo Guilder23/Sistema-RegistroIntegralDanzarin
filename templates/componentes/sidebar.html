@@ -13,7 +13,7 @@
 
     <nav class="sidebar-nav">
         <ul class="sidebar-menu">
-            {% if request.user.userprofile.rol != 'miembro' %}
+            {% if request.user.is_superuser or request.user.userprofile.rol != 'miembro' %}
             <li class="sidebar-section">
                 <span class="sidebar-section-title">Principal</span>
             </li>
@@ -22,21 +22,21 @@
                     <i class="fas fa-chart-pie"></i><span>Dashboard</span>
                 </a>
             </li>
-            {% if request.user.userprofile.rol == 'superadministrador' %}
+            {% if request.user.is_superuser or request.user.userprofile.rol == 'superadministrador' %}
             <li class="sidebar-item">
                 <a href="{% url 'asociaciones:listar_asociaciones' %}" class="sidebar-link {% if '/asociaciones/' in request.path %}active{% endif %}" title="Asociaciones">
                     <i class="fas fa-layer-group"></i><span>Asociaciones</span>
                 </a>
             </li>
             {% endif %}
-            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' %}
+            {% if request.user.is_superuser or request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' %}
             <li class="sidebar-item">
                 <a href="{% url 'conjuntos:listar_conjuntos' %}" class="sidebar-link {% if '/conjuntos/' in request.path %}active{% endif %}" title="Conjuntos">
                     <i class="fas fa-sitemap"></i><span>Conjuntos</span>
                 </a>
             </li>
             {% endif %}
-            {% if request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' or request.user.userprofile.rol == 'administrador_conjunto' %}
+            {% if request.user.is_superuser or request.user.userprofile.rol == 'superadministrador' or request.user.userprofile.rol == 'administrador_asociacion' or request.user.userprofile.rol == 'administrador_conjunto' %}
             <li class="sidebar-item">
                 <a href="{% url 'bloques:listar_bloques' %}" class="sidebar-link {% if '/bloques/' in request.path %}active{% endif %}" title="Bloques">
                     <i class="fas fa-cubes"></i><span>Bloques</span>
@@ -44,8 +44,8 @@
             </li>
             {% endif %}
             <li class="sidebar-item">
-                <a href="{% url 'socios:listar_socios' %}" class="sidebar-link {% if '/socios/' in request.path and not '/socios/listar_admins' in request.path and not '/socios/perfil' in request.path and not '/socios/importar' in request.path %}active{% endif %}" title="Socios">
-                    <i class="fas fa-users"></i><span>Socios</span>
+                <a href="{% url 'danzarines:listar_danzarines' %}" class="sidebar-link {% if '/danzarines/' in request.path and not '/danzarines/listar_admins' in request.path and not '/danzarines/perfil' in request.path and not '/danzarines/importar' in request.path %}active{% endif %}" title="Danzarines">
+                    <i class="fas fa-users"></i><span>Danzarines</span>
                 </a>
             </li>
             <li class="sidebar-item">
@@ -69,16 +69,16 @@
                 </a>
             </li>
             <li class="sidebar-item">
-                <a href="{% url 'reportes:reportes_socios' %}" class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}" title="Reportes">
+                <a href="{% url 'reportes:reportes_danzarines' %}" class="sidebar-link {% if '/reportes/' in request.path %}active{% endif %}" title="Reportes">
                     <i class="fas fa-chart-line"></i><span>Reportes</span>
                 </a>
             </li>
             <li class="sidebar-section">
                 <span class="sidebar-section-title">Administración</span>
             </li>
-            {% if request.user.userprofile.rol == 'superadministrador' %}
+            {% if request.user.is_superuser or request.user.userprofile.rol == 'superadministrador' %}
             <li class="sidebar-item">
-                <a href="{% url 'socios:listar_admins' %}" class="sidebar-link {% if '/socios/listar_admins' in request.path %}active{% endif %}" title="Administradores">
+                <a href="{% url 'danzarines:listar_admins' %}" class="sidebar-link {% if '/danzarines/listar_admins' in request.path %}active{% endif %}" title="Administradores">
                     <i class="fas fa-user-shield"></i><span>Administradores</span>
                 </a>
             </li>
@@ -94,7 +94,7 @@
                 <span class="sidebar-section-title">Cuenta</span>
             </li>
             <li class="sidebar-item">
-                <a href="{% url 'socios:perfil_socio' %}" class="sidebar-link {% if '/socios/perfil' in request.path %}active{% endif %}" title="Mi Perfil">
+                <a href="{% url 'danzarines:perfil_danzarin' %}" class="sidebar-link {% if '/danzarines/perfil' in request.path %}active{% endif %}" title="Mi Perfil">
                     <i class="fas fa-user-circle"></i><span>Mi Perfil</span>
                 </a>
             </li>
@@ -113,7 +113,7 @@
             </div>
             <div class="sidebar-user-info">
                 <strong class="sidebar-user-name">{{ user.username|title }}</strong>
-                <small class="sidebar-user-role">{{ user.userprofile.get_rol_display|default:'Miembro' }}</small>
+                <small class="sidebar-user-role">{% if user.is_superuser %}Superadministrador{% else %}{{ user.userprofile.get_rol_display|default:'Miembro' }}{% endif %}</small>
             </div>
         </div>
     </div>

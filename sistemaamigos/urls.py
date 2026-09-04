@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('', include(('apps.core.urls', 'core'), namespace='core')),
-    path('socios/', include(('apps.socios.urls', 'socios'), namespace='socios')),
+    path('danzarines/', include(('apps.danzarines.urls', 'danzarines'), namespace='danzarines')),
     path('reportes/', include(('apps.reportes.urls', 'reportes'), namespace='reportes')),
     path('souvenirs/', include(('apps.souvenirs.urls', 'souvenirs'), namespace='souvenirs')),
     path('eventos/', include(('apps.eventos.urls', 'eventos'), namespace='eventos')),

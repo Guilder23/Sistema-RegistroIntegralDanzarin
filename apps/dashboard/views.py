@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.utils import timezone
 from apps.core.models import Asociacion, Conjunto, Auditoria
 from apps.core.permissions import get_role, is_administrative
-from apps.socios.models import Socio, Membresia
+from apps.danzarines.models import Danzarin, Membresia
 from apps.souvenirs.models import SouvenirEntrega
 from apps.eventos.models import Evento
 
@@ -18,7 +18,7 @@ def dashboard(request):
     profile = getattr(request.user, 'userprofile', None)
 
     # 1. Scoping inicial según el rol del usuario
-    socios_qs = Socio.objects.all()
+    danzarines_qs = Danzarin.objects.all()
     membresias_qs = Membresia.objects.all()
     entregas_qs = SouvenirEntrega.objects.all()
     eventos_qs = Evento.objects.all()
@@ -36,15 +36,15 @@ def dashboard(request):
         asociacion_id = profile.asociacion_id if profile else None
 
         if conjunto_id:
-            socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_id).distinct()
+            danzarines_qs = danzarines_qs.filter(membresias__conjunto_id=conjunto_id).distinct()
             membresias_qs = membresias_qs.filter(conjunto_id=conjunto_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_id).distinct()
+            entregas_qs = entregas_qs.filter(danzarin__membresias__conjunto_id=conjunto_id).distinct()
             eventos_qs = eventos_qs.filter(Q(asociacion_id=asociacion_id) | Q(asociacion__isnull=True))
             auditorias_qs = auditorias_qs.filter(usuario_id=request.user.id)
             conjuntos_filtro = Conjunto.objects.filter(pk=conjunto_id)
             asociaciones_filtro = Asociacion.objects.filter(pk=asociacion_id) if asociacion_id else Asociacion.objects.none()
         else:
-            socios_qs = socios_qs.none()
+            danzarines_qs = danzarines_qs.none()
             membresias_qs = membresias_qs.none()
             entregas_qs = entregas_qs.none()
             auditorias_qs = auditorias_qs.none()
@@ -59,13 +59,13 @@ def dashboard(request):
 
             # Filtro opcional por conjunto dentro de su asociación
             if conjunto_seleccionado_id and conjuntos_filtro.filter(pk=conjunto_seleccionado_id).exists():
-                socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+                danzarines_qs = danzarines_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
                 membresias_qs = membresias_qs.filter(conjunto_id=conjunto_seleccionado_id)
-                entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+                entregas_qs = entregas_qs.filter(danzarin__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
             else:
-                socios_qs = socios_qs.filter(membresias__asociacion_id=asociacion_id).distinct()
+                danzarines_qs = danzarines_qs.filter(membresias__asociacion_id=asociacion_id).distinct()
                 membresias_qs = membresias_qs.filter(asociacion_id=asociacion_id)
-                entregas_qs = entregas_qs.filter(socio__membresias__asociacion_id=asociacion_id).distinct()
+                entregas_qs = entregas_qs.filter(danzarin__membresias__asociacion_id=asociacion_id).distinct()
 
             eventos_qs = eventos_qs.filter(asociacion_id=asociacion_id)
             auditorias_qs = auditorias_qs.filter(
@@ -74,7 +74,7 @@ def dashboard(request):
                 | Q(asociacion_id=asociacion_id)
             )
         else:
-            socios_qs = socios_qs.none()
+            danzarines_qs = danzarines_qs.none()
             membresias_qs = membresias_qs.none()
             entregas_qs = entregas_qs.none()
             auditorias_qs = auditorias_qs.none()
@@ -85,9 +85,9 @@ def dashboard(request):
         conjuntos_filtro = Conjunto.objects.filter(activo=True).select_related('asociacion').order_by('asociacion__nombre', 'nombre')
 
         if asociacion_seleccionada_id:
-            socios_qs = socios_qs.filter(membresias__asociacion_id=asociacion_seleccionada_id).distinct()
+            danzarines_qs = danzarines_qs.filter(membresias__asociacion_id=asociacion_seleccionada_id).distinct()
             membresias_qs = membresias_qs.filter(asociacion_id=asociacion_seleccionada_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__asociacion_id=asociacion_seleccionada_id).distinct()
+            entregas_qs = entregas_qs.filter(danzarin__membresias__asociacion_id=asociacion_seleccionada_id).distinct()
             eventos_qs = eventos_qs.filter(asociacion_id=asociacion_seleccionada_id)
             auditorias_qs = auditorias_qs.filter(
                 Q(asociacion_id=asociacion_seleccionada_id) | Q(usuario__userprofile__asociacion_id=asociacion_seleccionada_id)
@@ -95,70 +95,63 @@ def dashboard(request):
             conjuntos_filtro = conjuntos_filtro.filter(asociacion_id=asociacion_seleccionada_id)
 
         if conjunto_seleccionado_id:
-            socios_qs = socios_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+            danzarines_qs = danzarines_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
             membresias_qs = membresias_qs.filter(conjunto_id=conjunto_seleccionado_id)
-            entregas_qs = entregas_qs.filter(socio__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+            entregas_qs = entregas_qs.filter(danzarin__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
 
     # 2. Métricas y KPIs Principales
-    total_socios = socios_qs.count()
-    activos = socios_qs.filter(membresias__estado='activo').distinct().count()
-    suspendidos = socios_qs.filter(membresias__estado='suspendido').distinct().count()
-    castigados = socios_qs.filter(membresias__estado='castigado').distinct().count()
-    bajas = socios_qs.filter(membresias__estado='baja').distinct().count()
-    inactivos = total_socios - activos if total_socios >= activos else 0
+    total_danzarines = danzarines_qs.count()
+    activos = danzarines_qs.filter(membresias__estado='activo').distinct().count()
+    suspendidos = danzarines_qs.filter(membresias__estado='suspendido').distinct().count()
+    castigados = danzarines_qs.filter(membresias__estado='castigado').distinct().count()
+    bajas = danzarines_qs.filter(membresias__estado='baja').distinct().count()
+    inactivos = total_danzarines - activos if total_danzarines >= activos else 0
 
     souvenirs_entregados = entregas_qs.count()
-    souvenirs_pendientes = max(0, total_socios - souvenirs_entregados)
+    souvenirs_pendientes = max(0, total_danzarines - souvenirs_entregados)
 
-    pagos_al_dia = socios_qs.filter(membresias__estado_pago='al_dia').distinct().count()
-    pagos_con_deuda = socios_qs.filter(membresias__estado_pago='con_deuda').distinct().count()
+    pagos_al_dia = danzarines_qs.filter(membresias__estado_pago='al_dia').distinct().count()
+    pagos_con_deuda = danzarines_qs.filter(membresias__estado_pago='con_deuda').distinct().count()
 
     total_eventos = eventos_qs.count()
     total_auditorias = auditorias_qs.count()
 
-    # Porcentaje de socios activos y pagos al día
-    tasa_activos_pct = round((activos / total_socios * 100), 1) if total_socios > 0 else 0
-    tasa_al_dia_pct = round((pagos_al_dia / total_socios * 100), 1) if total_socios > 0 else 0
-    tasa_souvenirs_pct = round((souvenirs_entregados / total_socios * 100), 1) if total_socios > 0 else 0
+    # Porcentaje de danzarines activos y pagos al día
+    tasa_activos_pct = round((activos / total_danzarines * 100), 1) if total_danzarines > 0 else 0
+    tasa_al_dia_pct = round((pagos_al_dia / total_danzarines * 100), 1) if total_danzarines > 0 else 0
+    tasa_souvenirs_pct = round((souvenirs_entregados / total_danzarines * 100), 1) if total_danzarines > 0 else 0
 
     # 3. Distribución por Sexo / Género
     por_sexo = {
-        'varones': socios_qs.filter(sexo='m').count(),
-        'mujeres': socios_qs.filter(sexo='f').count(),
-        'otros': socios_qs.exclude(sexo__in=['m', 'f']).count(),
+        'varones': danzarines_qs.filter(sexo='m').count(),
+        'mujeres': danzarines_qs.filter(sexo='f').count(),
+        'otros': danzarines_qs.exclude(sexo__in=['m', 'f']).count(),
     }
 
     # 4. Distribución por Rangos de Edad
     current_year = timezone.now().year
     por_edad = {
-        'menores': socios_qs.filter(fecha_nacimiento__year__gt=current_year - 18).count(),
-        'jovenes': socios_qs.filter(
+        'menores': danzarines_qs.filter(fecha_nacimiento__year__gt=current_year - 18).count(),
+        'jovenes': danzarines_qs.filter(
             fecha_nacimiento__year__lte=current_year - 18,
             fecha_nacimiento__year__gt=current_year - 30
         ).count(),
-        'adultos': socios_qs.filter(
+        'adultos': danzarines_qs.filter(
             fecha_nacimiento__year__lte=current_year - 30,
             fecha_nacimiento__year__gt=current_year - 60
         ).count(),
-        'mayores': socios_qs.filter(fecha_nacimiento__year__lte=current_year - 60).count(),
+        'mayores': danzarines_qs.filter(fecha_nacimiento__year__lte=current_year - 60).count(),
     }
 
-    # 5. Distribución por Modalidades / Categorías
-    modalidades_data = socios_qs.values('modalidad').annotate(
-        total=Count('id', distinct=True)
-    ).order_by('-total')[:8]
-    modalidades_labels = [m['modalidad'] if m['modalidad'] else 'General' for m in modalidades_data]
-    modalidades_counts = [m['total'] for m in modalidades_data]
-
-    # 6. Distribución por Asociaciones y Conjuntos
-    distribucion_asociaciones = socios_qs.filter(membresias__estado='activo').values(
+    # 5. Distribución por Asociaciones y Conjuntos
+    distribucion_asociaciones = danzarines_qs.filter(membresias__estado='activo').values(
         'membresias__asociacion__nombre', 'membresias__conjunto__nombre'
     ).annotate(total=Count('id', distinct=True)).order_by(
         'membresias__asociacion__nombre', 'membresias__conjunto__nombre'
     )
     distribucion_lista = list(distribucion_asociaciones)
 
-    # 7. Tendencia de Registros de Socios (Últimos 6 meses)
+    # 7. Tendencia de Registros de Danzarines (Últimos 6 meses)
     hoy = timezone.now().date()
     meses_labels = []
     meses_counts = []
@@ -175,7 +168,7 @@ def dashboard(request):
         nombre_mes = f"{meses_nombres[primer_dia_mes.month - 1]} {primer_dia_mes.year}"
         meses_labels.append(nombre_mes)
 
-        cant_mes = socios_qs.filter(
+        cant_mes = danzarines_qs.filter(
             fecha_ingreso__gte=primer_dia_mes,
             fecha_ingreso__lte=ultimo_dia_mes
         ).count()
@@ -216,11 +209,6 @@ def dashboard(request):
             ] if distribucion_lista else ['Sin integrantes'],
             'data': [fila['total'] for fila in distribucion_lista] if distribucion_lista else [0],
         },
-        # Área Polar (Polar Area Chart): Modalidades
-        'modalidades': {
-            'labels': modalidades_labels if modalidades_labels else ['General'],
-            'data': modalidades_counts if modalidades_counts else [0],
-        },
         # Línea con Relleno Gradiente (Line Chart): Tendencia de Inscripciones
         'tendencia': {
             'labels': meses_labels,
@@ -233,8 +221,8 @@ def dashboard(request):
                 tasa_activos_pct,
                 tasa_al_dia_pct,
                 tasa_souvenirs_pct,
-                round(((por_edad['jovenes'] + por_edad['adultos']) / total_socios * 100), 1) if total_socios > 0 else 0,
-                round((activos / (total_socios or 1)) * 100, 1),
+                round(((por_edad['jovenes'] + por_edad['adultos']) / total_danzarines * 100), 1) if total_danzarines > 0 else 0,
+                round((activos / (total_danzarines or 1)) * 100, 1),
             ],
         },
     }
@@ -249,9 +237,9 @@ def dashboard(request):
         'conjuntos_filtro': conjuntos_filtro,
         'asociacion_id': asociacion_seleccionada_id,
         'conjunto_id': conjunto_seleccionado_id,
-        'total_socios': total_socios,
-        'socios_activos': activos,
-        'socios_inactivos': inactivos,
+        'total_danzarines': total_danzarines,
+        'danzarines_activos': activos,
+        'danzarines_inactivos': inactivos,
         'suspendidos': suspendidos,
         'castigados': castigados,
         'bajas': bajas,

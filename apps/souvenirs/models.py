@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 
 class SouvenirEntrega(models.Model):
-    socio = models.ForeignKey('socios.Socio', on_delete=models.CASCADE, related_name='entregas_souvenir')
+    danzarin = models.ForeignKey('danzarines.Danzarin', on_delete=models.CASCADE, related_name='entregas_souvenir')
     evento = models.ForeignKey('eventos.Evento', on_delete=models.CASCADE, null=True, blank=True, related_name='entregas_souvenir')
     souvenir = models.ForeignKey('Souvenir', on_delete=models.SET_NULL, null=True, blank=True, related_name='entregas')
     fecha_entrega = models.DateField(auto_now_add=True, verbose_name='Fecha de entrega')
@@ -14,17 +14,23 @@ class SouvenirEntrega(models.Model):
         verbose_name = 'Entrega de souvenir'
         verbose_name_plural = 'Entregas de souvenirs'
         ordering = ['-fecha_entrega']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['danzarin', 'evento'],
+                name='unique_entrega_danzarin_evento',
+            ),
+        ]
 
     def __str__(self):
         evento_text = self.evento.nombre if self.evento else 'Sin evento'
-        return f'{self.socio} - {evento_text} - {self.fecha_entrega}'
+        return f'{self.danzarin} - {evento_text} - {self.fecha_entrega}'
 
 
 class Souvenir(models.Model):
     nombre = models.CharField(max_length=200)
     asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
     conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, null=True, blank=True, related_name='souvenirs')
-    evento = models.ForeignKey('eventos.Evento', on_delete=models.SET_NULL, null=True, blank=True, related_name='souvenirs')
+    evento = models.ForeignKey('eventos.Evento', on_delete=models.PROTECT, related_name='souvenirs')
     descripcion = models.TextField(blank=True, default='')
     imagen = models.ImageField(upload_to='souvenirs/', null=True, blank=True)
     stock = models.IntegerField(default=0)
@@ -35,6 +41,9 @@ class Souvenir(models.Model):
     class Meta:
         verbose_name = 'Souvenir'
         verbose_name_plural = 'Souvenirs'
+        constraints = [
+            models.UniqueConstraint(fields=['evento'], name='unique_souvenir_por_evento'),
+        ]
 
     def __str__(self):
         return self.nombre

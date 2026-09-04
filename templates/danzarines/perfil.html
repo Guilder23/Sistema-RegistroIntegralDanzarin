@@ -1,0 +1,278 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Mi Perfil{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/danzarines/perfil.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid perfil-page">
+  <div class="perfil-header">
+    <div class="perfil-heading">
+      <h2>Mi Perfil</h2>
+      <p>Consulta tu información de usuario y actualiza tu foto de perfil fácilmente.</p>
+    </div>
+    <div class="perfil-actions">
+      {% if is_admin %}
+        <span class="perfil-badge admin"><i class="fas fa-user-shield"></i> Administrador</span>
+      {% else %}
+        <span class="perfil-badge danzarin"><i class="fas fa-user"></i> Danzarín</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="perfil-grid">
+    <div class="perfil-card">
+      <form method="post" action="{% url 'danzarines:subir_foto' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="perfil-avatar">
+          <div class="avatar-image">
+            {% if user_profile.foto %}
+              <img src="{{ user_profile.foto.url }}" alt="Avatar">
+            {% else %}
+              <div class="avatar-placeholder">Sin foto</div>
+            {% endif %}
+            <input id="perfilFoto" type="file" name="foto" accept="image/*">
+            <label for="perfilFoto" class="perfil-photo-picker" title="Cambiar foto" aria-label="Cambiar foto">
+              <i class="fas fa-camera"></i>
+            </label>
+          </div>
+          <div class="perfil-identity">
+            <h3>{% if danzarin %}{{ danzarin.nombre|upper }} {% if danzarin.apellido_paterno %}{{ danzarin.apellido_paterno|upper }}{% endif %} {% if danzarin.apellido_materno %}{{ danzarin.apellido_materno|upper }}{% endif %}{% else %}{{ request.user.get_full_name|default:request.user.username|upper }}{% endif %}</h3>
+            <strong class="perfil-code">Código: {% if danzarin and danzarin.codigo_danzarin %}{{ danzarin.codigo_danzarin }}{% else %}-{% endif %}</strong>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="perfil-detail-card">
+      <div class="perfil-info">
+        <div class="info-item">
+          <strong>Código de danzarín</strong>
+          <span style="font-weight:bold; color:#007bff;">{% if danzarin and danzarin.codigo_danzarin %}{{ danzarin.codigo_danzarin }}{% else %}-{% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Nombre completo</strong>
+          <span>{% if danzarin %}{{ danzarin.nombre|upper }} {% if danzarin.apellido_paterno %}{{ danzarin.apellido_paterno|upper }}{% endif %} {% if danzarin.apellido_materno %}{{ danzarin.apellido_materno|upper }}{% endif %}{% else %}{{ request.user.get_full_name|default:'No disponible'|upper }}{% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Correo</strong>
+          <span>{{ request.user.email }}</span>
+        </div>
+        <div class="info-item">
+          <strong>Teléfono</strong>
+          <span>{% if danzarin and danzarin.telefono %}{{ danzarin.telefono }}{% else %}-{% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Ciudad</strong>
+          <span>{% if danzarin and danzarin.ciudad %}{{ danzarin.ciudad }}{% else %}-{% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Dirección</strong>
+          <span>{% if danzarin and danzarin.direccion %}{{ danzarin.direccion }}{% else %}-{% endif %}</span>
+        </div>
+        <div class="info-item">
+          <strong>Estado</strong>
+          {% if danzarin %}
+            <span class="perfil-status {{ danzarin.estado }}">{{ danzarin.get_estado_display }}</span>
+          {% else %}
+            <span class="perfil-status admin">Administrador</span>
+          {% endif %}
+        </div>
+        <div class="info-item">
+          <strong>Estado de pago</strong>
+          {% if membresia_principal %}<span class="perfil-status {% if membresia_principal.estado_pago == 'al_dia' %}activo{% else %}inactivo{% endif %}">{{ membresia_principal.get_estado_pago_display }}</span>{% else %}<span>-</span>{% endif %}
+        </div>
+        <div class="info-item">
+          <strong>Fecha de ingreso</strong>
+          <span>{% if danzarin %}{{ danzarin.fecha_ingreso|date:'j \d\e F \d\e Y' }}{% else %}-{% endif %}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <div class="card mb-3 p-3">
+        <h4>Editar información</h4>
+        <form method="post" action="{% url 'danzarines:editar_perfil' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label>Correo</label>
+            <input class="form-control" type="email" name="email" value="{{ request.user.email }}" required>
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input class="form-control" type="text" name="telefono" value="{% if danzarin and danzarin.telefono %}{{ danzarin.telefono }}{% endif %}">
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-primary" type="submit">Guardar cambios</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card mb-3 p-3">
+        <h4>Cambiar contraseña</h4>
+        <form method="post" action="{% url 'danzarines:cambiar_contrasena' %}">
+          {% csrf_token %}
+          <div class="form-group">
+            <label>Contraseña actual</label>
+            <div class="input-group">
+              <input class="form-control" type="password" name="current_password" id="current_password" required>
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#current_password"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nueva contraseña</label>
+            <div class="input-group">
+              <input class="form-control" type="password" name="new_password1" id="new_password1" required>
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password1"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Repetir nueva contraseña</label>
+            <div class="input-group">
+              <input class="form-control" type="password" name="new_password2" id="new_password2" required>
+              <div class="input-group-append">
+                <button class="btn btn-outline-secondary toggle-password" type="button" data-target="#new_password2"><i class="fas fa-eye"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2">
+            <button class="btn btn-warning" type="submit">Cambiar contraseña</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      function toggle(e){
+        var btn = e.currentTarget;
+        var target = document.querySelector(btn.getAttribute('data-target'));
+        if(!target) return;
+        if(target.type === 'password'){
+          target.type = 'text';
+          btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        } else {
+          target.type = 'password';
+          btn.innerHTML = '<i class="fas fa-eye"></i>';
+        }
+      }
+      var toggles = document.querySelectorAll('.toggle-password');
+      toggles.forEach(function(t){ t.addEventListener('click', toggle); });
+
+      var photoInput = document.getElementById('perfilFoto');
+      if (photoInput) {
+        photoInput.addEventListener('change', function(){
+          if (photoInput.files.length) photoInput.form.submit();
+        });
+      }
+      document.querySelectorAll('.btn-copiar-certificado').forEach(function(copiarCertificado){
+        copiarCertificado.addEventListener('click', function(){
+          navigator.clipboard.writeText(copiarCertificado.dataset.url).then(function(){
+            copiarCertificado.innerHTML = '<i class="fas fa-check"></i>';
+            copiarCertificado.title = 'Enlace copiado';
+            setTimeout(function(){
+              copiarCertificado.innerHTML = '<i class="fas fa-copy"></i>';
+              copiarCertificado.title = 'Copiar enlace del certificado';
+            }, 1800);
+          });
+        });
+      });
+    });
+  </script>
+
+  <div class="perfil-entregas-card">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h3>Historial de entregas</h3>
+        <p class="perfil-legend">Tus registros recientes de souvenirs entregados.</p>
+      </div>
+    </div>
+
+    {% if page_obj.object_list %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>Entrega</th>
+              <th>Evento</th>
+              <th>Ámbito</th>
+              <th>Fechas del evento</th>
+              <th>Souvenir</th>
+              <th>Entregado por</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in page_obj.object_list %}
+            <tr>
+              <td>{{ e.fecha_entrega|date:'j \d\e F \d\e Y' }}</td>
+              <td>{% if e.evento %}{{ e.evento.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.evento.conjunto %}{{ e.evento.asociacion.nombre }} / {{ e.evento.conjunto.nombre }}{% elif e.evento %}{{ e.evento.asociacion.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.evento %}{{ e.evento.fecha_inicio|date:'d/m/Y' }} al {{ e.evento.fecha_fin|date:'d/m/Y' }}{% else %}-{% endif %}</td>
+              <td>{% if e.souvenir %}{{ e.souvenir.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.entregado_por %}{{ e.entregado_por.get_full_name|default:e.entregado_por.username }}{% else %}Sistema{% endif %}</td>
+              <td>{{ e.observacion|default:'Sin observación' }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="mt-3">
+        <ul class="pagination pagination-sm mb-0">
+          {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+          {% endif %}
+          <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+          {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+    {% else %}
+      <div class="alert alert-light mb-0">No hay entregas registradas.</div>
+    {% endif %}
+  </div>
+
+  <div class="perfil-entregas-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h3>Certificados</h3>
+        <p class="perfil-legend">Disponible desde el día siguiente a la fecha fin del evento.</p>
+      </div>
+    </div>
+    {% if page_obj.object_list %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Evento</th><th>Habilitado desde</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody>
+            {% for e in page_obj.object_list %}
+            <tr>
+              <td>{% if e.evento %}{{ e.evento.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.fecha_certificado %}{{ e.fecha_certificado|date:'j \d\e F \d\e Y' }}{% else %}-{% endif %}</td>
+              <td>{% if e.certificado_disponible %}Disponible{% else %}Pendiente{% endif %}</td>
+              <td class="certificado-acciones">{% if e.certificado_disponible and e.souvenir %}<a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado"><i class="fas fa-download"></i><span class="sr-only">Descargar certificado</span></a>{% else %}<button type="button" class="btn btn-sm btn-secondary" disabled title="Disponible desde el día siguiente a la fecha fin"><i class="fas fa-lock"></i><span class="sr-only">Certificado pendiente</span></button>{% endif %}{% if e.certificado_disponible and certificado_url %}<button type="button" class="btn btn-sm btn-primary btn-copiar-certificado" data-url="{{ certificado_url }}" title="Copiar enlace del certificado" aria-label="Copiar enlace del certificado"><i class="fas fa-copy"></i></button><a href="{{ certificado_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="Abrir certificado" aria-label="Abrir certificado"><i class="fas fa-external-link-alt"></i></a><a href="{{ certificado_qr_url }}" class="btn btn-sm btn-outline-secondary" download="qr-certificado-{{ danzarin.codigo_danzarin|default:danzarin.pk }}.png" title="Descargar QR" aria-label="Descargar QR"><i class="fas fa-qrcode"></i></a>{% else %}<button type="button" class="btn btn-sm btn-secondary" disabled title="Copiar disponible desde el día siguiente a la fecha fin" aria-label="Copiar no disponible"><i class="fas fa-copy"></i></button><button type="button" class="btn btn-sm btn-secondary" disabled title="Abrir disponible desde el día siguiente a la fecha fin" aria-label="Abrir no disponible"><i class="fas fa-external-link-alt"></i></button><button type="button" class="btn btn-sm btn-secondary" disabled title="QR disponible desde el día siguiente a la fecha fin" aria-label="QR no disponible"><i class="fas fa-qrcode"></i></button>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-light mb-0">No hay certificados disponibles.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

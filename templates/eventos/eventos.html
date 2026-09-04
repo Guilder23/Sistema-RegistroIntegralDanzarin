@@ -50,7 +50,8 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Creado para</th>
-                        <th>Fecha</th>
+                        <th>Fecha de inicio</th>
+                        <th>Fecha de fin</th>
                         <th>Lugar</th>
                         <th>Estado</th>
                         <th class="text-center">Acciones</th>
@@ -61,7 +62,8 @@
                     <tr>
                         <td>{{ evento.nombre }}</td>
                         <td>{% if evento.conjunto %}Conjunto: {{ evento.conjunto.nombre }}{% else %}Asociación: {{ evento.asociacion.nombre }}{% endif %}</td>
-                        <td>{{ evento.fecha_evento|date:'d/m/Y' }}</td>
+                        <td>{{ evento.fecha_inicio|date:'d/m/Y' }}</td>
+                        <td>{{ evento.fecha_fin|date:'d/m/Y' }}</td>
                         <td>{{ evento.lugar|default:'-' }}</td>
                         <td>
                             <span class="badge-estado {% if evento.activo %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
@@ -72,7 +74,8 @@
                             <button type="button" class="btn btn-info btn-sm btn-ver-evento" data-toggle="modal" data-target="#modalVerEvento"
                                 data-nombre="{{ evento.nombre|escapejs }}"
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
-                                data-fecha="{{ evento.fecha_evento|date:'d/m/Y' }}"
+                                data-fecha-inicio="{{ evento.fecha_inicio|date:'d/m/Y' }}"
+                                data-fecha-fin="{{ evento.fecha_fin|date:'d/m/Y' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
                                 data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
                                 data-asociacion-id="{{ evento.asociacion_id }}"
@@ -84,25 +87,26 @@
                                 data-creado="{{ evento.creado|date:'d/m/Y H:i' }}">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button type="button" class="btn btn-warning btn-sm btn-editar-evento" data-toggle="modal" data-target="#modalEditarEvento"
+                            {% if role != 'administrador_conjunto' or evento.conjunto %}<button type="button" class="btn btn-warning btn-sm btn-editar-evento" data-toggle="modal" data-target="#modalEditarEvento"
                                 data-id="{{ evento.pk }}"
                                 data-nombre="{{ evento.nombre|escapejs }}"
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
-                                data-fecha="{{ evento.fecha_evento|date:'Y-m-d' }}"
+                                data-fecha-inicio="{{ evento.fecha_inicio|date:'Y-m-d' }}"
+                                data-fecha-fin="{{ evento.fecha_fin|date:'Y-m-d' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
                                 data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
                                 data-asociacion-id="{{ evento.asociacion_id }}"
                                 data-conjunto-id="{{ evento.conjunto_id|default:'' }}"
                                 data-activo="{{ evento.activo }}">
                                 <i class="fas fa-edit"></i>
-                            </button>
-                            <form method="post" action="{% url 'eventos:cambiar_estado_evento' evento.pk %}" class="d-inline">
+                            </button>{% endif %}
+                            {% if role != 'administrador_conjunto' or evento.conjunto %}<form method="post" action="{% url 'eventos:cambiar_estado_evento' evento.pk %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="btn {% if evento.activo %}btn-secondary{% else %}btn-success{% endif %} btn-sm" title="{% if evento.activo %}Desactivar evento{% else %}Activar evento{% endif %}">
                                     <i class="fas {% if evento.activo %}fa-toggle-off{% else %}fa-toggle-on{% endif %}"></i>
                                 </button>
-                            </form>
-                            {% if not evento.souvenirs.exists %}
+                            </form>{% endif %}
+                            {% if not evento.souvenirs.exists and role != 'administrador_conjunto' or evento.conjunto and not evento.souvenirs.exists %}
                             <button type="button" class="btn btn-danger btn-sm btn-eliminar-evento" data-toggle="modal" data-target="#modalEliminarEvento"
                                 data-id="{{ evento.pk }}"
                                 data-nombre="{{ evento.nombre|escapejs }}">
@@ -112,7 +116,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="text-center py-4">No hay eventos registrados.</td></tr>
+                    <tr><td colspan="7" class="text-center py-4">No hay eventos registrados.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

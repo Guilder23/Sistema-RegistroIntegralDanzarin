@@ -6,9 +6,9 @@ from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Socio, Membresia
+from .models import Danzarin, Membresia
 from .models import UserProfile
-from .models import generar_codigo_socio
+from .models import generar_codigo_danzarin
 from django.contrib.auth import update_session_auth_hash
 import csv
 from io import TextIOWrapper
@@ -19,23 +19,29 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime
-from apps.core.permissions import scope_socios, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
-from apps.core.permissions import scope_socios, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
+from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
+from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
 from apps.bloques.models import Bloque
+
+XLSX_SOCIO_HEADERS = [
+    'username', 'nombre', 'apellido_paterno', 'apellido_materno', 'sexo',
+    'email', 'password', 'telefono', 'ciudad', 'direccion',
+    'fecha_nacimiento', 'carnet_ci', 'carnet_complemento',
+    'asociacion', 'conjunto', 'bloque',
+]
 
 
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
-def listar_socios(request):
+def listar_danzarines(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
 
-    socios = scope_socios(Socio.objects.select_related('user'), request.user)
+    danzarines = scope_danzarines(Danzarin.objects.select_related('user'), request.user)
     if q:
-        socios = socios.filter(
+        danzarines = danzarines.filter(
             Q(nombre__icontains=q)
-            | Q(apellido__icontains=q)
             | Q(apellido_paterno__icontains=q)
             | Q(apellido_materno__icontains=q)
             | Q(email__icontains=q)
@@ -43,9 +49,9 @@ def listar_socios(request):
             | Q(carnet_ci__icontains=q)
         )
     if estado:
-        socios = socios.filter(membresias__estado=estado).distinct()
+        danzarines = danzarines.filter(membresias__estado=estado).distinct()
 
-    paginator = Paginator(socios.order_by('-fecha_ingreso'), 10)
+    paginator = Paginator(danzarines.order_by('-fecha_ingreso'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
     # Asegurar que cada usuario listado tenga un UserProfile para evitar errores en plantillas
@@ -69,7 +75,7 @@ def listar_socios(request):
         conjuntos = conjuntos.filter(pk=request.user.userprofile.conjunto_id)
         bloques = bloques.filter(conjunto_id=request.user.userprofile.conjunto_id)
 
-    return render(request, 'socios/socios.html', {
+    return render(request, 'danzarines/danzarines.html', {
         'page_obj': page_obj,
         'q': q,
         'estado': estado,
@@ -84,39 +90,36 @@ def listar_socios(request):
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def crear_socio(request):
+def crear_danzarin(request):
     if request.method != 'POST':
-        return redirect('socios:listar_socios')
+        return redirect('danzarines:listar_danzarines')
 
     username = request.POST.get('username', '').strip()
     nombre = request.POST.get('nombre', '').strip()
     apellido_paterno = request.POST.get('apellido_paterno', '').strip()
     apellido_materno = request.POST.get('apellido_materno', '').strip()
-    apellido = request.POST.get('apellido', '').strip() or f"{apellido_paterno} {apellido_materno}".strip()
     email = request.POST.get('email', '').strip()
     telefono = request.POST.get('telefono', '').strip()
     ciudad = request.POST.get('ciudad', '').strip()
     direccion = request.POST.get('direccion', '').strip()
     password = request.POST.get('password', '')
     fecha_nacimiento = request.POST.get('fecha_nacimiento', '').strip() or None
-    razon = request.POST.get('razon', '').strip()
     carnet_ci = request.POST.get('carnet_ci', '').strip()
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
     sexo = request.POST.get('sexo', '').strip()
-    modalidad = request.POST.get('modalidad', '').strip()
 
-    carnet_existente = Socio.objects.filter(
+    carnet_existente = Danzarin.objects.filter(
         carnet_ci=carnet_ci,
         carnet_complemento=carnet_complemento,
     ).first() if carnet_ci else None
-    if not carnet_existente and (not username or not nombre or not (apellido_paterno or apellido) or not email or not password):
+    if not carnet_existente and (not username or not nombre or not apellido_paterno or not email or not password):
         messages.error(request, 'Completa los campos obligatorios.')
-        return redirect('socios:listar_socios')
+        return redirect('danzarines:listar_danzarines')
 
     if not carnet_existente and User.objects.filter(username=username).exists():
         messages.error(request, 'El nombre de usuario ya existe.')
-        return redirect('socios:listar_socios')
+        return redirect('danzarines:listar_danzarines')
 
     role = get_role(request.user)
     if role == 'administrador_conjunto':
@@ -132,64 +135,61 @@ def crear_socio(request):
     bloque = Bloque.objects.filter(pk=request.POST.get('bloque_id'), conjunto=conjunto, activo=True).first() if conjunto else None
     if not asociacion or not conjunto or not bloque:
         messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos.')
-        return redirect('socios:listar_socios')
+        return redirect('danzarines:listar_danzarines')
 
     with transaction.atomic():
         if carnet_existente:
-            socio = carnet_existente
+            danzarin = carnet_existente
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
             user.first_name = nombre
-            user.last_name = apellido_paterno or apellido
+            user.last_name = apellido_paterno
             user.save()
-            socio = Socio.objects.create(
+            danzarin = Danzarin.objects.create(
                 user=user,
-                codigo_socio=generar_codigo_socio(),
+                codigo_danzarin=generar_codigo_danzarin(),
                 nombre=nombre,
                 apellido_paterno=apellido_paterno,
                 apellido_materno=apellido_materno,
-                apellido=apellido,
                 email=email,
                 telefono=telefono,
                 ciudad=ciudad,
                 direccion=direccion,
                 fecha_nacimiento=fecha_nacimiento,
-                razon=razon,
                 carnet_ci=carnet_ci,
                 carnet_complemento=carnet_complemento,
                 observacion=observacion,
                 sexo=sexo,
-                modalidad=modalidad,
                 creado_por=request.user,
             )
         from .models import Membresia
         try:
-            Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
+            Membresia.inscribir(danzarin, asociacion, conjunto, bloque, estado_pago='al_dia')
         except ValueError as error:
             messages.error(request, str(error))
-            return redirect('socios:listar_socios')
-    registrar_auditoria(request.user, 'registro_socio', f'Socio {socio.pk}', nuevo={'socio': socio.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk, 'bloque': bloque.pk}, asociacion=asociacion, conjunto=conjunto)
-    messages.success(request, 'Socio registrado correctamente.')
-    return redirect('socios:listar_socios')
+            return redirect('danzarines:listar_danzarines')
+    registrar_auditoria(request.user, 'registro_danzarin', f'Danzarín {danzarin.pk}', nuevo={'danzarin': danzarin.pk, 'asociacion': asociacion.pk, 'conjunto': conjunto.pk, 'bloque': bloque.pk}, asociacion=asociacion, conjunto=conjunto)
+    messages.success(request, 'Danzarín registrado correctamente.')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
-def perfil_socio(request):
+def perfil_danzarin(request):
     user = request.user
     profile, _ = UserProfile.objects.get_or_create(user=user)
-    socio = None
+    danzarin = None
     try:
-        socio = user.socio_profile
-    except Socio.DoesNotExist:
-        socio = None
+        danzarin = user.danzarin_profile
+    except Danzarin.DoesNotExist:
+        danzarin = None
 
-    entregas = socio.entregas_souvenir.select_related('entregado_por', 'souvenir', 'evento').all() if socio else []
-    membresia_principal = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if socio else None
+    entregas = danzarin.entregas_souvenir.select_related('entregado_por', 'souvenir', 'evento').all() if danzarin else []
+    membresia_principal = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if danzarin else None
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    return render(request, 'socios/perfil.html', {
-        'socio': socio,
+    return render(request, 'danzarines/perfil.html', {
+        'danzarin': danzarin,
         'page_obj': page_obj,
         'is_admin': request.user.is_staff,
         'user_profile': profile,
@@ -200,7 +200,7 @@ def perfil_socio(request):
 @login_required
 def editar_perfil(request):
     if request.method != 'POST':
-        return redirect('socios:perfil_socio')
+        return redirect('danzarines:perfil_danzarin')
 
     user = request.user
     email = request.POST.get('email', '').strip()
@@ -211,23 +211,23 @@ def editar_perfil(request):
         user.email = email
         user.save()
 
-    # Actualizar datos en Socio si existe
+    # Actualizar datos en Danzarin si existe
     try:
-        socio = user.socio_profile
-        socio.email = email or socio.email
-        socio.telefono = telefono or socio.telefono
-        socio.save()
-    except Socio.DoesNotExist:
+        danzarin = user.danzarin_profile
+        danzarin.email = email or danzarin.email
+        danzarin.telefono = telefono or danzarin.telefono
+        danzarin.save()
+    except Danzarin.DoesNotExist:
         pass
 
     messages.success(request, 'Datos de perfil actualizados.')
-    return redirect('socios:perfil_socio')
+    return redirect('danzarines:perfil_danzarin')
 
 
 @login_required
 def cambiar_contrasena(request):
     if request.method != 'POST':
-        return redirect('socios:perfil_socio')
+        return redirect('danzarines:perfil_danzarin')
 
     user = request.user
     new1 = request.POST.get('new_password1', '')
@@ -235,18 +235,18 @@ def cambiar_contrasena(request):
     current = request.POST.get('current_password', '')
     if not current or not new1 or not new2:
         messages.error(request, 'Completa los 3 campos requeridos para cambiar la contraseÃ±a.')
-        return redirect('socios:perfil_socio')
+        return redirect('danzarines:perfil_danzarin')
     if not user.check_password(current):
         messages.error(request, 'La contraseÃ±a actual es incorrecta.')
-        return redirect('socios:perfil_socio')
+        return redirect('danzarines:perfil_danzarin')
     if new1 != new2:
         messages.error(request, 'Las nuevas contraseÃ±as no coinciden.')
-        return redirect('socios:perfil_socio')
+        return redirect('danzarines:perfil_danzarin')
     user.set_password(new1)
     user.save()
     update_session_auth_hash(request, user)
     messages.success(request, 'ContraseÃ±a actualizada correctamente.')
-    return redirect('socios:perfil_socio')
+    return redirect('danzarines:perfil_danzarin')
 
 
 @login_required
@@ -257,7 +257,7 @@ def subir_foto(request):
         target = User.objects.filter(id=user_id).first()
         if not target:
             messages.error(request, 'Usuario no encontrado.')
-            return redirect('socios:perfil_socio')
+            return redirect('danzarines:perfil_danzarin')
         profile, _ = UserProfile.objects.get_or_create(user=target)
     else:
         profile, _ = UserProfile.objects.get_or_create(user=request.user)
@@ -267,7 +267,7 @@ def subir_foto(request):
         messages.success(request, 'Foto de perfil actualizada.')
     else:
         messages.error(request, 'No se recibiÃ³ archivo.')
-    return redirect('socios:perfil_socio')
+    return redirect('danzarines:perfil_danzarin')
 
 
 @login_required
@@ -286,19 +286,19 @@ def crear_admin(request):
         conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
         if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}:
             messages.error(request, 'Selecciona un tipo de administrador válido.')
-            return redirect('socios:listar_admins')
+            return redirect('danzarines:listar_admins')
         if not username or not email or not password:
             messages.error(request, 'Completa los campos obligatorios.')
-            return redirect('socios:crear_admin')
+            return redirect('danzarines:crear_admin')
         if rol == 'administrador_asociacion' and not asociacion:
             messages.error(request, 'El Administrador de Asociación debe tener una asociación asignada.')
-            return redirect('socios:listar_admins')
+            return redirect('danzarines:listar_admins')
         if rol == 'administrador_conjunto' and (not asociacion or not conjunto):
             messages.error(request, 'El Administrador de Conjunto debe tener asociación y conjunto asignados.')
-            return redirect('socios:listar_admins')
+            return redirect('danzarines:listar_admins')
         if User.objects.filter(username=username).exists():
             messages.error(request, 'El nombre de usuario ya existe.')
-            return redirect('socios:crear_admin')
+            return redirect('danzarines:crear_admin')
         user = User.objects.create_user(username=username, email=email, password=password)
         user.first_name = first_name
         user.last_name = last_name
@@ -315,18 +315,18 @@ def crear_admin(request):
             conjunto=conjunto,
         )
         messages.success(request, 'Administrador creado correctamente.')
-        return redirect('socios:listar_admins')
-    return redirect('socios:listar_admins')
+        return redirect('danzarines:listar_admins')
+    return redirect('danzarines:listar_admins')
 
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def importar_socios(request):
+def importar_danzarines(request):
     if request.method == 'POST':
         f = request.FILES.get('file')
         if not f:
             messages.error(request, 'Sube un archivo CSV.')
-            return redirect('socios:listar_socios')
+            return redirect('danzarines:listar_danzarines')
         try:
             text = TextIOWrapper(f.file, encoding='utf-8')
             reader = csv.DictReader(text)
@@ -334,47 +334,45 @@ def importar_socios(request):
             for row in reader:
                 username = row.get('username') or row.get('usuario') or ''
                 nombre = row.get('nombre') or ''
-                apellido_paterno = row.get('apellido_paterno') or row.get('apellido') or ''
+                apellido_paterno = row.get('apellido_paterno') or ''
                 apellido_materno = row.get('apellido_materno') or ''
-                apellido = row.get('apellido') or f"{apellido_paterno} {apellido_materno}".strip()
                 email = row.get('email') or ''
                 password = row.get('password') or User.objects.make_random_password()
                 telefono = row.get('telefono') or ''
                 ciudad = row.get('ciudad') or ''
                 direccion = row.get('direccion') or ''
                 fecha_nacimiento = row.get('fecha_nacimiento') or None
-                razon = row.get('razon') or ''
                 carnet_ci = row.get('carnet_ci') or ''
                 carnet_complemento = row.get('carnet_complemento') or ''
                 if not username or User.objects.filter(username=username).exists():
                     continue
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.first_name = nombre
-                user.last_name = apellido_paterno or apellido
+                user.last_name = apellido_paterno
                 user.save()
-                Socio.objects.create(user=user, codigo_socio=generar_codigo_socio(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, apellido=apellido, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, razon=razon, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento)
+                Danzarin.objects.create(user=user, codigo_danzarin=generar_codigo_danzarin(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento, sexo=row.get('sexo') or '')
                 created += 1
-            messages.success(request, f'Socios importados: {created}')
+            messages.success(request, f'Danzarines importados: {created}')
         except Exception as e:
             messages.error(request, f'Error al procesar el archivo: {e}')
-    return redirect('socios:listar_socios')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def importar_socios_masivo(request):
-    return render(request, 'socios/importar_masivo.html')
+def importar_danzarines_masivo(request):
+    return render(request, 'danzarines/importar_masivo.html')
 
 
 def validar_filas_importacion(rows, user):
     role = get_role(user)
     errores = []
     for fila, row in enumerate(rows, start=2):
-        valores = list(row) + [''] * max(0, 17 - len(row))
+        valores = list(row) + [''] * max(0, 16 - len(row))
         username, nombre = str(valores[0]).strip(), str(valores[1]).strip()
-        asociacion_nombre = str(valores[14]).strip()
-        conjunto_nombre = str(valores[15]).strip()
-        bloque_nombre = str(valores[16]).strip()
+        asociacion_nombre = str(valores[13]).strip()
+        conjunto_nombre = str(valores[14]).strip()
+        bloque_nombre = str(valores[15]).strip()
         asociacion = Asociacion.objects.filter(nombre__iexact=asociacion_nombre, activo=True).first()
         conjunto = Conjunto.objects.filter(nombre__iexact=conjunto_nombre, asociacion=asociacion, activo=True).first() if asociacion else None
         bloque = Bloque.objects.filter(nombre__iexact=bloque_nombre, conjunto=conjunto, activo=True).first() if conjunto else None
@@ -392,14 +390,14 @@ def validar_filas_importacion(rows, user):
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def importar_socios_xlsx_preview(request):
+def importar_danzarines_xlsx_preview(request):
     if request.method != 'POST':
-        return redirect('socios:importar_socios_masivo')
+        return redirect('danzarines:importar_danzarines_masivo')
 
     f = request.FILES.get('file')
     if not f:
         messages.error(request, 'Sube un archivo .xlsx.')
-        return redirect('socios:importar_socios_masivo')
+        return redirect('danzarines:importar_danzarines_masivo')
 
     try:
         wb = openpyxl.load_workbook(f)
@@ -407,14 +405,14 @@ def importar_socios_xlsx_preview(request):
         rows = list(ws.iter_rows(values_only=True))
         if not rows:
             messages.error(request, 'El archivo estÃ¡ vacÃ­o.')
-            return redirect('socios:importar_socios_masivo')
+            return redirect('danzarines:importar_danzarines_masivo')
 
         headers = [str(cell or '').strip() for cell in rows[0]]
         required_headers = ['username', 'nombre', 'apellido_paterno', 'email', 'asociacion', 'conjunto', 'bloque']
         missing_headers = [header for header in required_headers if header not in headers]
         if missing_headers:
             messages.error(request, f'Faltan columnas obligatorias: {", ".join(missing_headers)}.')
-            return redirect('socios:importar_socios_masivo')
+            return redirect('danzarines:importar_danzarines_masivo')
         preview = [[str(cell or '') for cell in row] for row in rows[1:11]]
         
         def convert_cell_value(cell):
@@ -425,58 +423,57 @@ def importar_socios_xlsx_preview(request):
             return str(cell)
         
         preview_data = [
-            [convert_cell_value(cell) for cell in row[:17]]
+            [convert_cell_value(cell) for cell in row[:16]]
             for row in rows[1:]
-            if any(cell is not None for cell in row[:17])
+            if any(cell is not None for cell in row[:16])
         ]
 
-        request.session['socios_import_preview'] = preview_data
+        request.session['danzarines_import_preview'] = preview_data
 
-        return render(request, 'socios/importar_masivo.html', {
+        return render(request, 'danzarines/importar_masivo.html', {
             'preview_headers': headers,
             'preview_rows': preview,
             'import_errors': validar_filas_importacion(preview_data, request.user),
         })
     except Exception as e:
         messages.error(request, f'Error al procesar xlsx: {e}')
-        return redirect('socios:importar_socios_masivo')
+        return redirect('danzarines:importar_danzarines_masivo')
 
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def importar_socios_xlsx_confirm(request):
-    preview_data = request.session.pop('socios_import_preview', None)
+def importar_danzarines_xlsx_confirm(request):
+    preview_data = request.session.pop('danzarines_import_preview', None)
     if not preview_data:
         messages.error(request, 'No hay datos para confirmar.')
-        return redirect('socios:importar_socios_masivo')
+        return redirect('danzarines:importar_danzarines_masivo')
 
     import_errors = validar_filas_importacion(preview_data, request.user)
     if import_errors:
-        messages.error(request, 'No se registró ningún socio: ' + ' '.join(import_errors[:8]))
-        return redirect('socios:importar_socios_masivo')
+        messages.error(request, 'No se registró ningún danzarin: ' + ' '.join(import_errors[:8]))
+        return redirect('danzarines:importar_danzarines_masivo')
 
     created = 0
     skipped = 0
     errors = []
     for row in preview_data:
-        vals = [(c or '') for c in (list(row) + [''] * max(0, 17 - len(row)))[:17]]
+        vals = [(c or '') for c in (list(row) + [''] * max(0, 16 - len(row)))[:16]]
         username = vals[0]
         nombre = vals[1]
         apellido_paterno = vals[2]
         apellido_materno = vals[3]
-        apellido = vals[4] or f"{apellido_paterno} {apellido_materno}".strip()
+        sexo = vals[4]
         email = vals[5]
         password = vals[6]
         telefono = vals[7]
         ciudad = vals[8]
         direccion = vals[9]
         fecha_nacimiento = vals[10] or None
-        razon = vals[11]
-        carnet_ci = vals[12]
-        carnet_complemento = vals[13]
-        asociacion = Asociacion.objects.get(nombre__iexact=str(vals[14]).strip(), activo=True)
-        conjunto = Conjunto.objects.get(nombre__iexact=str(vals[15]).strip(), asociacion=asociacion, activo=True)
-        bloque = Bloque.objects.get(nombre__iexact=str(vals[16]).strip(), conjunto=conjunto, activo=True)
+        carnet_ci = vals[11]
+        carnet_complemento = vals[12]
+        asociacion = Asociacion.objects.get(nombre__iexact=str(vals[13]).strip(), activo=True)
+        conjunto = Conjunto.objects.get(nombre__iexact=str(vals[14]).strip(), asociacion=asociacion, activo=True)
+        bloque = Bloque.objects.get(nombre__iexact=str(vals[15]).strip(), conjunto=conjunto, activo=True)
         
         if not username:
             skipped += 1
@@ -494,28 +491,27 @@ def importar_socios_xlsx_confirm(request):
                 if password and password != '':
                     user.set_password(password)
                 user.first_name = nombre
-                user.last_name = apellido_paterno or apellido
+                user.last_name = apellido_paterno
                 user.save()
                 
-                # Actualizar o crear socio
-                socio, created_socio = Socio.objects.update_or_create(
+                # Actualizar o crear danzarin
+                danzarin, created_danzarin = Danzarin.objects.update_or_create(
                     user=user,
                     defaults={
                         'nombre': nombre,
                         'apellido_paterno': apellido_paterno,
                         'apellido_materno': apellido_materno,
-                        'apellido': apellido,
                         'email': email,
                         'telefono': telefono,
                         'ciudad': ciudad,
                         'direccion': direccion,
                         'fecha_nacimiento': fecha_nacimiento,
-                        'razon': razon,
+                        'sexo': sexo,
                         'carnet_ci': carnet_ci,
                         'carnet_complemento': carnet_complemento,
                     }
                 )
-                if created_socio:
+                if created_danzarin:
                     created += 1
                 else:
                     created += 1  # Contar como actualizado
@@ -523,25 +519,25 @@ def importar_socios_xlsx_confirm(request):
                 # Crear nuevo usuario
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.first_name = nombre
-                user.last_name = apellido_paterno or apellido
+                user.last_name = apellido_paterno
                 user.save()
-                socio = Socio.objects.create(user=user, codigo_socio=generar_codigo_socio(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, apellido=apellido, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, razon=razon, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento, creado_por=request.user)
+                danzarin = Danzarin.objects.create(user=user, codigo_danzarin=generar_codigo_danzarin(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, sexo=sexo, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento, creado_por=request.user)
                 created += 1
-            membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first()
+            membresia = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first()
             if membresia:
                 membresia.bloque = bloque
                 membresia.save(update_fields=['bloque'])
             else:
-                Membresia.inscribir(socio, asociacion, conjunto, bloque, estado_pago='al_dia')
+                Membresia.inscribir(danzarin, asociacion, conjunto, bloque, estado_pago='al_dia')
         except Exception as e:
             skipped += 1
             errors.append(f"Error creando {username}: {str(e)}")
 
     if errors:
-        messages.error(request, f'Socios importados: {created}, omitidos: {skipped}. Errores: {"; ".join(errors[:5])}')
+        messages.error(request, f'Danzarines importados: {created}, omitidos: {skipped}. Errores: {"; ".join(errors[:5])}')
     else:
-        messages.success(request, f'Socios importados desde XLSX: {created}')
-    return redirect('socios:listar_socios')
+        messages.success(request, f'Danzarines importados desde XLSX: {created}')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
@@ -549,10 +545,10 @@ def importar_socios_xlsx_confirm(request):
 def descargar_plantilla_excel(request):
     wb = Workbook()
     ws = wb.active
-    ws.title = 'socios'
+    ws.title = 'danzarines'
     
     # Encabezados
-    headers = ['username', 'nombre', 'apellido_paterno', 'apellido_materno', 'apellido', 'email', 'password', 'telefono', 'ciudad', 'direccion', 'fecha_nacimiento', 'razon', 'carnet_ci', 'carnet_complemento', 'asociacion', 'conjunto', 'bloque']
+    headers = XLSX_SOCIO_HEADERS
     ws.append(headers)
     
     # Estilo para el encabezado
@@ -572,21 +568,23 @@ def descargar_plantilla_excel(request):
         'B': 20,  # nombre
         'C': 20,  # apellido_paterno
         'D': 20,  # apellido_materno
-        'E': 25,  # apellido
+        'E': 15,  # sexo
         'F': 25,  # email
         'G': 15,  # password
         'H': 15,  # telefono
         'I': 15,  # ciudad
         'J': 30,  # direccion
         'K': 15,  # fecha_nacimiento
-        'L': 30,  # razon
-        'M': 15,  # carnet_ci
-        'N': 15,  # carnet_complemento
+        'L': 15,  # carnet_ci
+        'M': 15,  # carnet_complemento
+        'N': 32,  # asociacion
+        'O': 32,  # conjunto
+        'P': 28,  # bloque
     }
     for col, width in column_widths.items():
         ws.column_dimensions[col].width = width
     
-    # AÃ±adir bordes a todas las celdas
+    # Añadir bordes a todas las celdas
     thin_border = Border(
         left=Side(style='thin'),
         right=Side(style='thin'),
@@ -595,7 +593,7 @@ def descargar_plantilla_excel(request):
     )
     
     # Ejemplo de fila con estilo
-    example_row = ['jdoe', 'Juan', 'Perez', 'Gomez', 'Perez Gomez', 'jdoe@example.com', 'Passw0rd!', '71234567', 'Oruro', 'DirecciÃ³n 123', '1990-01-01', 'Quiero participar', '1234567', '-1A', 'Nombre exacto de asociación', 'Nombre exacto de conjunto', 'Nombre exacto de bloque']
+    example_row = ['jdoe', 'Juan', 'Perez', 'Gomez', 'M', 'jdoe@example.com', 'Passw0rd!', '71234567', 'Oruro', 'Dirección 123', '1990-01-01', '1234567', '-1A', 'Nombre exacto de asociación', 'Nombre exacto de conjunto', 'Nombre exacto de bloque']
     ws.append(example_row)
     
     # Aplicar bordes y colores alternados a las filas de datos
@@ -618,19 +616,19 @@ def descargar_plantilla_excel(request):
     ws.freeze_panes = "A2"
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = 'attachment; filename=socios_plantilla.xlsx'
+    response['Content-Disposition'] = 'attachment; filename=danzarines_plantilla.xlsx'
     wb.save(response)
     return response
 
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def importar_socios_xlsx(request):
+def importar_danzarines_xlsx(request):
     if request.method == 'POST':
         f = request.FILES.get('file')
         if not f:
             messages.error(request, 'Sube un archivo .xlsx')
-            return redirect('socios:listar_socios')
+            return redirect('danzarines:listar_danzarines')
         try:
             wb = openpyxl.load_workbook(f)
             ws = wb.active
@@ -638,35 +636,34 @@ def importar_socios_xlsx(request):
             for i, row in enumerate(ws.iter_rows(values_only=True)):
                 if i == 0:
                     continue
-                vals = [ (c or '') for c in row[:14] ]
+                vals = [ (c or '') for c in row[:16] ]
                 username = vals[0]
                 nombre = vals[1]
                 apellido_paterno = vals[2]
                 apellido_materno = vals[3]
-                apellido = vals[4] or f"{apellido_paterno} {apellido_materno}".strip()
+                sexo = vals[4]
                 email = vals[5]
                 password = vals[6]
                 telefono = vals[7]
                 ciudad = vals[8]
                 direccion = vals[9]
                 fecha_nacimiento = vals[10] or None
-                razon = vals[11]
-                carnet_ci = vals[12]
-                carnet_complemento = vals[13]
+                carnet_ci = vals[11]
+                carnet_complemento = vals[12]
                 if not username or User.objects.filter(username=username).exists():
                     continue
                 if not password:
                     password = User.objects.make_random_password()
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.first_name = nombre
-                user.last_name = apellido_paterno or apellido
+                user.last_name = apellido_paterno
                 user.save()
-                Socio.objects.create(user=user, codigo_socio=generar_codigo_socio(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, apellido=apellido, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, razon=razon, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento)
+                Danzarin.objects.create(user=user, codigo_danzarin=generar_codigo_danzarin(), nombre=nombre, apellido_paterno=apellido_paterno, apellido_materno=apellido_materno, sexo=sexo, email=email, telefono=telefono, ciudad=ciudad, direccion=direccion, fecha_nacimiento=fecha_nacimiento, carnet_ci=carnet_ci, carnet_complemento=carnet_complemento)
                 created += 1
-            messages.success(request, f'Socios importados desde XLSX: {created}')
+            messages.success(request, f'Danzarines importados desde XLSX: {created}')
         except Exception as e:
             messages.error(request, f'Error al procesar xlsx: {e}')
-    return redirect('socios:listar_socios')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
@@ -703,7 +700,7 @@ def listar_admins(request):
 @login_required
 @user_passes_test(can_manage_users, login_url='/login/')
 def ver_admin(request, user_id):
-    return redirect('socios:listar_admins')
+    return redirect('danzarines:listar_admins')
 
 
 @login_required
@@ -722,10 +719,10 @@ def editar_admin(request, user_id):
         conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
         if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}:
             messages.error(request, 'Selecciona un tipo de administrador válido.')
-            return redirect('socios:listar_admins')
+            return redirect('danzarines:listar_admins')
         if (rol == 'administrador_asociacion' and not asociacion) or (rol == 'administrador_conjunto' and (not asociacion or not conjunto)):
             messages.error(request, 'El tipo de administrador requiere un ámbito válido.')
-            return redirect('socios:listar_admins')
+            return redirect('danzarines:listar_admins')
         password = request.POST.get('password')
         if password:
             user.set_password(password)
@@ -740,8 +737,8 @@ def editar_admin(request, user_id):
             conjunto=conjunto,
         )
         messages.success(request, 'Administrador actualizado.')
-        return redirect('socios:listar_admins')
-    return redirect('socios:listar_admins')
+        return redirect('danzarines:listar_admins')
+    return redirect('danzarines:listar_admins')
 
 
 @login_required
@@ -753,45 +750,43 @@ def eliminar_admin(request, user_id):
         user.delete()
         registrar_auditoria(request.user, 'eliminacion_admin', f'Admin {username}')
         messages.success(request, 'Administrador eliminado.')
-        return redirect('socios:listar_admins')
-    return redirect('socios:listar_admins')
+        return redirect('danzarines:listar_admins')
+    return redirect('danzarines:listar_admins')
 
 
 @login_required
 def mis_souvenirs(request):
     try:
-        socio = request.user.socio_profile
-    except Socio.DoesNotExist:
-        messages.error(request, 'No se encontró perfil de socio.')
+        danzarin = request.user.danzarin_profile
+    except Danzarin.DoesNotExist:
+        messages.error(request, 'No se encontró perfil de danzarin.')
         return redirect('/')
-    entregas = socio.entregas_souvenir.select_related('souvenir', 'entregado_por').all()
+    entregas = danzarin.entregas_souvenir.select_related('souvenir', 'entregado_por').all()
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'socios/mis_souvenirs.html', {'page_obj': page_obj})
+    return render(request, 'danzarines/mis_souvenirs.html', {'page_obj': page_obj})
 
 
 @login_required
 @user_passes_test(can_register_members, login_url='/login/')
-def editar_socio(request, socio_id):
+def editar_danzarin(request, danzarin_id):
     if request.method != 'POST':
-        return redirect('socios:listar_socios')
+        return redirect('danzarines:listar_danzarines')
 
-    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    membresia = socio.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first() or socio.membresias.order_by('-fecha_ingreso').first()
-    socio.nombre = request.POST.get('nombre', '').strip()
-    socio.apellido_paterno = request.POST.get('apellido_paterno', '').strip()
-    socio.apellido_materno = request.POST.get('apellido_materno', '').strip()
-    socio.apellido = request.POST.get('apellido', '').strip() or f"{socio.apellido_paterno} {socio.apellido_materno}".strip()
-    socio.email = request.POST.get('email', '').strip()
-    socio.telefono = request.POST.get('telefono', '').strip()
-    socio.ciudad = request.POST.get('ciudad', '').strip()
-    socio.direccion = request.POST.get('direccion', '').strip()
-    socio.carnet_ci = request.POST.get('carnet_ci', '').strip()
-    socio.carnet_complemento = request.POST.get('carnet_complemento', '').strip()
-    socio.observacion = request.POST.get('observacion', '').strip()
-    socio.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
-    socio.sexo = request.POST.get('sexo', '').strip()
-    socio.modalidad = request.POST.get('modalidad', '').strip()
+    danzarin = get_object_or_404(scope_danzarines(Danzarin.objects.all(), request.user), id=danzarin_id)
+    membresia = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).first() or danzarin.membresias.order_by('-fecha_ingreso').first()
+    danzarin.nombre = request.POST.get('nombre', '').strip()
+    danzarin.apellido_paterno = request.POST.get('apellido_paterno', '').strip()
+    danzarin.apellido_materno = request.POST.get('apellido_materno', '').strip()
+    danzarin.email = request.POST.get('email', '').strip()
+    danzarin.telefono = request.POST.get('telefono', '').strip()
+    danzarin.ciudad = request.POST.get('ciudad', '').strip()
+    danzarin.direccion = request.POST.get('direccion', '').strip()
+    danzarin.carnet_ci = request.POST.get('carnet_ci', '').strip()
+    danzarin.carnet_complemento = request.POST.get('carnet_complemento', '').strip()
+    danzarin.observacion = request.POST.get('observacion', '').strip()
+    danzarin.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
+    danzarin.sexo = request.POST.get('sexo', '').strip()
     if membresia:
         role = get_role(request.user)
         conjunto = membresia.conjunto
@@ -803,50 +798,50 @@ def editar_socio(request, socio_id):
         bloque_id = request.POST.get('bloque_id')
         bloque = Bloque.objects.filter(pk=bloque_id, conjunto=conjunto, activo=True).first() if conjunto else None
         if not bloque:
-            messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos para el socio.')
-            return redirect('socios:listar_socios')
+            messages.error(request, 'Selecciona una asociación, conjunto y bloque válidos para el danzarin.')
+            return redirect('danzarines:listar_danzarines')
         membresia.asociacion = conjunto.asociacion
         membresia.conjunto = conjunto
         membresia.bloque = bloque
         membresia.save(update_fields=['asociacion', 'conjunto', 'bloque'])
-    socio.save()
-    registrar_auditoria(request.user, 'modificacion_socio', f'Socio {socio.pk} - {socio}', nuevo={'nombre': socio.nombre, 'email': socio.email})
-    messages.success(request, 'Datos del socio actualizados.')
-    return redirect('socios:listar_socios')
+    danzarin.save()
+    registrar_auditoria(request.user, 'modificacion_danzarin', f'Danzarin {danzarin.pk} - {danzarin}', nuevo={'nombre': danzarin.nombre, 'email': danzarin.email})
+    messages.success(request, 'Datos del danzarin actualizados.')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
 @user_passes_test(can_manage_member_states, login_url='/login/')
-def activar_socio(request, socio_id):
-    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    anteriores = list(socio.membresias.filter(estado__in=['suspendido', 'castigado']).values_list('id', flat=True))
-    socio.membresias.filter(estado__in=['suspendido', 'castigado']).update(estado='activo')
-    registrar_auditoria(request.user, 'activacion_membresia', f'Socio {socio.pk} - {socio}', anterior={'membresias': anteriores}, nuevo={'estado': 'activo'})
+def activar_danzarin(request, danzarin_id):
+    danzarin = get_object_or_404(scope_danzarines(Danzarin.objects.all(), request.user), id=danzarin_id)
+    anteriores = list(danzarin.membresias.filter(estado__in=['suspendido', 'castigado']).values_list('id', flat=True))
+    danzarin.membresias.filter(estado__in=['suspendido', 'castigado']).update(estado='activo')
+    registrar_auditoria(request.user, 'activacion_membresia', f'Danzarin {danzarin.pk} - {danzarin}', anterior={'membresias': anteriores}, nuevo={'estado': 'activo'})
     messages.success(request, 'Membresía activa.')
-    return redirect('socios:listar_socios')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
 @user_passes_test(can_manage_member_states, login_url='/login/')
-def desactivar_socio(request, socio_id):
-    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    anteriores = list(socio.membresias.values_list('id', flat=True))
-    socio.membresias.update(estado='baja')
-    registrar_auditoria(request.user, 'baja_membresia', f'Socio {socio.pk} - {socio}', anterior={'membresias': anteriores}, nuevo={'estado': 'baja'})
+def desactivar_danzarin(request, danzarin_id):
+    danzarin = get_object_or_404(scope_danzarines(Danzarin.objects.all(), request.user), id=danzarin_id)
+    anteriores = list(danzarin.membresias.values_list('id', flat=True))
+    danzarin.membresias.update(estado='baja')
+    registrar_auditoria(request.user, 'baja_membresia', f'Danzarin {danzarin.pk} - {danzarin}', anterior={'membresias': anteriores}, nuevo={'estado': 'baja'})
     messages.success(request, 'Membresía dada de baja.')
-    return redirect('socios:listar_socios')
+    return redirect('danzarines:listar_danzarines')
 
 
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
-def historial_souvenirs(request, socio_id):
-    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    entregas = socio.entregas_souvenir.select_related('souvenir', 'evento', 'entregado_por').order_by('-fecha_entrega')
+def historial_souvenirs(request, danzarin_id):
+    danzarin = get_object_or_404(scope_danzarines(Danzarin.objects.all(), request.user), id=danzarin_id)
+    entregas = danzarin.entregas_souvenir.select_related('souvenir', 'evento', 'entregado_por').order_by('-fecha_entrega')
     total_entregas = entregas.count()
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'socios/historial_souvenirs.html', {
-        'socio': socio,
+    return render(request, 'danzarines/historial_souvenirs.html', {
+        'danzarin': danzarin,
         'page_obj': page_obj,
         'total_entregas': total_entregas,
     })
@@ -854,15 +849,15 @@ def historial_souvenirs(request, socio_id):
 
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
-def eliminar_socio(request, socio_id):
-    socio = get_object_or_404(scope_socios(Socio.objects.all(), request.user), id=socio_id)
-    socio_info = f'Socio {socio.pk} - {socio}'
-    if getattr(socio, 'user', None):
-        socio.user.delete()
+def eliminar_danzarin(request, danzarin_id):
+    danzarin = get_object_or_404(scope_danzarines(Danzarin.objects.all(), request.user), id=danzarin_id)
+    danzarin_info = f'Danzarin {danzarin.pk} - {danzarin}'
+    if getattr(danzarin, 'user', None):
+        danzarin.user.delete()
     else:
-        socio.delete()
-    registrar_auditoria(request.user, 'eliminacion_socio', socio_info)
-    messages.success(request, 'Socio eliminado definitivamente.')
-    return redirect('socios:listar_socios')
+        danzarin.delete()
+    registrar_auditoria(request.user, 'eliminacion_danzarin', danzarin_info)
+    messages.success(request, 'Danzarin eliminado definitivamente.')
+    return redirect('danzarines:listar_danzarines')
 
 

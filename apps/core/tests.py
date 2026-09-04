@@ -34,15 +34,15 @@ class GestionRolesTests(TestCase):
 		})
 		self.assertFalse(User.objects.filter(username='sin-asociacion').exists())
 
-	def test_miembro_crea_socio_y_membresia(self):
+	def test_miembro_crea_danzarin_y_membresia(self):
 		self.client.post(reverse('core:registro'), {
 			'username': 'miembro', 'first_name': 'María', 'last_name': 'López',
 			'email': 'maria@example.com', 'password': 'secret123', 'password2': 'secret123',
 			'rol': 'miembro', 'asociacion_id': self.asociacion.pk, 'conjunto_id': self.conjunto.pk,
 		})
 		usuario = User.objects.get(username='miembro')
-		self.assertTrue(hasattr(usuario, 'socio_profile'))
-		self.assertTrue(usuario.socio_profile.membresias.filter(asociacion=self.asociacion, conjunto=self.conjunto).exists())
+		self.assertTrue(hasattr(usuario, 'danzarin_profile'))
+		self.assertTrue(usuario.danzarin_profile.membresias.filter(asociacion=self.asociacion, conjunto=self.conjunto).exists())
 
 	def test_administradores_tienen_acceso_al_dashboard(self):
 		administrador_asociacion = User.objects.create_user('admin-asoc', password='secret123', is_staff=True)

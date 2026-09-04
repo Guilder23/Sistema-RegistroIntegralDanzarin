@@ -1,0 +1,30 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block titulo %}Certificado de Danzarín{% endblock %}
+
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/danzarines/perfil.css' %}">
+{% endblock %}
+
+{% block contenido %}
+<main class="certificado-publico-page">
+  <section class="certificado-publico">
+    <img class="certificado-publico-fondo" src="{% static 'img/PlantillaCertificado.png' %}" alt="Plantilla de certificado">
+    <div class="certificado-publico-qr">
+      <img src="{{ certificado_qr_url }}" alt="Código QR de verificación">
+      <span>Verificar</span>
+    </div>
+    <div class="certificado-publico-datos">
+      <p>Se certifica a</p>
+      <h1>{{ danzarin.nombre }} {{ danzarin.apellido_paterno }} {{ danzarin.apellido_materno }}</h1>
+      {% if membresia %}
+      <p>Por su registro como danzarín en {{ membresia.asociacion.nombre }}.</p>
+      <p>{{ membresia.conjunto.nombre }}{% if membresia.bloque %} - {{ membresia.bloque.nombre }}{% endif %}</p>
+      {% endif %}
+      <strong>Código: {{ danzarin.codigo_danzarin|default:'No asignado' }}</strong>
+    </div>
+  </section>
+  <p class="certificado-publico-verificacion">Certificado verificable mediante este enlace.</p>
+</main>
+{% endblock %}

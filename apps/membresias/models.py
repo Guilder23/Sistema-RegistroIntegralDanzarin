@@ -1,3 +1,3 @@
-from apps.socios.models import Membresia
+from apps.danzarines.models import Membresia
 
 __all__ = ['Membresia']

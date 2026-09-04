@@ -13,31 +13,31 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h2 class="mb-1">Registrar entrega de souvenir</h2>
-                <p class="text-muted mb-0">Asigna un souvenir a un socio activo y registra la entrega.</p>
+                <p class="text-muted mb-0">Asigna un souvenir a un danzarín activo y registra la entrega.</p>
             </div>
             <a href="{% url 'souvenirs:listar_entregas' %}" class="btn btn-secondary">Historial</a>
         </div>
 
         <form method="post" id="formRegistrarEntrega">
             {% csrf_token %}
-            {{ socios_data|json_script:'sociosData' }}
+            {{ danzarines_data|json_script:'danzarinesData' }}
             <div class="form-group">
                 <label>Asociación</label>
                 {% if role == 'superadministrador' %}<select id="selectEntregaAsociacion" name="asociacion_id" class="form-control" required><option value="">Selecciona una asociación</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select>{% else %}<select id="selectEntregaAsociacion" name="asociacion_id" class="form-control" disabled><option value="{{ request.user.userprofile.asociacion_id }}">{{ request.user.userprofile.asociacion.nombre }}</option></select><input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">{% endif %}
             </div>
             <div class="form-group">
                 <label>Conjunto</label>
-                {% if role == 'administrador_conjunto' %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" disabled><option value="{{ request.user.userprofile.conjunto_id }}">{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% else %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" required><option value="">Selecciona un conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select>{% endif %}
+                {% if role == 'administrador_conjunto' %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" disabled><option value="{{ request.user.userprofile.conjunto_id }}" selected>{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% else %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" required><option value="">Selecciona un conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select>{% endif %}
             </div>
             <div class="form-group">
                 <label>Evento</label>
-                <select id="selectEvento" name="evento_id" class="form-control" required disabled><option value="">Selecciona asociación y conjunto primero</option>{% for evento in eventos %}<option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} - {{ evento.fecha_evento|date:'d/m/Y' }}</option>{% endfor %}</select>
+                <select id="selectEvento" name="evento_id" class="form-control" required disabled><option value="">Selecciona asociación y conjunto primero</option>{% for evento in eventos %}<option value="{{ evento.id }}" data-asociacion-id="{{ evento.asociacion_id }}" data-conjunto-id="{{ evento.conjunto_id|default:'' }}">{{ evento.nombre }} ({{ evento.fecha_inicio|date:'d/m/Y' }} - {{ evento.fecha_fin|date:'d/m/Y' }})</option>{% endfor %}</select>
             </div>
             <div class="form-group autocomplete-group">
-                <label>Socio</label>
-                <input id="socioSearch" type="text" class="form-control" placeholder="Busca por nombre o apellido" autocomplete="off" required>
-                <input id="socioId" type="hidden" name="socio_id">
-                <div id="socioSuggestions" class="autocomplete-suggestions"></div>
+                <label>Danzarín</label>
+                <input id="danzarinSearch" type="text" class="form-control" placeholder="Busca por nombre o apellido" autocomplete="off" required>
+                <input id="danzarinId" type="hidden" name="danzarin_id">
+                <div id="danzarinSuggestions" class="autocomplete-suggestions"></div>
             </div>
             <div class="form-group">
                 <label>Souvenir</label>

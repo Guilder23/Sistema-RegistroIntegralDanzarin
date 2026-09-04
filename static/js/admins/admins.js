@@ -67,7 +67,7 @@ function setupAdminModals() {
             const conjunto = button.getAttribute('data-conjunto') || '';
             const form = document.getElementById('formEditarAdmin');
             if (form) {
-                form.action = `/socios/admins/${id}/editar/`;
+                form.action = `/danzarines/admins/${id}/editar/`;
             }
             const usernameEl = document.getElementById('editarAdminUsername');
             const firstNameEl = document.getElementById('editarAdminFirstName');
@@ -92,7 +92,7 @@ function setupAdminModals() {
             const username = button.getAttribute('data-username') || '';
             const form = document.getElementById('formEliminarAdmin');
             if (form) {
-                form.action = `/socios/admins/${id}/eliminar/`;
+                form.action = `/danzarines/admins/${id}/eliminar/`;
             }
             const usernameEl = document.getElementById('eliminarAdminUsername');
             if (usernameEl) usernameEl.textContent = username;

@@ -1,5 +1,5 @@
 <div class="modal fade modal-editar-gestion" id="modalEditarEvento" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-socio-dialog" role="document">
+    <div class="modal-dialog modal-lg modal-danzarin-dialog" role="document">
         <div class="modal-content">
             <form id="formEditarEvento" method="post" action="">
                 {% csrf_token %}
@@ -21,34 +21,41 @@
                     <div class="form-row">
                         <div class="col-md-4 form-group">
                             <label for="editarEventoTipoAmbito">Crear para</label>
-                            <select id="editarEventoTipoAmbito" name="tipo_ambito" class="form-control" required>
-                                <option value="asociacion">Asociación</option>
-                                <option value="conjunto">Conjunto</option>
+                            <select id="editarEventoTipoAmbito" name="tipo_ambito" class="form-control" required {% if role == 'administrador_conjunto' %}disabled{% endif %}>
+                                {% if role == 'superadministrador' or role == 'administrador_asociacion' %}<option value="asociacion" {% if role == 'administrador_asociacion' %}selected{% endif %}>Asociación</option>{% endif %}
+                                <option value="conjunto" {% if role == 'administrador_conjunto' %}selected{% endif %}>Conjunto</option>
                             </select>
+                            {% if role == 'administrador_conjunto' %}<input type="hidden" name="tipo_ambito" value="conjunto">{% endif %}
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="editarEventoAsociacion">Asociación</label>
-                            <select id="editarEventoAsociacion" name="asociacion_id" class="form-control" required>
-                                <option value="">Selecciona una asociación</option>
+                            <select id="editarEventoAsociacion" name="asociacion_id" class="form-control" required {% if role != 'superadministrador' %}disabled{% endif %}>
+                                {% if role == 'superadministrador' %}<option value="">Selecciona una asociación</option>{% endif %}
                                 {% for asociacion in asociaciones %}
-                                <option value="{{ asociacion.pk }}">{{ asociacion.nombre }}</option>
+                                <option value="{{ asociacion.pk }}" {% if role != 'superadministrador' %}selected{% endif %}>{{ asociacion.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            {% if role != 'superadministrador' %}<input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">{% endif %}
                         </div>
                         <div class="col-md-4 form-group" id="editarEventoConjuntoGrupo" style="display: none;">
                             <label for="editarEventoConjunto">Conjunto</label>
-                            <select id="editarEventoConjunto" name="conjunto_id" class="form-control">
+                            <select id="editarEventoConjunto" name="conjunto_id" class="form-control" {% if role == 'administrador_conjunto' %}disabled{% endif %}>
                                 <option value="">Selecciona un conjunto</option>
                                 {% for conjunto in conjuntos %}
                                 <option value="{{ conjunto.pk }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            {% if role == 'administrador_conjunto' %}<input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% endif %}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="col-md-6 form-group">
-                            <label>Fecha del evento</label>
-                            <input id="editarEventoFecha" type="date" name="fecha_evento" class="form-control" required>
+                        <div class="col-md-3 form-group">
+                            <label>Fecha de inicio</label>
+                            <input id="editarEventoFechaInicio" type="date" name="fecha_inicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Fecha de fin</label>
+                            <input id="editarEventoFechaFin" type="date" name="fecha_fin" class="form-control" required>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Lugar</label>

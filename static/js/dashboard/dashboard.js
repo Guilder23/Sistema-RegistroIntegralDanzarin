@@ -27,7 +27,6 @@ function initDashboardCharts() {
     const paletaSexo = ['#2563eb', '#ec4899', '#94a3b8'];
     const paletaEstados = ['#10b981', '#f59e0b', '#ef4444', '#64748b'];
     const paletaEdades = ['#06b6d4', '#3b82f6', '#8b5cf6', '#f97316'];
-    const paletaModalidades = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#f97316', '#64748b'];
 
     const opcionesComunes = {
         responsive: true,
@@ -170,32 +169,7 @@ function initDashboardCharts() {
         });
     }
 
-    // 6. Gráfico de Área Polar: Modalidades
-    const elModalidades = document.getElementById('graficoModalidades');
-    if (elModalidades && datos.modalidades) {
-        new Chart(elModalidades, {
-            type: 'polarArea',
-            data: {
-                labels: datos.modalidades.labels,
-                datasets: [{
-                    data: datos.modalidades.data,
-                    backgroundColor: paletaModalidades.map(c => c + 'cc'),
-                    borderColor: '#ffffff',
-                    borderWidth: 1.5,
-                }],
-            },
-            options: Object.assign({}, opcionesComunes, {
-                scales: {
-                    r: {
-                        ticks: { precision: 0, backdropColor: 'transparent' },
-                        grid: { color: '#e2e8f0' },
-                    },
-                },
-            }),
-        });
-    }
-
-    // 7. Gráfico de Línea: Tendencia de Inscripciones
+    // 6. Gráfico de Línea: Tendencia de Inscripciones
     const elTendencia = document.getElementById('graficoTendencia');
     if (elTendencia && datos.tendencia) {
         const ctx = elTendencia.getContext('2d');
@@ -208,7 +182,7 @@ function initDashboardCharts() {
             data: {
                 labels: datos.tendencia.labels,
                 datasets: [{
-                    label: 'Nuevos Socios Registrados',
+                    label: 'Nuevos Danzarines Registrados',
                     data: datos.tendencia.data,
                     borderColor: '#2563eb',
                     backgroundColor: gradient,

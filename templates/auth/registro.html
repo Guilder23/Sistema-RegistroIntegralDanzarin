@@ -59,7 +59,7 @@
                         <td>{{ u.username }}</td>
                         <td>{{ u.get_full_name|default:'-' }}</td>
                         <td>{{ u.email|default:'-' }}</td>
-                        <td>{{ u.userprofile.get_rol_display|default:'Miembro / Socio' }}</td>
+                        <td>{{ u.userprofile.get_rol_display|default:'Miembro / Danzarín' }}</td>
                         <td>
                             {% if u.is_active %}
                             <span class="badge-estado badge-estado-activo">Activo</span>
@@ -177,7 +177,7 @@
                             </div>
                         </div>
                         <div class="form-row mt-3">
-                            <div class="col-md-4 form-group"><label>Rol</label><select class="form-control" name="rol"><option value="miembro">Miembro / Socio</option><option value="administrador_conjunto">Administrador de Conjunto</option><option value="administrador_asociacion">Administrador de Asociación</option><option value="superadministrador">Superadministrador</option></select></div>
+                            <div class="col-md-4 form-group"><label>Rol</label><select class="form-control" name="rol"><option value="miembro">Miembro / Danzarín</option><option value="administrador_conjunto">Administrador de Conjunto</option><option value="administrador_asociacion">Administrador de Asociación</option><option value="superadministrador">Superadministrador</option></select></div>
                             <div class="col-md-4 form-group"><label>Asociación</label><select class="form-control" name="asociacion_id"><option value="">Sin asociación</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
                             <div class="col-md-4 form-group"><label>Conjunto</label><select class="form-control" name="conjunto_id"><option value="">Sin conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}">{{ conjunto.asociacion.nombre }} / {{ conjunto.nombre }}</option>{% endfor %}</select></div>
                         </div>
@@ -244,7 +244,7 @@
                             <input type="email" name="email" id="editUsuarioEmail" class="form-control">
                         </div>
                         <div class="form-row mb-3">
-                            <div class="form-group col-md-4"><label>Rol</label><select class="form-control" name="rol" id="editUsuarioRol"><option value="miembro">Miembro / Socio</option><option value="administrador_conjunto">Administrador de Conjunto</option><option value="administrador_asociacion">Administrador de Asociación</option><option value="superadministrador">Superadministrador</option></select></div>
+                            <div class="form-group col-md-4"><label>Rol</label><select class="form-control" name="rol" id="editUsuarioRol"><option value="miembro">Miembro / Danzarín</option><option value="administrador_conjunto">Administrador de Conjunto</option><option value="administrador_asociacion">Administrador de Asociación</option><option value="superadministrador">Superadministrador</option></select></div>
                             <div class="form-group col-md-4"><label>Asociación</label><select class="form-control" name="asociacion_id" id="editUsuarioAsociacion"><option value="">Sin asociación</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}">{{ asociacion.nombre }}</option>{% endfor %}</select></div>
                             <div class="form-group col-md-4"><label>Conjunto</label><select class="form-control" name="conjunto_id" id="editUsuarioConjunto"><option value="">Sin conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}">{{ conjunto.asociacion.nombre }} / {{ conjunto.nombre }}</option>{% endfor %}</select></div>
                         </div>
