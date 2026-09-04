@@ -14,6 +14,12 @@ class SouvenirEntrega(models.Model):
         verbose_name = 'Entrega de souvenir'
         verbose_name_plural = 'Entregas de souvenirs'
         ordering = ['-fecha_entrega']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['danzarin', 'evento'],
+                name='unique_entrega_danzarin_evento',
+            ),
+        ]
 
     def __str__(self):
         evento_text = self.evento.nombre if self.evento else 'Sin evento'

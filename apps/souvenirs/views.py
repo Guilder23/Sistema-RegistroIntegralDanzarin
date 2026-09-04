@@ -63,13 +63,13 @@ def registrar_entrega(request):
             messages.error(request, 'Selecciona un danzarin válido.')
             return redirect('souvenirs:registrar_entrega')
 
-        evento = evento_valido(evento_id, asociacion, conjunto)
+        evento = evento_valido_entrega(evento_id, asociacion, conjunto)
         if not evento:
             messages.error(request, 'Selecciona un evento válido.')
             return redirect('souvenirs:registrar_entrega')
 
         if SouvenirEntrega.objects.filter(danzarin=danzarin, evento=evento).exists():
-            messages.warning(request, 'Este danzarín ya registró una entrega para el evento seleccionado.')
+            messages.warning(request, 'Este danzarín ya recibió un souvenir en el evento seleccionado.')
             return redirect('souvenirs:listar_entregas')
 
         souvenir = souvenirs_scope(request.user).filter(id=souvenir_id, activo=True, evento=evento, asociacion=asociacion).filter(Q(conjunto=conjunto) | Q(conjunto__isnull=True)).first()
@@ -269,7 +269,7 @@ def crear_souvenir(request):
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def editar_souvenir(request, pk):
-    s = get_object_or_404(souvenirs_scope(request.user), pk=pk)
+    s = get_object_or_404(souvenirs_editable_scope(request.user), pk=pk)
     if request.method == 'POST':
         anterior = {'nombre': s.nombre, 'stock': s.stock}
         s.nombre = request.POST.get('nombre', s.nombre).strip()
@@ -315,7 +315,7 @@ def ver_souvenir(request, pk):
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def eliminar_souvenir(request, pk):
-    s = get_object_or_404(souvenirs_scope(request.user), pk=pk)
+    s = get_object_or_404(souvenirs_editable_scope(request.user), pk=pk)
     if request.method == 'POST':
         if s.entregas.exists():
             messages.error(request, 'No se puede eliminar un souvenir asignado a un danzarín. Puedes cambiar su estado a inactivo.')
@@ -339,7 +339,7 @@ def eliminar_souvenir(request, pk):
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def cambiar_estado_souvenir(request, pk):
-    souvenir = get_object_or_404(souvenirs_scope(request.user), pk=pk)
+    souvenir = get_object_or_404(souvenirs_editable_scope(request.user), pk=pk)
     if request.method == 'POST':
         souvenir.activo = not souvenir.activo
         souvenir.save(update_fields=['activo'])
@@ -362,8 +362,18 @@ def souvenirs_scope(user):
     if role == 'administrador_asociacion':
         return queryset.filter(asociacion_id=user.userprofile.asociacion_id)
     if role == 'administrador_conjunto':
-        return queryset.filter(conjunto_id=user.userprofile.conjunto_id)
+        return queryset.filter(
+            Q(asociacion_id=user.userprofile.asociacion_id, conjunto__isnull=True)
+            | Q(conjunto_id=user.userprofile.conjunto_id)
+        )
     return queryset
+
+
+def souvenirs_editable_scope(user):
+    role = get_role(user)
+    if role == 'administrador_conjunto':
+        return Souvenir.objects.filter(conjunto_id=user.userprofile.conjunto_id)
+    return souvenirs_scope(user)
 
 
 def opciones_souvenirs(user):
@@ -378,7 +388,10 @@ def opciones_souvenirs(user):
     elif role == 'administrador_conjunto':
         asociaciones = asociaciones.filter(pk=user.userprofile.asociacion_id)
         conjuntos = conjuntos.filter(pk=user.userprofile.conjunto_id)
-        eventos = eventos.filter(conjunto_id=user.userprofile.conjunto_id)
+        eventos = eventos.filter(
+            Q(asociacion_id=user.userprofile.asociacion_id, conjunto__isnull=True)
+            | Q(conjunto_id=user.userprofile.conjunto_id)
+        )
     return asociaciones, conjuntos, eventos.order_by('-fecha_inicio')
 
 
@@ -407,4 +420,15 @@ def evento_valido(evento_id, asociacion, conjunto):
     else:
         eventos = eventos.filter(conjunto__isnull=True)
     return eventos.first()
+
+
+def evento_valido_entrega(evento_id, asociacion, conjunto):
+    """Valida eventos de asociación o del conjunto elegido para una entrega."""
+    if not asociacion or not evento_id:
+        return None
+    return Evento.objects.filter(
+        pk=evento_id,
+        activo=True,
+        asociacion=asociacion,
+    ).filter(Q(conjunto__isnull=True) | Q(conjunto=conjunto)).first()
 

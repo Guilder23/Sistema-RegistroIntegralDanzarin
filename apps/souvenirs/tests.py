@@ -66,6 +66,39 @@ class EntregaSouvenirScopeTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(SouvenirEntrega.objects.filter(danzarin=self.danzarin, evento=self.evento).exists())
 
+    def test_danzarin_solo_recibe_un_souvenir_por_evento(self):
+        self.client.force_login(self.admin)
+        datos = self.datos_entrega(self.evento, self.souvenir)
+
+        primera = self.client.post(reverse('souvenirs:registrar_entrega'), datos)
+        segunda = self.client.post(reverse('souvenirs:registrar_entrega'), datos)
+
+        self.assertEqual(primera.status_code, 302)
+        self.assertEqual(segunda.status_code, 302)
+        self.assertEqual(
+            SouvenirEntrega.objects.filter(danzarin=self.danzarin, evento=self.evento).count(),
+            1,
+        )
+
+    def test_admin_conjunto_puede_entregar_souvenir_de_evento_de_asociacion(self):
+        evento_asociacion = Evento.objects.create(
+            nombre='Evento Asociación', fecha_inicio=date(2026, 9, 3),
+            fecha_fin=date(2026, 9, 3), asociacion=self.asociacion,
+        )
+        souvenir_asociacion = Souvenir.objects.create(
+            nombre='Souvenir Asociación', asociacion=self.asociacion,
+            evento=evento_asociacion, stock=2,
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse('souvenirs:registrar_entrega'),
+            self.datos_entrega(evento_asociacion, souvenir_asociacion),
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(SouvenirEntrega.objects.filter(evento=evento_asociacion).exists())
+
     def test_admin_conjunto_no_puede_usar_evento_de_otro_conjunto(self):
         self.client.force_login(self.admin)
 
@@ -90,7 +123,7 @@ class EntregaSouvenirScopeTests(TestCase):
         self.assertContains(response, self.conjunto.nombre)
         self.assertContains(response, self.evento.nombre)
         self.assertNotContains(response, self.otro_evento.nombre)
-        self.assertNotContains(response, evento_asociacion.nombre)
+        self.assertContains(response, evento_asociacion.nombre)
 
     def test_admin_conjunto_solo_puede_ver_souvenir_de_asociacion(self):
         evento_asociacion = Evento.objects.create(

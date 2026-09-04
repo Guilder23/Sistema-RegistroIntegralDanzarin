@@ -27,7 +27,7 @@
             </div>
             <div class="form-group">
                 <label>Conjunto</label>
-                {% if role == 'administrador_conjunto' %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" disabled><option value="{{ request.user.userprofile.conjunto_id }}">{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% else %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" required><option value="">Selecciona un conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select>{% endif %}
+                {% if role == 'administrador_conjunto' %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" disabled><option value="{{ request.user.userprofile.conjunto_id }}" selected>{{ request.user.userprofile.conjunto.nombre }}</option></select><input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% else %}<select id="selectEntregaConjunto" name="conjunto_id" class="form-control" required><option value="">Selecciona un conjunto</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>{% endfor %}</select>{% endif %}
             </div>
             <div class="form-group">
                 <label>Evento</label>
