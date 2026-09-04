@@ -32,9 +32,66 @@ class RolesEventosTests(TestCase):
 
     def test_administrador_asociacion_puede_crear_eventos_de_su_asociacion(self):
         self.client.force_login(self.usuario('asociacion', 'administrador_asociacion'))
-        response = self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        datos = self.datos_evento() | {'tipo_ambito': 'asociacion', 'conjunto_id': ''}
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Evento.objects.filter(asociacion=self.asociacion).exists())
+
+    def test_administrador_asociacion_puede_crear_evento_para_un_conjunto_suyo(self):
+        self.client.force_login(self.usuario('asociacion-conjunto', 'administrador_asociacion'))
+        datos = self.datos_evento() | {'tipo_ambito': 'conjunto'}
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evento.objects.get().conjunto, self.conjunto)
+
+    def test_administrador_conjunto_no_puede_crear_evento_para_asociacion(self):
+        self.client.force_login(self.usuario('conjunto-asociacion', 'administrador_conjunto'))
+        datos = self.datos_evento() | {'tipo_ambito': 'asociacion', 'conjunto_id': ''}
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Evento.objects.exists())
+
+    def test_conjunto_ve_eventos_de_su_asociacion_y_suyo_propio(self):
+        administrador = self.usuario('conjunto-visualizador', 'administrador_conjunto')
+        otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Otro Conjunto')
+        otra_asociacion = Asociacion.objects.create(nombre='Otra Asociacion')
+
+        Evento.objects.create(
+            nombre='Evento Asociación',
+            fecha_inicio='2026-09-01',
+            fecha_fin='2026-09-02',
+            asociacion=self.asociacion,
+        )
+        Evento.objects.create(
+            nombre='Evento Propio',
+            fecha_inicio='2026-09-03',
+            fecha_fin='2026-09-04',
+            asociacion=self.asociacion,
+            conjunto=self.conjunto,
+        )
+        Evento.objects.create(
+            nombre='Evento Otro Conjunto',
+            fecha_inicio='2026-09-05',
+            fecha_fin='2026-09-06',
+            asociacion=self.asociacion,
+            conjunto=otro_conjunto,
+        )
+        Evento.objects.create(
+            nombre='Evento Otra Asociación',
+            fecha_inicio='2026-09-07',
+            fecha_fin='2026-09-08',
+            asociacion=otra_asociacion,
+        )
+
+        self.client.force_login(administrador)
+        response = self.client.get(reverse('eventos:listar_eventos'))
+        nombres = [evento.nombre for evento in response.context['page_obj'].object_list]
+
+        self.assertEqual(nombres, ['Evento Propio', 'Evento Asociación'])
 
     def test_conjunto_puede_crear_eventos_y_miembro_no(self):
         self.client.force_login(self.usuario('conjunto', 'administrador_conjunto'))

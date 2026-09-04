@@ -21,11 +21,11 @@
                     <div class="form-row">
                         <div class="col-md-4 form-group">
                             <label for="crearEventoTipoAmbito">Crear para</label>
-                            <select id="crearEventoTipoAmbito" name="tipo_ambito" class="form-control" required {% if role != 'superadministrador' %}disabled{% endif %}>
-                                {% if role == 'superadministrador' %}<option value="asociacion">Asociación</option>{% endif %}
-                                <option value="conjunto" {% if role != 'superadministrador' %}selected{% endif %}>Conjunto</option>
+                            <select id="crearEventoTipoAmbito" name="tipo_ambito" class="form-control" required {% if role == 'administrador_conjunto' %}disabled{% endif %}>
+                                {% if role == 'superadministrador' or role == 'administrador_asociacion' %}<option value="asociacion" {% if role == 'administrador_asociacion' %}selected{% endif %}>Asociación</option>{% endif %}
+                                <option value="conjunto" {% if role == 'administrador_conjunto' %}selected{% endif %}>Conjunto</option>
                             </select>
-                            {% if role != 'superadministrador' %}<input type="hidden" name="tipo_ambito" value="conjunto">{% endif %}
+                            {% if role == 'administrador_conjunto' %}<input type="hidden" name="tipo_ambito" value="conjunto">{% endif %}
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="crearEventoAsociacion">Asociación</label>
@@ -37,7 +37,7 @@
                             </select>
                             {% if role != 'superadministrador' %}<input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">{% endif %}
                         </div>
-                        <div class="col-md-4 form-group" id="crearEventoConjuntoGrupo" style="display: {% if role == 'superadministrador' %}none{% else %}block{% endif %};">
+                        <div class="col-md-4 form-group" id="crearEventoConjuntoGrupo" style="display: {% if role == 'administrador_conjunto' %}block{% elif role == 'administrador_asociacion' %}none{% else %}none{% endif %};">
                             <label for="crearEventoConjunto">Conjunto</label>
                             <select id="crearEventoConjunto" name="conjunto_id" class="form-control" {% if role == 'administrador_conjunto' %}disabled{% endif %}>
                                 <option value="">Selecciona un conjunto</option>

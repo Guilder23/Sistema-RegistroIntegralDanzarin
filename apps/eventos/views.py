@@ -40,11 +40,14 @@ def obtener_ambito_evento(request):
     if not asociacion:
         return None, None
 
+    if role == 'administrador_conjunto' and request.POST.get('tipo_ambito') != 'conjunto':
+        return None, None
+
     if role == 'administrador_conjunto':
         conjunto = getattr(request.user.userprofile, 'conjunto', None)
         if not conjunto or conjunto.asociacion_id != asociacion.pk or not conjunto.activo:
             return None, None
-    elif role == 'administrador_asociacion':
+    elif role == 'administrador_asociacion' and request.POST.get('tipo_ambito') == 'conjunto':
         conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first()
         if not conjunto:
             return None, None
@@ -65,7 +68,16 @@ def obtener_ambito_evento(request):
 def listar_eventos(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
-    eventos = scope_filter(Evento.objects.order_by('-fecha_inicio'), request.user)
+    role = get_role(request.user)
+    eventos = Evento.objects.order_by('-fecha_inicio')
+    if role == 'administrador_conjunto':
+        profile = request.user.userprofile
+        eventos = eventos.filter(
+            Q(asociacion_id=profile.asociacion_id, conjunto__isnull=True)
+            | Q(conjunto_id=profile.conjunto_id)
+        )
+    else:
+        eventos = scope_filter(eventos, request.user)
 
     if q:
         eventos = eventos.filter(
@@ -84,7 +96,7 @@ def listar_eventos(request):
     asociaciones, conjuntos = opciones_ambito_evento(request.user)
     return render(request, 'eventos/eventos.html', {
         'page_obj': page_obj,
-        'role': get_role(request.user),
+        'role': role,
         'q': q,
         'activo': activo,
         'asociaciones': asociaciones,
@@ -112,7 +124,7 @@ def crear_evento(request):
 
         asociacion, conjunto = obtener_ambito_evento(request)
         if not asociacion:
-            messages.error(request, 'Selecciona un conjunto válido para el evento.')
+            messages.error(request, 'Selecciona un ámbito válido para el evento.')
             return redirect('eventos:listar_eventos')
 
         evento = Evento.objects.create(
@@ -155,7 +167,7 @@ def editar_evento(request, pk):
 
         asociacion, conjunto = obtener_ambito_evento(request)
         if not asociacion:
-            messages.error(request, 'Selecciona un conjunto válido para el evento.')
+            messages.error(request, 'Selecciona un ámbito válido para el evento.')
             return redirect('eventos:listar_eventos')
         evento.asociacion = asociacion
         evento.conjunto = conjunto
