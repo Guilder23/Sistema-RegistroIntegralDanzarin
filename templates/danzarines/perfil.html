@@ -193,25 +193,25 @@
         <table class="table table-hover mb-0">
           <thead>
             <tr>
-              <th>Fecha</th>
+              <th>Entrega</th>
+              <th>Evento</th>
+              <th>Ámbito</th>
+              <th>Fechas del evento</th>
+              <th>Souvenir</th>
               <th>Entregado por</th>
               <th>Observación</th>
-              <th>Certificado</th>
             </tr>
           </thead>
           <tbody>
             {% for e in page_obj.object_list %}
             <tr>
               <td>{{ e.fecha_entrega|date:'j \d\e F \d\e Y' }}</td>
-              <td>{% if e.entregado_por %}{{ e.entregado_por.get_full_name }}{% else %}-{% endif %}</td>
+              <td>{% if e.evento %}{{ e.evento.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.evento.conjunto %}{{ e.evento.asociacion.nombre }} / {{ e.evento.conjunto.nombre }}{% elif e.evento %}{{ e.evento.asociacion.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.evento %}{{ e.evento.fecha_inicio|date:'d/m/Y' }} al {{ e.evento.fecha_fin|date:'d/m/Y' }}{% else %}-{% endif %}</td>
+              <td>{% if e.souvenir %}{{ e.souvenir.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.entregado_por %}{{ e.entregado_por.get_full_name|default:e.entregado_por.username }}{% else %}Sistema{% endif %}</td>
               <td>{{ e.observacion|default:'Sin observación' }}</td>
-              <td>
-                {% if e.souvenir %}
-                <a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado">
-                  <i class="fas fa-download"></i> Descargar
-                </a>
-                {% else %}-{% endif %}
-              </td>
             </tr>
             {% endfor %}
           </tbody>
@@ -232,6 +232,34 @@
       {% endif %}
     {% else %}
       <div class="alert alert-light mb-0">No hay entregas registradas.</div>
+    {% endif %}
+  </div>
+
+  <div class="perfil-entregas-card mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h3>Certificados</h3>
+        <p class="perfil-legend">Disponible desde el día siguiente a la fecha fin del evento.</p>
+      </div>
+    </div>
+    {% if page_obj.object_list %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead><tr><th>Evento</th><th>Habilitado desde</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody>
+            {% for e in page_obj.object_list %}
+            <tr>
+              <td>{% if e.evento %}{{ e.evento.nombre }}{% else %}-{% endif %}</td>
+              <td>{% if e.fecha_certificado %}{{ e.fecha_certificado|date:'j \d\e F \d\e Y' }}{% else %}-{% endif %}</td>
+              <td>{% if e.certificado_disponible %}Disponible{% else %}Pendiente{% endif %}</td>
+              <td>{% if e.certificado_disponible and e.souvenir %}<a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado"><i class="fas fa-download"></i> Descargar</a>{% else %}<button type="button" class="btn btn-sm btn-secondary" disabled title="Disponible desde el día siguiente a la fecha fin"><i class="fas fa-lock"></i> Pendiente</button>{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="alert alert-light mb-0">No hay certificados disponibles.</div>
     {% endif %}
   </div>
 </div>

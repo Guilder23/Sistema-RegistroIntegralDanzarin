@@ -1,8 +1,10 @@
 from datetime import date
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.core.models import Asociacion, Conjunto
 from apps.eventos.models import Evento
@@ -263,3 +265,35 @@ class GestionSouvenirAmbitoTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertEqual(Souvenir.objects.filter(evento=self.evento_asociacion).count(), 1)
+
+    def test_certificado_se_habilita_despues_de_fecha_fin(self):
+        evento_futuro = Evento.objects.create(
+            nombre='Evento Futuro',
+            fecha_inicio=timezone.localdate(),
+            fecha_fin=timezone.localdate(),
+            asociacion=self.asociacion,
+        )
+        souvenir = Souvenir.objects.create(
+            nombre='Souvenir Futuro', asociacion=self.asociacion, evento=evento_futuro,
+        )
+        danzarin_user = User.objects.create_user('danzarin-certificado', password='secret123')
+        danzarin = Danzarin.objects.create(
+            user=danzarin_user, nombre='Danzarin Certificado', email='certificado@example.com',
+        )
+        entrega = SouvenirEntrega.objects.create(
+            danzarin=danzarin, evento=evento_futuro, souvenir=souvenir, entregado_por=self.admin,
+        )
+
+        self.client.force_login(danzarin_user)
+        response = self.client.get(
+            reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk])
+        )
+
+        self.assertEqual(response.status_code, 404)
+
+        evento_futuro.fecha_fin = timezone.localdate() - timedelta(days=1)
+        evento_futuro.save(update_fields=['fecha_fin'])
+        response = self.client.get(
+            reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk])
+        )
+        self.assertEqual(response.status_code, 200)

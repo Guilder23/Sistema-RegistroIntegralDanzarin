@@ -5,6 +5,7 @@ from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models import Prefetch
 from django.http import Http404, HttpResponse
+from django.utils import timezone
 from django.contrib.staticfiles import finders
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -137,6 +138,8 @@ def descargar_certificado_entrega(request, pk):
         pk=pk,
     )
     if entrega.danzarin.user_id != request.user.id or not entrega.souvenir:
+        raise Http404
+    if not entrega.evento or timezone.localdate() <= entrega.evento.fecha_fin:
         raise Http404
 
     plantilla = finders.find('img/PlantillaCertificado.png')

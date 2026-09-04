@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from .models import Danzarin, Membresia
 from .models import UserProfile
@@ -18,7 +19,7 @@ import openpyxl
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
-from datetime import datetime
+from datetime import datetime, timedelta
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
@@ -184,6 +185,15 @@ def perfil_danzarin(request):
         danzarin = None
 
     entregas = danzarin.entregas_souvenir.select_related('entregado_por', 'souvenir', 'evento').all() if danzarin else []
+    fecha_hoy = timezone.localdate()
+    for entrega in entregas:
+        entrega.certificado_disponible = bool(
+            entrega.evento and fecha_hoy > entrega.evento.fecha_fin
+        )
+        entrega.fecha_certificado = (
+            entrega.evento.fecha_fin + timedelta(days=1)
+            if entrega.evento else None
+        )
     membresia_principal = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if danzarin else None
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
