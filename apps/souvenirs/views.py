@@ -375,7 +375,7 @@ def opciones_souvenirs(user):
         asociaciones = asociaciones.filter(pk=user.userprofile.asociacion_id)
         conjuntos = conjuntos.filter(pk=user.userprofile.conjunto_id)
         eventos = eventos.filter(asociacion_id=user.userprofile.asociacion_id).filter(Q(conjunto__isnull=True) | Q(conjunto_id=user.userprofile.conjunto_id))
-    return asociaciones, conjuntos, eventos.order_by('-fecha_evento')
+    return asociaciones, conjuntos, eventos.order_by('-fecha_inicio')
 
 
 def ambito_souvenir(request, existing=None):

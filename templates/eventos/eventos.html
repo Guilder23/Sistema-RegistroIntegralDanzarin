@@ -50,7 +50,8 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Creado para</th>
-                        <th>Fecha</th>
+                        <th>Fecha de inicio</th>
+                        <th>Fecha de fin</th>
                         <th>Lugar</th>
                         <th>Estado</th>
                         <th class="text-center">Acciones</th>
@@ -61,7 +62,8 @@
                     <tr>
                         <td>{{ evento.nombre }}</td>
                         <td>{% if evento.conjunto %}Conjunto: {{ evento.conjunto.nombre }}{% else %}Asociación: {{ evento.asociacion.nombre }}{% endif %}</td>
-                        <td>{{ evento.fecha_evento|date:'d/m/Y' }}</td>
+                        <td>{{ evento.fecha_inicio|date:'d/m/Y' }}</td>
+                        <td>{{ evento.fecha_fin|date:'d/m/Y' }}</td>
                         <td>{{ evento.lugar|default:'-' }}</td>
                         <td>
                             <span class="badge-estado {% if evento.activo %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
@@ -72,7 +74,8 @@
                             <button type="button" class="btn btn-info btn-sm btn-ver-evento" data-toggle="modal" data-target="#modalVerEvento"
                                 data-nombre="{{ evento.nombre|escapejs }}"
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
-                                data-fecha="{{ evento.fecha_evento|date:'d/m/Y' }}"
+                                data-fecha-inicio="{{ evento.fecha_inicio|date:'d/m/Y' }}"
+                                data-fecha-fin="{{ evento.fecha_fin|date:'d/m/Y' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
                                 data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
                                 data-asociacion-id="{{ evento.asociacion_id }}"
@@ -88,7 +91,8 @@
                                 data-id="{{ evento.pk }}"
                                 data-nombre="{{ evento.nombre|escapejs }}"
                                 data-descripcion="{{ evento.descripcion|escapejs }}"
-                                data-fecha="{{ evento.fecha_evento|date:'Y-m-d' }}"
+                                data-fecha-inicio="{{ evento.fecha_inicio|date:'Y-m-d' }}"
+                                data-fecha-fin="{{ evento.fecha_fin|date:'Y-m-d' }}"
                                 data-lugar="{{ evento.lugar|escapejs }}"
                                 data-tipo-ambito="{% if evento.conjunto %}conjunto{% else %}asociacion{% endif %}"
                                 data-asociacion-id="{{ evento.asociacion_id }}"
@@ -112,7 +116,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="text-center py-4">No hay eventos registrados.</td></tr>
+                    <tr><td colspan="7" class="text-center py-4">No hay eventos registrados.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

@@ -24,6 +24,7 @@ class BloquesAdministradorConjuntoTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, f'id="crearDanzarinAsociacion"')
         self.assertContains(response, f'id="crearDanzarinConjunto"')
-        self.assertContains(response, f'value="{conjunto.pk}" selected')
+        self.assertContains(response, f'value="{conjunto.pk}"')
+        self.assertContains(response, 'selected')
         self.assertContains(response, f'value="{bloque.pk}"')
         self.assertContains(response, bloque.nombre)

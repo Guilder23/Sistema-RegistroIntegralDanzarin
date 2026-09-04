@@ -20,7 +20,15 @@ class RolesEventosTests(TestCase):
         return user
 
     def datos_evento(self):
-        return {'nombre': 'Ensayo general', 'fecha_evento': '2026-09-01', 'activo': 'on'}
+        return {
+            'nombre': 'Ensayo general',
+            'fecha_inicio': '2026-09-01',
+            'fecha_fin': '2026-09-01',
+            'activo': 'on',
+            'tipo_ambito': 'conjunto',
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': self.conjunto.pk,
+        }
 
     def test_administrador_asociacion_puede_crear_eventos_de_su_asociacion(self):
         self.client.force_login(self.usuario('asociacion', 'administrador_asociacion'))
@@ -28,12 +36,14 @@ class RolesEventosTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Evento.objects.filter(asociacion=self.asociacion).exists())
 
-    def test_conjunto_y_miembro_no_pueden_crear_eventos(self):
+    def test_conjunto_puede_crear_eventos_y_miembro_no(self):
         self.client.force_login(self.usuario('conjunto', 'administrador_conjunto'))
-        self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        response = self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Evento.objects.count(), 1)
         self.client.force_login(self.usuario('miembro', 'miembro'))
         self.client.post(reverse('eventos:crear_evento'), self.datos_evento())
-        self.assertEqual(Evento.objects.count(), 0)
+        self.assertEqual(Evento.objects.count(), 1)
 
     def test_superadministrador_puede_crear_evento_para_asociacion(self):
         self.client.force_login(self.usuario('superadmin', 'superadministrador'))
@@ -49,6 +59,36 @@ class RolesEventosTests(TestCase):
         self.assertEqual(evento.asociacion, self.asociacion)
         self.assertIsNone(evento.conjunto)
         self.assertEqual(evento.creado_por.username, 'superadmin')
+
+    def test_evento_guarda_fecha_de_inicio_y_fecha_fin(self):
+        self.client.force_login(self.usuario('asociacion-rango', 'administrador_asociacion'))
+        datos = self.datos_evento() | {
+            'fecha_inicio': '2026-09-01',
+            'fecha_fin': '2026-09-05',
+            'tipo_ambito': 'asociacion',
+            'asociacion_id': self.asociacion.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        evento = Evento.objects.get()
+        self.assertEqual(str(evento.fecha_inicio), '2026-09-01')
+        self.assertEqual(str(evento.fecha_fin), '2026-09-05')
+
+    def test_no_permite_fecha_fin_anterior_al_inicio(self):
+        self.client.force_login(self.usuario('asociacion-fecha-invalida', 'administrador_asociacion'))
+        datos = self.datos_evento() | {
+            'fecha_inicio': '2026-09-05',
+            'fecha_fin': '2026-09-01',
+            'tipo_ambito': 'asociacion',
+            'asociacion_id': self.asociacion.pk,
+        }
+
+        response = self.client.post(reverse('eventos:crear_evento'), datos)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(Evento.objects.exists())
 
     def test_superadministrador_puede_crear_evento_para_conjunto(self):
         self.client.force_login(self.usuario('superadmin-conjunto', 'superadministrador'))

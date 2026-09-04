@@ -21,34 +21,41 @@
                     <div class="form-row">
                         <div class="col-md-4 form-group">
                             <label for="crearEventoTipoAmbito">Crear para</label>
-                            <select id="crearEventoTipoAmbito" name="tipo_ambito" class="form-control" required>
-                                <option value="asociacion">Asociación</option>
-                                <option value="conjunto">Conjunto</option>
+                            <select id="crearEventoTipoAmbito" name="tipo_ambito" class="form-control" required {% if role != 'superadministrador' %}disabled{% endif %}>
+                                {% if role == 'superadministrador' %}<option value="asociacion">Asociación</option>{% endif %}
+                                <option value="conjunto" {% if role != 'superadministrador' %}selected{% endif %}>Conjunto</option>
                             </select>
+                            {% if role != 'superadministrador' %}<input type="hidden" name="tipo_ambito" value="conjunto">{% endif %}
                         </div>
                         <div class="col-md-4 form-group">
                             <label for="crearEventoAsociacion">Asociación</label>
-                            <select id="crearEventoAsociacion" name="asociacion_id" class="form-control" required>
-                                <option value="">Selecciona una asociación</option>
+                            <select id="crearEventoAsociacion" name="asociacion_id" class="form-control" required {% if role != 'superadministrador' %}disabled{% endif %}>
+                                {% if role == 'superadministrador' %}<option value="">Selecciona una asociación</option>{% endif %}
                                 {% for asociacion in asociaciones %}
-                                <option value="{{ asociacion.pk }}">{{ asociacion.nombre }}</option>
+                                <option value="{{ asociacion.pk }}" {% if role != 'superadministrador' %}selected{% endif %}>{{ asociacion.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            {% if role != 'superadministrador' %}<input type="hidden" name="asociacion_id" value="{{ request.user.userprofile.asociacion_id }}">{% endif %}
                         </div>
-                        <div class="col-md-4 form-group" id="crearEventoConjuntoGrupo" style="display: none;">
+                        <div class="col-md-4 form-group" id="crearEventoConjuntoGrupo" style="display: {% if role == 'superadministrador' %}none{% else %}block{% endif %};">
                             <label for="crearEventoConjunto">Conjunto</label>
-                            <select id="crearEventoConjunto" name="conjunto_id" class="form-control">
+                            <select id="crearEventoConjunto" name="conjunto_id" class="form-control" {% if role == 'administrador_conjunto' %}disabled{% endif %}>
                                 <option value="">Selecciona un conjunto</option>
                                 {% for conjunto in conjuntos %}
-                                <option value="{{ conjunto.pk }}" data-asociacion-id="{{ conjunto.asociacion_id }}">{{ conjunto.nombre }}</option>
+                                <option value="{{ conjunto.pk }}" data-asociacion-id="{{ conjunto.asociacion_id }}" {% if role == 'administrador_conjunto' and conjunto.pk == request.user.userprofile.conjunto_id %}selected{% endif %}>{{ conjunto.nombre }}</option>
                                 {% endfor %}
                             </select>
+                            {% if role == 'administrador_conjunto' %}<input type="hidden" name="conjunto_id" value="{{ request.user.userprofile.conjunto_id }}">{% endif %}
                         </div>
                     </div>
                     <div class="form-row">
-                        <div class="col-md-6 form-group">
-                            <label>Fecha del evento</label>
-                            <input type="date" name="fecha_evento" class="form-control" required>
+                        <div class="col-md-3 form-group">
+                            <label>Fecha de inicio</label>
+                            <input type="date" name="fecha_inicio" class="form-control" required>
+                        </div>
+                        <div class="col-md-3 form-group">
+                            <label>Fecha de fin</label>
+                            <input type="date" name="fecha_fin" class="form-control" required>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Lugar</label>

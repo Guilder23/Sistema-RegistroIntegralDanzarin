@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import FileResponse, Http404
+from datetime import date
 
 from .models import Evento
 from apps.core.models import Asociacion, Conjunto
@@ -30,7 +31,8 @@ def obtener_ambito_evento(request):
     conjunto_id = request.POST.get('conjunto_id')
     asociacion, conjunto = None, None
 
-    if get_role(request.user) == 'administrador_asociacion':
+    role = get_role(request.user)
+    if role in {'administrador_asociacion', 'administrador_conjunto'}:
         asociacion = getattr(request.user.userprofile, 'asociacion', None)
     elif asociacion_id:
         asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first()
@@ -38,7 +40,15 @@ def obtener_ambito_evento(request):
     if not asociacion:
         return None, None
 
-    if request.POST.get('tipo_ambito') == 'conjunto':
+    if role == 'administrador_conjunto':
+        conjunto = getattr(request.user.userprofile, 'conjunto', None)
+        if not conjunto or conjunto.asociacion_id != asociacion.pk or not conjunto.activo:
+            return None, None
+    elif role == 'administrador_asociacion':
+        conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first()
+        if not conjunto:
+            return None, None
+    elif request.POST.get('tipo_ambito') == 'conjunto':
         conjunto = Conjunto.objects.filter(
             pk=conjunto_id,
             asociacion=asociacion,
@@ -55,7 +65,7 @@ def obtener_ambito_evento(request):
 def listar_eventos(request):
     q = request.GET.get('q', '').strip()
     activo = request.GET.get('activo', '').strip()
-    eventos = scope_filter(Evento.objects.order_by('-fecha_evento'), request.user)
+    eventos = scope_filter(Evento.objects.order_by('-fecha_inicio'), request.user)
 
     if q:
         eventos = eventos.filter(
@@ -74,6 +84,7 @@ def listar_eventos(request):
     asociaciones, conjuntos = opciones_ambito_evento(request.user)
     return render(request, 'eventos/eventos.html', {
         'page_obj': page_obj,
+        'role': get_role(request.user),
         'q': q,
         'activo': activo,
         'asociaciones': asociaciones,
@@ -87,23 +98,28 @@ def crear_evento(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombre', '').strip()
         descripcion = request.POST.get('descripcion', '').strip()
-        fecha_evento = request.POST.get('fecha_evento')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
         lugar = request.POST.get('lugar', '').strip()
         activo = request.POST.get('activo') == 'on'
 
-        if not nombre or not fecha_evento:
-            messages.error(request, 'Nombre y fecha de evento son obligatorios.')
+        if not nombre or not fecha_inicio or not fecha_fin:
+            messages.error(request, 'Nombre, fecha de inicio y fecha de fin son obligatorios.')
+            return redirect('eventos:listar_eventos')
+        if date.fromisoformat(fecha_fin) < date.fromisoformat(fecha_inicio):
+            messages.error(request, 'La fecha de fin no puede ser anterior a la fecha de inicio.')
             return redirect('eventos:listar_eventos')
 
         asociacion, conjunto = obtener_ambito_evento(request)
         if not asociacion:
-            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
+            messages.error(request, 'Selecciona un conjunto válido para el evento.')
             return redirect('eventos:listar_eventos')
 
         evento = Evento.objects.create(
             nombre=nombre,
             descripcion=descripcion,
-            fecha_evento=fecha_evento,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
             lugar=lugar,
             activo=activo,
             asociacion=asociacion,
@@ -114,7 +130,7 @@ def crear_evento(request):
             request.user,
             'creacion_evento',
             f'Evento {evento.nombre}',
-            nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
+            nuevo={'nombre': evento.nombre, 'fecha_inicio': str(evento.fecha_inicio), 'fecha_fin': str(evento.fecha_fin), 'lugar': evento.lugar},
             asociacion=asociacion,
             conjunto=conjunto,
         )
@@ -129,29 +145,34 @@ def crear_evento(request):
 def editar_evento(request, pk):
     evento = get_object_or_404(scope_filter(Evento.objects.all(), request.user), pk=pk)
     if request.method == 'POST':
-        anterior = {'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar}
+        anterior = {'nombre': evento.nombre, 'fecha_inicio': str(evento.fecha_inicio), 'fecha_fin': str(evento.fecha_fin), 'lugar': evento.lugar}
         evento.nombre = request.POST.get('nombre', evento.nombre).strip()
         evento.descripcion = request.POST.get('descripcion', evento.descripcion).strip()
-        fecha_evento = request.POST.get('fecha_evento')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
         evento.lugar = request.POST.get('lugar', evento.lugar).strip()
         evento.activo = request.POST.get('activo') == 'on'
 
         asociacion, conjunto = obtener_ambito_evento(request)
         if not asociacion:
-            messages.error(request, 'Selecciona una asociación y un conjunto válidos para el evento.')
+            messages.error(request, 'Selecciona un conjunto válido para el evento.')
             return redirect('eventos:listar_eventos')
         evento.asociacion = asociacion
         evento.conjunto = conjunto
 
-        if fecha_evento:
-            evento.fecha_evento = fecha_evento
+        if fecha_inicio and fecha_fin:
+            if date.fromisoformat(fecha_fin) < date.fromisoformat(fecha_inicio):
+                messages.error(request, 'La fecha de fin no puede ser anterior a la fecha de inicio.')
+                return redirect('eventos:listar_eventos')
+            evento.fecha_inicio = fecha_inicio
+            evento.fecha_fin = fecha_fin
         evento.save()
         registrar_auditoria(
             request.user,
             'modificacion_evento',
             f'Evento {evento.nombre}',
             anterior=anterior,
-            nuevo={'nombre': evento.nombre, 'fecha': str(evento.fecha_evento), 'lugar': evento.lugar},
+            nuevo={'nombre': evento.nombre, 'fecha_inicio': str(evento.fecha_inicio), 'fecha_fin': str(evento.fecha_fin), 'lugar': evento.lugar},
             asociacion=evento.asociacion,
             conjunto=evento.conjunto,
         )

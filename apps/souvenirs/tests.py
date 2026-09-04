@@ -16,11 +16,11 @@ class EntregaSouvenirScopeTests(TestCase):
         self.conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto A')
         self.otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto B')
         self.evento = Evento.objects.create(
-            nombre='Evento A', fecha_evento=date(2026, 9, 1),
+            nombre='Evento A', fecha_inicio=date(2026, 9, 1), fecha_fin=date(2026, 9, 1),
             asociacion=self.asociacion, conjunto=self.conjunto,
         )
         self.otro_evento = Evento.objects.create(
-            nombre='Evento B', fecha_evento=date(2026, 9, 2),
+            nombre='Evento B', fecha_inicio=date(2026, 9, 2), fecha_fin=date(2026, 9, 2),
             asociacion=self.asociacion, conjunto=self.otro_conjunto,
         )
         self.souvenir = Souvenir.objects.create(

@@ -45,7 +45,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!button) return;
         const nombre = button.getAttribute('data-nombre') || '';
         const descripcion = button.getAttribute('data-descripcion') || '';
-        const fecha = button.getAttribute('data-fecha') || '-';
+        const fechaInicio = button.getAttribute('data-fecha-inicio') || '-';
+        const fechaFin = button.getAttribute('data-fecha-fin') || '-';
         const lugar = button.getAttribute('data-lugar') || '-';
         const tipoAmbito = button.getAttribute('data-tipo-ambito') || 'asociacion';
         const asociacionNombre = button.getAttribute('data-asociacion-nombre') || '-';
@@ -56,7 +57,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const nombreEl = document.getElementById('verEventoNombre');
         const descripcionEl = document.getElementById('verEventoDescripcion');
-        const fechaEl = document.getElementById('verEventoFecha');
+        const fechaInicioEl = document.getElementById('verEventoFechaInicio');
+        const fechaFinEl = document.getElementById('verEventoFechaFin');
         const lugarEl = document.getElementById('verEventoLugar');
         const ambitoEl = document.getElementById('verEventoAmbito');
         const activoEl = document.getElementById('verEventoActivo');
@@ -65,7 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (nombreEl) nombreEl.textContent = nombre;
         if (descripcionEl) descripcionEl.textContent = descripcion || 'No disponible';
-        if (fechaEl) fechaEl.textContent = fecha;
+        if (fechaInicioEl) fechaInicioEl.textContent = fechaInicio;
+        if (fechaFinEl) fechaFinEl.textContent = fechaFin;
         if (lugarEl) lugarEl.textContent = lugar || '-';
         if (ambitoEl) ambitoEl.textContent = tipoAmbito === 'conjunto'
             ? `Conjunto: ${conjuntoNombre} (${asociacionNombre})`
@@ -90,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = button.getAttribute('data-id');
             const nombre = button.getAttribute('data-nombre') || '';
             const descripcion = button.getAttribute('data-descripcion') || '';
-            const fecha = button.getAttribute('data-fecha') || '';
+            const fechaInicio = button.getAttribute('data-fecha-inicio') || '';
+            const fechaFin = button.getAttribute('data-fecha-fin') || '';
             const lugar = button.getAttribute('data-lugar') || '';
             const tipoAmbito = button.getAttribute('data-tipo-ambito') || 'asociacion';
             const asociacionId = button.getAttribute('data-asociacion-id') || '';
@@ -103,7 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const nombreInput = document.getElementById('editarEventoNombre');
             const descripcionInput = document.getElementById('editarEventoDescripcion');
-            const fechaInput = document.getElementById('editarEventoFecha');
+            const fechaInicioInput = document.getElementById('editarEventoFechaInicio');
+            const fechaFinInput = document.getElementById('editarEventoFechaFin');
             const lugarInput = document.getElementById('editarEventoLugar');
             const activoInput = document.getElementById('editarEventoActivo');
 
@@ -113,7 +118,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (actualizarAmbitoEditar) actualizarAmbitoEditar();
             if (nombreInput) nombreInput.value = nombre;
             if (descripcionInput) descripcionInput.value = descripcion;
-            if (fechaInput) fechaInput.value = fecha;
+            if (fechaInicioInput) fechaInicioInput.value = fechaInicio;
+            if (fechaFinInput) fechaFinInput.value = fechaFin;
             if (lugarInput) lugarInput.value = lugar;
             if (activoInput) activoInput.checked = activo;
         });

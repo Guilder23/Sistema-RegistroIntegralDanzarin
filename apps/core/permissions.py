@@ -27,7 +27,7 @@ def is_administrative(user):
 
 
 def can_manage_events(user):
-    return get_role(user) in {'superadministrador', 'administrador_asociacion'}
+    return get_role(user) in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto'}
 
 
 def can_register_members(user):

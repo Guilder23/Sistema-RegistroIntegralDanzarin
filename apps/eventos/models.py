@@ -9,7 +9,8 @@ class Evento(models.Model):
     ESTADO_CHOICES = [('programado', 'Programado'), ('finalizado', 'Finalizado')]
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField(blank=True, default='')
-    fecha_evento = models.DateField(verbose_name='Fecha del evento')
+    fecha_inicio = models.DateField(verbose_name='Fecha de inicio')
+    fecha_fin = models.DateField(verbose_name='Fecha de fin')
     lugar = models.CharField(max_length=250, blank=True, default='')
     activo = models.BooleanField(default=True)
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='programado')
@@ -22,7 +23,7 @@ class Evento(models.Model):
     class Meta:
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventos'
-        ordering = ['-fecha_evento', 'nombre']
+        ordering = ['-fecha_inicio', 'nombre']
 
     def __str__(self):
         return self.nombre
@@ -43,7 +44,7 @@ class Evento(models.Model):
             documento = canvas.Canvas(buffer)
             documento.drawCentredString(300, 700, 'CERTIFICADO DE PARTICIPACION')
             documento.drawCentredString(300, 650, f'Se certifica que {danzarin} participo en {self.nombre}.')
-            documento.drawCentredString(300, 600, f'Fecha: {self.fecha_evento:%d/%m/%Y}')
+            documento.drawCentredString(300, 600, f'Fecha: {self.fecha_inicio:%d/%m/%Y} al {self.fecha_fin:%d/%m/%Y}')
             documento.save()
             certificado = Certificado(evento=self, danzarin=danzarin)
             certificado.archivo.save(
