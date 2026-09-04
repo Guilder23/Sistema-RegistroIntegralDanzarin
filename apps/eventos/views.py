@@ -214,7 +214,7 @@ def descargar_certificado(request, pk):
 
     certificado = get_object_or_404(Certificado, pk=pk)
     role = get_role(request.user)
-    if role == 'miembro' and certificado.socio.user_id != request.user.id:
+    if role == 'miembro' and certificado.danzarin.user_id != request.user.id:
         raise Http404
     if role not in {'superadministrador', 'miembro'}:
         certificado = get_object_or_404(

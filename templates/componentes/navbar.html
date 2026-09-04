@@ -24,7 +24,7 @@
                     </div>
                     <div class="user-info">
                         <span class="user-name">{{ user.username|title }}</span>
-                        <span class="user-role">{{ user.userprofile.get_rol_display|default:'Miembro' }}</span>
+                        <span class="user-role">{% if user.is_superuser %}Superadministrador{% else %}{{ user.userprofile.get_rol_display|default:'Miembro' }}{% endif %}</span>
                     </div>
                     <i class="fas fa-chevron-down chevron-icon"></i>
                 </button>
@@ -36,16 +36,16 @@
                         <div class="user-header-text">
                             <span class="user-header-name">{{ user.get_full_name|default:user.username }}</span>
                             <span class="user-header-role">
-                                <i class="fas fa-circle-check"></i> {{ user.userprofile.get_rol_display|default:'Miembro' }}
+                                <i class="fas fa-circle-check"></i> {% if user.is_superuser %}Superadministrador{% else %}{{ user.userprofile.get_rol_display|default:'Miembro' }}{% endif %}
                             </span>
                         </div>
                     </div>
                     <div class="dropdown-items">
-                        <a href="{% url 'socios:perfil_socio' %}" class="dropdown-item">
+                        <a href="{% url 'danzarines:perfil_danzarin' %}" class="dropdown-item">
                             <i class="fas fa-user-circle"></i>
                             <span>Mi Perfil</span>
                         </a>
-                        {% if user.userprofile.rol != 'miembro' %}
+                        {% if user.is_superuser or user.userprofile.rol != 'miembro' %}
                         <a href="{% url 'core:registro' %}" class="dropdown-item">
                             <i class="fas fa-user-plus"></i>
                             <span>Registrar Usuarios</span>

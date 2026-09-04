@@ -142,7 +142,7 @@ def listar_auditoria(request):
     registros_hoy = registros.filter(fecha_hora__date=hoy).count()
 
     # Paginación
-    registros = registros.order_by('fecha_hora', 'pk')
+    registros = registros.order_by('-fecha_hora', '-pk')
     paginator = Paginator(registros, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

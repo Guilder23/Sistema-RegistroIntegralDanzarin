@@ -12,7 +12,7 @@ from PIL import Image
 from io import BytesIO
 
 from apps.eventos.models import Evento
-from apps.socios.models import Socio
+from apps.danzarines.models import Danzarin
 from apps.core.models import Asociacion, Conjunto
 from .models import SouvenirEntrega, Souvenir
 from apps.core.permissions import scope_filter, get_role, is_administrative, registrar_auditoria
@@ -21,11 +21,11 @@ from apps.core.permissions import scope_filter, get_role, is_administrative, reg
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def listar_entregas(request):
-    entregas = SouvenirEntrega.objects.select_related('socio', 'entregado_por', 'evento')
+    entregas = SouvenirEntrega.objects.select_related('danzarin', 'entregado_por', 'evento')
     if get_role(request.user) != 'superadministrador':
-        entregas = entregas.filter(socio__membresias__asociacion_id=request.user.userprofile.asociacion_id)
+        entregas = entregas.filter(danzarin__membresias__asociacion_id=request.user.userprofile.asociacion_id)
         if get_role(request.user) == 'administrador_conjunto':
-            entregas = entregas.filter(socio__membresias__conjunto_id=request.user.userprofile.conjunto_id)
+            entregas = entregas.filter(danzarin__membresias__conjunto_id=request.user.userprofile.conjunto_id)
     entregas = entregas.distinct().order_by('-fecha_entrega')
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -36,7 +36,7 @@ def listar_entregas(request):
 @user_passes_test(is_administrative, login_url='/login/')
 def registrar_entrega(request):
     if request.method == 'POST':
-        socio_id = request.POST.get('socio_id')
+        danzarin_id = request.POST.get('danzarin_id')
         evento_id = request.POST.get('evento_id')
         souvenir_id = request.POST.get('souvenir_id')
         asociacion_id = request.POST.get('asociacion_id')
@@ -56,11 +56,11 @@ def registrar_entrega(request):
             messages.error(request, 'Selecciona una asociación y conjunto válidos.')
             return redirect('souvenirs:registrar_entrega')
 
-        socio = Socio.objects.filter(id=socio_id)
-        socio = socio.filter(membresias__asociacion=asociacion, membresias__conjunto=conjunto, membresias__estado='activo')
-        socio = socio.distinct().first()
-        if not socio:
-            messages.error(request, 'Selecciona un socio válido.')
+        danzarin = Danzarin.objects.filter(id=danzarin_id)
+        danzarin = danzarin.filter(membresias__asociacion=asociacion, membresias__conjunto=conjunto, membresias__estado='activo')
+        danzarin = danzarin.distinct().first()
+        if not danzarin:
+            messages.error(request, 'Selecciona un danzarin válido.')
             return redirect('souvenirs:registrar_entrega')
 
         evento = evento_valido(evento_id, asociacion, conjunto)
@@ -68,8 +68,8 @@ def registrar_entrega(request):
             messages.error(request, 'Selecciona un evento válido.')
             return redirect('souvenirs:registrar_entrega')
 
-        if SouvenirEntrega.objects.filter(socio=socio, evento=evento).exists():
-            messages.warning(request, 'Este socio ya registró una entrega para el evento seleccionado.')
+        if SouvenirEntrega.objects.filter(danzarin=danzarin, evento=evento).exists():
+            messages.warning(request, 'Este danzarín ya registró una entrega para el evento seleccionado.')
             return redirect('souvenirs:listar_entregas')
 
         souvenir = souvenirs_scope(request.user).filter(id=souvenir_id, activo=True, evento=evento, asociacion=asociacion).filter(Q(conjunto=conjunto) | Q(conjunto__isnull=True)).first()
@@ -78,7 +78,7 @@ def registrar_entrega(request):
             return redirect('souvenirs:registrar_entrega')
 
         SouvenirEntrega.objects.create(
-            socio=socio,
+            danzarin=danzarin,
             evento=evento,
             souvenir=souvenir,
             entregado_por=request.user,
@@ -89,16 +89,16 @@ def registrar_entrega(request):
             souvenir.stock = max(0, souvenir.stock - 1)
             souvenir.save()
 
-        socio.recibio_souvenir = True
-        socio.save()
+        danzarin.recibio_souvenir = True
+        danzarin.save()
         
-        # Obtener asociación y conjunto del socio para la auditoría
-        membresia = socio.membresias.filter(estado='activo').first()
+        # Obtener asociación y conjunto del danzarin para la auditoría
+        membresia = danzarin.membresias.filter(estado='activo').first()
         registrar_auditoria(
             request.user,
             'entrega_souvenir',
-            f'Entrega a {socio} ({evento.nombre})',
-            nuevo={'socio': str(socio), 'evento': evento.nombre, 'souvenir': souvenir.nombre if souvenir else 'Sin souvenir específico'},
+            f'Entrega a {danzarin} ({evento.nombre})',
+            nuevo={'danzarin': str(danzarin), 'evento': evento.nombre, 'souvenir': souvenir.nombre if souvenir else 'Sin souvenir específico'},
             asociacion=membresia.asociacion if membresia else None,
             conjunto=membresia.conjunto if membresia else None,
         )
@@ -107,24 +107,24 @@ def registrar_entrega(request):
 
     role = get_role(request.user)
     asociaciones, conjuntos, eventos = opciones_souvenirs(request.user)
-    socios = Socio.objects.filter(membresias__estado='activo').prefetch_related('membresias').distinct().order_by('apellido_paterno', 'apellido_materno', 'nombre')
+    danzarines = Danzarin.objects.filter(membresias__estado='activo').prefetch_related('membresias').distinct().order_by('apellido_paterno', 'apellido_materno', 'nombre')
     if role == 'administrador_asociacion':
-        socios = socios.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
+        danzarines = danzarines.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
     elif role == 'administrador_conjunto':
-        socios = socios.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
-    socios_data = []
-    for socio in socios:
-        for membresia in socio.membresias.all():
+        danzarines = danzarines.filter(membresias__conjunto_id=request.user.userprofile.conjunto_id)
+    danzarines_data = []
+    for danzarin in danzarines:
+        for membresia in danzarin.membresias.all():
             if membresia.estado == 'activo':
-                socios_data.append({
-                    'value': str(socio.id),
-                    'label': str(socio),
+                danzarines_data.append({
+                    'value': str(danzarin.id),
+                    'label': str(danzarin),
                     'asociacionId': str(membresia.asociacion_id),
                     'conjuntoId': str(membresia.conjunto_id),
                 })
     souvenirs = souvenirs_scope(request.user).filter(activo=True).order_by('-creado')
     return render(request, 'souvenirs/entregas/registrar_entrega.html', {
-        'socios': socios, 'socios_data': socios_data, 'eventos': eventos,
+        'danzarines': danzarines, 'danzarines_data': danzarines_data, 'eventos': eventos,
         'souvenirs': souvenirs, 'asociaciones': asociaciones,
         'conjuntos': conjuntos, 'role': role,
     })
@@ -133,10 +133,10 @@ def registrar_entrega(request):
 @login_required
 def descargar_certificado_entrega(request, pk):
     entrega = get_object_or_404(
-        SouvenirEntrega.objects.select_related('socio__user', 'evento', 'souvenir'),
+        SouvenirEntrega.objects.select_related('danzarin__user', 'evento', 'souvenir'),
         pk=pk,
     )
-    if entrega.socio.user_id != request.user.id or not entrega.souvenir:
+    if entrega.danzarin.user_id != request.user.id or not entrega.souvenir:
         raise Http404
 
     plantilla = finders.find('img/PlantillaCertificado.png')
@@ -151,7 +151,7 @@ def descargar_certificado_entrega(request, pk):
     documento = canvas.Canvas(buffer, pagesize=(page_width, page_height))
     documento.drawImage(ImageReader(plantilla), 0, 0, width=page_width, height=page_height)
 
-    nombre = str(entrega.socio)
+    nombre = str(entrega.danzarin)
     evento = entrega.evento.nombre if entrega.evento else 'la actividad registrada'
     fecha = entrega.fecha_entrega.strftime('%d/%m/%Y')
     texto = f'Se reconoce a {nombre} por su participación en {evento}.'
@@ -167,7 +167,7 @@ def descargar_certificado_entrega(request, pk):
     buffer.seek(0)
 
     respuesta = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-    respuesta['Content-Disposition'] = f'attachment; filename="certificado_{entrega.socio.codigo_socio or entrega.socio_id}.pdf"'
+    respuesta['Content-Disposition'] = f'attachment; filename="certificado_{entrega.danzarin.codigo_danzarin or entrega.danzarin_id}.pdf"'
     return respuesta
 
 
@@ -314,7 +314,7 @@ def eliminar_souvenir(request, pk):
     s = get_object_or_404(souvenirs_scope(request.user), pk=pk)
     if request.method == 'POST':
         if s.entregas.exists():
-            messages.error(request, 'No se puede eliminar un souvenir asignado a un socio. Puedes cambiar su estado a inactivo.')
+            messages.error(request, 'No se puede eliminar un souvenir asignado a un danzarín. Puedes cambiar su estado a inactivo.')
             return redirect('souvenirs:listar_souvenirs')
         nombre = s.nombre
         asociacion = s.asociacion

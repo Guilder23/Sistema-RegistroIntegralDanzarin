@@ -182,7 +182,7 @@ function initDashboardCharts() {
             data: {
                 labels: datos.tendencia.labels,
                 datasets: [{
-                    label: 'Nuevos Socios Registrados',
+                    label: 'Nuevos Danzarines Registrados',
                     data: datos.tendencia.data,
                     borderColor: '#2563eb',
                     backgroundColor: gradient,

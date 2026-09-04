@@ -16,7 +16,7 @@ def get_home_redirect(user):
 	from .permissions import is_administrative
 	if is_administrative(user):
 		return 'dashboard:dashboard'
-	return 'socios:perfil_socio'
+	return 'danzarines:perfil_danzarin'
 
 
 def inicio(request):
@@ -36,7 +36,7 @@ def robots_txt(request):
 		'Allow: /',
 		'Disallow: /login/',
 		'Disallow: /secret-admin/',
-		'Disallow: /socios/',
+		'Disallow: /danzarines/',
 		'Disallow: /reportes/',
 		'Disallow: /dashboard/',
 		'Sitemap: ' + sitemap_url,
@@ -77,12 +77,12 @@ def iniciar_sesion(request):
 			login_error = 'Usuario o contrasena incorrectos.'
 		else:
 			try:
-				from apps.socios.models import Socio
-				socio = Socio.objects.get(user=user)
-				membresias = socio.membresias.all()
+				from apps.danzarines.models import Danzarin
+				danzarin = Danzarin.objects.get(user=user)
+				membresias = danzarin.membresias.all()
 				if membresias.exists() and not membresias.filter(estado='activo').exists():
 					login_error = 'Tu membresia no se encuentra activa. Comunicate con el administrador.'
-			except Socio.DoesNotExist:
+			except Danzarin.DoesNotExist:
 				pass
 
 		if login_error:
@@ -131,7 +131,7 @@ def registrar_usuario(request):
 			messages.error(request, 'El Administrador de Conjunto debe tener asociación y conjunto asignados.')
 			return redirect('core:registro')
 		if rol == 'miembro' and (not asociacion or not conjunto):
-			messages.error(request, 'El Miembro / Socio debe tener asociación y conjunto asignados.')
+			messages.error(request, 'El Miembro / Danzarín debe tener asociación y conjunto asignados.')
 			return redirect('core:registro')
 
 		if not username or not password:
@@ -156,18 +156,18 @@ def registrar_usuario(request):
 		user.is_staff = rol != 'miembro'
 		user.is_superuser = rol == 'superadministrador'
 		user.save()
-		from apps.socios.models import UserProfile
+		from apps.danzarines.models import UserProfile
 		UserProfile.objects.filter(user=user).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
 		if rol == 'miembro':
-			from apps.socios.models import Socio, Membresia, generar_codigo_socio
-			socio = Socio.objects.create(
+			from apps.danzarines.models import Danzarin, Membresia, generar_codigo_danzarin
+			danzarin = Danzarin.objects.create(
 				user=user,
-				codigo_socio=generar_codigo_socio(),
+				codigo_danzarin=generar_codigo_danzarin(),
 				nombre=first_name or username,
 				apellido_paterno=last_name,
 				email=email,
 			)
-			Membresia.inscribir(socio, asociacion, conjunto, estado_pago='al_dia')
+			Membresia.inscribir(danzarin, asociacion, conjunto, estado_pago='al_dia')
 
 		messages.success(request, 'Usuario creado correctamente.')
 		return redirect('core:registro')
@@ -261,7 +261,7 @@ def editar_usuario(request, user_id):
 			objetivo.set_password(password)
 
 		objetivo.save()
-		from apps.socios.models import UserProfile
+		from apps.danzarines.models import UserProfile
 		UserProfile.objects.filter(user=objetivo).update(rol=rol, asociacion=asociacion, conjunto=conjunto)
 		messages.success(request, 'Usuario actualizado correctamente.')
 

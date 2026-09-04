@@ -200,11 +200,11 @@
     white-space: nowrap;
 }
 
-.modal-socio-dialog {
+.modal-danzarin-dialog {
     max-width: 980px;
 }
 
-.modal-socio-dialog .modal-body {
+.modal-danzarin-dialog .modal-body {
     padding-top: 1.25rem;
     padding-bottom: 1.25rem;
 }
@@ -255,7 +255,7 @@
         flex: 1 1 100%;
     }
 
-    .modal-socio-dialog {
+    .modal-danzarin-dialog {
         max-width: 95%;
     }
 }

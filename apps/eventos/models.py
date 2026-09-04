@@ -15,7 +15,7 @@ class Evento(models.Model):
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='programado')
     asociacion = models.ForeignKey('core.Asociacion', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
     conjunto = models.ForeignKey('core.Conjunto', on_delete=models.PROTECT, related_name='eventos', null=True, blank=True)
-    participantes = models.ManyToManyField('socios.Socio', through='EventoParticipante', related_name='eventos')
+    participantes = models.ManyToManyField('danzarines.Danzarin', through='EventoParticipante', related_name='eventos')
     creado = models.DateTimeField(auto_now_add=True)
     creado_por = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, related_name='eventos_creados', null=True, blank=True)
 
@@ -36,18 +36,18 @@ class Evento(models.Model):
             self.generar_certificados()
 
     def generar_certificados(self):
-        for socio in self.participantes.all():
-            if Certificado.objects.filter(evento=self, socio=socio).exists():
+        for danzarin in self.participantes.all():
+            if Certificado.objects.filter(evento=self, danzarin=danzarin).exists():
                 continue
             buffer = BytesIO()
             documento = canvas.Canvas(buffer)
             documento.drawCentredString(300, 700, 'CERTIFICADO DE PARTICIPACION')
-            documento.drawCentredString(300, 650, f'Se certifica que {socio} participo en {self.nombre}.')
+            documento.drawCentredString(300, 650, f'Se certifica que {danzarin} participo en {self.nombre}.')
             documento.drawCentredString(300, 600, f'Fecha: {self.fecha_evento:%d/%m/%Y}')
             documento.save()
-            certificado = Certificado(evento=self, socio=socio)
+            certificado = Certificado(evento=self, danzarin=danzarin)
             certificado.archivo.save(
-                f'certificado_{self.pk}_{socio.pk}.pdf',
+                f'certificado_{self.pk}_{danzarin.pk}.pdf',
                 ContentFile(buffer.getvalue()),
                 save=True,
             )
@@ -55,22 +55,22 @@ class Evento(models.Model):
 
 class EventoParticipante(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='inscripciones')
-    socio = models.ForeignKey('socios.Socio', on_delete=models.CASCADE, related_name='participaciones')
+    danzarin = models.ForeignKey('danzarines.Danzarin', on_delete=models.CASCADE, related_name='participaciones')
     registrado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['evento', 'socio'], name='unique_participante_evento'),
+            models.UniqueConstraint(fields=['evento', 'danzarin'], name='unique_participante_evento'),
         ]
 
 
 class Certificado(models.Model):
     evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='certificados')
-    socio = models.ForeignKey('socios.Socio', on_delete=models.CASCADE, related_name='certificados')
+    danzarin = models.ForeignKey('danzarines.Danzarin', on_delete=models.CASCADE, related_name='certificados')
     archivo = models.FileField(upload_to='certificados/')
     generado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['evento', 'socio'], name='unique_certificado_evento_socio'),
+            models.UniqueConstraint(fields=['evento', 'danzarin'], name='unique_certificado_evento_danzarin'),
         ]

@@ -11,7 +11,7 @@ def get_role(user):
         return None
     if getattr(user, 'is_superuser', False):
         return 'superadministrador'
-    from apps.socios.models import UserProfile
+    from apps.danzarines.models import UserProfile
     try:
         return user.userprofile.rol
     except UserProfile.DoesNotExist:
@@ -45,7 +45,7 @@ def scope_filter(queryset, user, asociacion_field='asociacion', conjunto_field='
     role = get_role(user)
     if role == 'superadministrador':
         return queryset
-    from apps.socios.models import UserProfile
+    from apps.danzarines.models import UserProfile
     try:
         profile = user.userprofile
     except UserProfile.DoesNotExist:
@@ -57,7 +57,7 @@ def scope_filter(queryset, user, asociacion_field='asociacion', conjunto_field='
     return queryset.none()
 
 
-def scope_socios(queryset, user):
+def scope_danzarines(queryset, user):
     role = get_role(user)
     if role == 'superadministrador':
         return queryset
@@ -68,7 +68,7 @@ def scope_socios(queryset, user):
 
 def registrar_auditoria(usuario, accion, registro_afectado, anterior=None, nuevo=None, asociacion=None, conjunto=None):
     from .models import Auditoria
-    from apps.socios.models import UserProfile
+    from apps.danzarines.models import UserProfile
 
     auditoria_asociacion = asociacion
     auditoria_conjunto = conjunto

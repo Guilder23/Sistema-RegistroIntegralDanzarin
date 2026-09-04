@@ -169,7 +169,7 @@ body.sidebar-collapsed .main-container {
 
 /* Badges de Código */
 .codigo-badge,
-.codigo-socio-badge {
+.codigo-danzarin-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -349,28 +349,28 @@ body.sidebar-collapsed .main-container {
 /* Variantes Temáticas de Header de Modal */
 .modal-crear .modal-header,
 .modal-crear-gestion .modal-header,
-.modal-crear-socio .modal-header {
+.modal-crear-danzarin .modal-header {
     background: linear-gradient(135deg, var(--color-primario) 0%, var(--color-dark) 100%);
     color: #ffffff;
 }
 
 .modal-ver .modal-header,
 .modal-ver-gestion .modal-header,
-.modal-ver-socio .modal-header {
+.modal-ver-danzarin .modal-header {
     background: linear-gradient(135deg, var(--color-secundario) 0%, #0f766e 100%);
     color: #ffffff;
 }
 
 .modal-editar .modal-header,
 .modal-editar-gestion .modal-header,
-.modal-editar-socio .modal-header {
+.modal-editar-danzarin .modal-header {
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     color: #ffffff;
 }
 
 .modal-eliminar .modal-header,
 .modal-eliminar-gestion .modal-header,
-.modal-eliminar-socio .modal-header {
+.modal-eliminar-danzarin .modal-header {
     background: linear-gradient(135deg, var(--color-peligro) 0%, var(--color-peligro-hover) 100%);
     color: #ffffff;
 }

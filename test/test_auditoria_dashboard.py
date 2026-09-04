@@ -104,7 +104,7 @@ def run_tests():
         req7.user = admin_grupo
         dashboard(req7)
         ctx7 = mock_dash_render.call_args[0][2]
-        print('7. Grupo admin dashboard total socios:', ctx7['total_socios'])
+        print('7. Grupo admin dashboard total danzarines:', ctx7['total_danzarines'])
         print('-> TEST 7 PASSED: Dashboard admin de grupo restringido a su grupo.\n')
 
         # TEST 8: Dashboard para Admin de Subgrupo
@@ -112,7 +112,7 @@ def run_tests():
         req8.user = admin_subgrupo
         dashboard(req8)
         ctx8 = mock_dash_render.call_args[0][2]
-        print('8. Subgrupo admin dashboard total socios:', ctx8['total_socios'])
+        print('8. Subgrupo admin dashboard total danzarines:', ctx8['total_danzarines'])
         print('-> TEST 8 PASSED: Dashboard admin de subgrupo restringido a su subgrupo.\n')
 
     print('========================================================================')

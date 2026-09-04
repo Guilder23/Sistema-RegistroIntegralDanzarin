@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('verUsuarioUsername').textContent = this.dataset.username || '';
             document.getElementById('verUsuarioNombre').textContent = fullName || '-';
             document.getElementById('verUsuarioEmail').textContent = this.dataset.email || '-';
-            document.getElementById('verUsuarioRol').textContent = this.dataset.rol || 'Miembro / Socio';
+            document.getElementById('verUsuarioRol').textContent = this.dataset.rol || 'Miembro / Danzarín';
             document.getElementById('verUsuarioEstado').textContent = this.dataset.isActive === '1' ? 'Activo' : 'Bloqueado';
         });
     });

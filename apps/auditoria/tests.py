@@ -61,13 +61,13 @@ class HistorialAuditoriaTests(TestCase):
         response = self.client.get(reverse('auditoria:listar_auditoria'))
         return [registro.accion for registro in response.context['registros']]
 
-    def test_alcance_por_rol_y_orden_ascendente(self):
+    def test_alcance_por_rol_y_orden_descendente(self):
         self.assertEqual(self.acciones_visibles(self.admin_conjunto), ['conjunto'])
         self.assertEqual(
             self.acciones_visibles(self.admin_asociacion),
-            ['asociacion', 'conjunto'],
+            ['conjunto', 'asociacion'],
         )
         self.assertEqual(
             self.acciones_visibles(self.superadmin),
-            ['superadmin', 'asociacion', 'conjunto', 'fuera'],
+            ['fuera', 'conjunto', 'asociacion', 'superadmin'],
         )

@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from apps.core.models import Asociacion, Conjunto
 from apps.eventos.models import Evento
-from apps.socios.models import Membresia, Socio
+from apps.danzarines.models import Membresia, Danzarin
 from .models import Souvenir, SouvenirEntrega
 
 
@@ -31,13 +31,13 @@ class EntregaSouvenirScopeTests(TestCase):
             nombre='Souvenir B', asociacion=self.asociacion,
             conjunto=self.otro_conjunto, evento=self.otro_evento, stock=2,
         )
-        socio_user = User.objects.create_user('socio-entrega', password='secret123')
-        self.socio = Socio.objects.create(
-            user=socio_user, nombre='Socio', apellido_paterno='Entrega',
-            email='socio@example.com',
+        danzarin_user = User.objects.create_user('danzarin-entrega', password='secret123')
+        self.danzarin = Danzarin.objects.create(
+            user=danzarin_user, nombre='Danzarin', apellido_paterno='Entrega',
+            email='danzarin@example.com',
         )
         Membresia.objects.create(
-            socio=self.socio, asociacion=self.asociacion,
+            danzarin=self.danzarin, asociacion=self.asociacion,
             conjunto=self.conjunto,
         )
         self.admin = User.objects.create_user('admin-conjunto-entrega', password='secret123', is_staff=True)
@@ -50,7 +50,7 @@ class EntregaSouvenirScopeTests(TestCase):
         return {
             'asociacion_id': self.asociacion.pk,
             'conjunto_id': self.conjunto.pk,
-            'socio_id': self.socio.pk,
+            'danzarin_id': self.danzarin.pk,
             'evento_id': evento.pk,
             'souvenir_id': souvenir.pk,
         }
@@ -64,7 +64,7 @@ class EntregaSouvenirScopeTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(SouvenirEntrega.objects.filter(socio=self.socio, evento=self.evento).exists())
+        self.assertTrue(SouvenirEntrega.objects.filter(danzarin=self.danzarin, evento=self.evento).exists())
 
     def test_admin_conjunto_no_puede_usar_evento_de_otro_conjunto(self):
         self.client.force_login(self.admin)
@@ -79,12 +79,12 @@ class EntregaSouvenirScopeTests(TestCase):
 
     def test_miembro_descarga_certificado_de_su_entrega(self):
         entrega = SouvenirEntrega.objects.create(
-            socio=self.socio,
+            danzarin=self.danzarin,
             evento=self.evento,
             souvenir=self.souvenir,
             entregado_por=self.admin,
         )
-        self.client.force_login(self.socio.user)
+        self.client.force_login(self.danzarin.user)
 
         response = self.client.get(reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk]))
 
@@ -92,19 +92,19 @@ class EntregaSouvenirScopeTests(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertTrue(response.content.startswith(b'%PDF'))
 
-    def test_miembro_no_descarga_certificado_de_otro_socio(self):
-        otro_usuario = User.objects.create_user('otro-socio', password='secret123')
-        otro_socio = Socio.objects.create(
-            user=otro_usuario, nombre='Otro', apellido_paterno='Socio',
+    def test_miembro_no_descarga_certificado_de_otro_danzarin(self):
+        otro_usuario = User.objects.create_user('otro-danzarin', password='secret123')
+        otro_danzarin = Danzarin.objects.create(
+            user=otro_usuario, nombre='Otro', apellido_paterno='Danzarin',
             email='otro@example.com',
         )
         entrega = SouvenirEntrega.objects.create(
-            socio=otro_socio,
+            danzarin=otro_danzarin,
             evento=self.evento,
             souvenir=self.souvenir,
             entregado_por=self.admin,
         )
-        self.client.force_login(self.socio.user)
+        self.client.force_login(self.danzarin.user)
 
         response = self.client.get(reverse('souvenirs:descargar_certificado_entrega', args=[entrega.pk]))
 

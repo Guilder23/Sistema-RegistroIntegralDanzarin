@@ -1,0 +1,234 @@
+/* ============================================================================
+ESTILOS PARA DANZARINES - DISEÑO INSTITUCIONAL VERDE
+   Paleta Institucional Verde / Teal (Idéntica a Inicio)
+   ============================================================================ */
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+    border-radius: 14px;
+    color: #ffffff;
+    box-shadow: 0 10px 30px rgba(3, 44, 42, 0.15);
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #ffffff;
+}
+
+.page-subtitle {
+    margin: 0.35rem 0 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.95rem;
+}
+
+.import-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin-top: 0.75rem;
+}
+
+.import-actions form,
+.import-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.import-actions input[type="file"] {
+    border: 1px solid #d1e7e4;
+    border-radius: 8px;
+    padding: 0.35rem 0.5rem;
+    background: #ffffff;
+    font-size: 0.85rem;
+}
+
+.import-actions button,
+.import-actions a {
+    white-space: nowrap;
+}
+
+.card-filtros {
+    margin-bottom: 1.25rem;
+    border: 1px solid #d1e7e4;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(3, 44, 42, 0.04);
+}
+
+.filtros-danzarines-linea {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filtro-busqueda {
+    flex: 1 1 420px;
+    min-width: 240px;
+}
+
+.filtro-item {
+    flex: 0 0 175px;
+}
+
+.card-tabla {
+    border: 1px solid #d1e7e4;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 4px 16px rgba(3, 44, 42, 0.05);
+    overflow: hidden;
+}
+
+.tabla-danzarines thead {
+    background: #05413f;
+}
+
+.tabla-danzarines thead th {
+    color: #ffffff;
+    border: none;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    padding: 0.9rem 1rem;
+}
+
+.codigo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    padding: 0.25rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid #76c7bd;
+    color: #05413f;
+    background: linear-gradient(135deg, #eff8f6 0%, #d9efeb 100%);
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.tabla-danzarines thead th:nth-child(2),
+.tabla-danzarines tbody td:nth-child(2) {
+    width: 100px;
+    min-width: 85px;
+    max-width: 120px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+.tabla-danzarines thead th:nth-child(3),
+.tabla-danzarines tbody td:nth-child(3) {
+    white-space: nowrap;
+    min-width: 220px;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+.tabla-danzarines tbody tr:hover {
+    background-color: #f0fdf9;
+}
+
+.badge-estado {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    font-size: 0.74rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.badge-estado-activo {
+    color: #065f46;
+    background: #d1fae5;
+    border-color: #a7f3d0;
+}
+
+.badge-estado-inactivo {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fecaca;
+}
+
+.acciones-col .btn {
+    margin-right: 0.2rem;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.acciones-col .btn:hover {
+    transform: translateY(-2px);
+}
+
+.tabla-danzarines th.acciones-col-head,
+.tabla-danzarines td.acciones-col {
+    width: 140px;
+    min-width: 140px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.modal-danzarin-dialog {
+    max-width: 980px;
+}
+
+.modal-danzarin-dialog .modal-body {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+}
+
+.preview-box {
+    min-height: 260px;
+    border: 1px dashed #76c7bd;
+    border-radius: 12px;
+    background: #eff8f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem;
+    text-align: center;
+}
+
+.preview-img {
+    width: 100%;
+    max-height: 320px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #d1e7e4;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .filtros-danzarines-linea {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filtro-busqueda,
+    .filtro-item {
+        flex: 1 1 100%;
+    }
+
+    .modal-danzarin-dialog {
+        max-width: 95%;
+    }
+}
