@@ -3,6 +3,7 @@ from io import BytesIO
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
+from django.core import signing
 from openpyxl import load_workbook
 
 from apps.core.models import Asociacion, Conjunto
@@ -209,3 +210,32 @@ class GestionDanzarinesTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(list(response.context['page_obj'].object_list), [self.danzarin])
+
+    def test_cuenta_genera_certificado_publico_y_qr(self):
+        self.client.force_login(self.danzarin.user)
+
+        cuenta = self.client.get(reverse('danzarines:perfil_danzarin'))
+
+        self.assertEqual(cuenta.status_code, 200)
+        certificado_url = cuenta.context['certificado_url']
+        token = certificado_url.rstrip('/').split('/')[-1]
+
+        certificado = self.client.get(
+            reverse('danzarines:certificado_publico', args=[token])
+        )
+        qr = self.client.get(reverse('danzarines:certificado_qr', args=[token]))
+
+        self.assertEqual(certificado.status_code, 200)
+        self.assertContains(certificado, 'Ana Prueba')
+        self.assertEqual(qr.status_code, 200)
+        self.assertEqual(qr['Content-Type'], 'image/png')
+        self.assertTrue(qr.content.startswith(b'\x89PNG'))
+
+    def test_certificado_rechaza_token_alterado(self):
+        token = signing.dumps(self.danzarin.pk, salt='otro-certificado')
+
+        response = self.client.get(
+            reverse('danzarines:certificado_publico', args=[token])
+        )
+
+        self.assertEqual(response.status_code, 404)

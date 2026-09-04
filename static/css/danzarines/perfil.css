@@ -217,6 +217,130 @@ ESTILOS PARA PERFIL DE DANZARÍN - DISEÑO INSTITUCIONAL VERDE
     font-weight: 700;
 }
 
+.certificado-link-card {
+    border-left: 4px solid #0d8b80;
+}
+
+.certificado-link-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.certificado-link-row input {
+    min-width: 0;
+}
+
+.certificado-publico-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1rem 0;
+    color: #52706d;
+}
+
+.certificado-publico-preview img {
+    border: 1px solid #d1e7e4;
+    padding: 0.35rem;
+    background: #ffffff;
+}
+
+.certificado-publico-page {
+    width: min(94vw, 1100px);
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.certificado-publico {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1411 / 1098;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 12px 30px rgba(16, 38, 68, 0.18);
+}
+
+.certificado-publico-fondo {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.certificado-publico-qr {
+    position: absolute;
+    top: 8%;
+    right: 8%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    color: #102644;
+    font: 700 clamp(0.55rem, 1.2vw, 0.9rem) Arial, sans-serif;
+}
+
+.certificado-publico-qr img {
+    width: clamp(52px, 9vw, 100px);
+    height: auto;
+    padding: 0.25rem;
+    background: #ffffff;
+}
+
+.certificado-publico-datos {
+    position: absolute;
+    top: 31%;
+    left: 18%;
+    width: 64%;
+    color: #102644;
+    font-family: Georgia, 'Times New Roman', serif;
+}
+
+.certificado-publico-datos p {
+    margin: 0.4rem 0;
+    font-size: clamp(0.65rem, 1.6vw, 1.1rem);
+}
+
+.certificado-publico-datos h1 {
+    margin: 0.55rem 0;
+    font-size: clamp(1rem, 3vw, 2.2rem);
+    overflow-wrap: anywhere;
+}
+
+.certificado-publico-datos strong {
+    display: block;
+    margin-top: 0.8rem;
+    font-size: clamp(0.6rem, 1.4vw, 1rem);
+}
+
+.certificado-publico-verificacion {
+    margin: 0.75rem 0;
+    color: #52706d;
+}
+
+.certificado-acciones {
+    white-space: nowrap;
+}
+
+.certificado-acciones .btn {
+    margin-right: 0.25rem;
+}
+
+@media (max-width: 768px) {
+    .certificado-link-row {
+        flex-wrap: wrap;
+    }
+
+    .certificado-link-row input {
+        flex-basis: 100%;
+    }
+
+    .certificado-publico-preview {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
 .perfil-entregas-card .table {
     margin-top: 1rem;
 }

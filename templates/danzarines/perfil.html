@@ -177,6 +177,18 @@
           if (photoInput.files.length) photoInput.form.submit();
         });
       }
+      document.querySelectorAll('.btn-copiar-certificado').forEach(function(copiarCertificado){
+        copiarCertificado.addEventListener('click', function(){
+          navigator.clipboard.writeText(copiarCertificado.dataset.url).then(function(){
+            copiarCertificado.innerHTML = '<i class="fas fa-check"></i>';
+            copiarCertificado.title = 'Enlace copiado';
+            setTimeout(function(){
+              copiarCertificado.innerHTML = '<i class="fas fa-copy"></i>';
+              copiarCertificado.title = 'Copiar enlace del certificado';
+            }, 1800);
+          });
+        });
+      });
     });
   </script>
 
@@ -252,7 +264,7 @@
               <td>{% if e.evento %}{{ e.evento.nombre }}{% else %}-{% endif %}</td>
               <td>{% if e.fecha_certificado %}{{ e.fecha_certificado|date:'j \d\e F \d\e Y' }}{% else %}-{% endif %}</td>
               <td>{% if e.certificado_disponible %}Disponible{% else %}Pendiente{% endif %}</td>
-              <td>{% if e.certificado_disponible and e.souvenir %}<a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado"><i class="fas fa-download"></i> Descargar</a>{% else %}<button type="button" class="btn btn-sm btn-secondary" disabled title="Disponible desde el día siguiente a la fecha fin"><i class="fas fa-lock"></i> Pendiente</button>{% endif %}</td>
+              <td class="certificado-acciones">{% if e.certificado_disponible and e.souvenir %}<a href="{% url 'souvenirs:descargar_certificado_entrega' e.pk %}" class="btn btn-sm btn-primary" title="Descargar certificado"><i class="fas fa-download"></i><span class="sr-only">Descargar certificado</span></a>{% else %}<button type="button" class="btn btn-sm btn-secondary" disabled title="Disponible desde el día siguiente a la fecha fin"><i class="fas fa-lock"></i><span class="sr-only">Certificado pendiente</span></button>{% endif %}{% if certificado_url %}<button type="button" class="btn btn-sm btn-primary btn-copiar-certificado" data-url="{{ certificado_url }}" title="Copiar enlace del certificado" aria-label="Copiar enlace del certificado"><i class="fas fa-copy"></i></button><a href="{{ certificado_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener" title="Abrir certificado" aria-label="Abrir certificado"><i class="fas fa-external-link-alt"></i></a><a href="{{ certificado_qr_url }}" class="btn btn-sm btn-outline-secondary" download="qr-certificado-{{ danzarin.codigo_danzarin|default:danzarin.pk }}.png" title="Descargar QR" aria-label="Descargar QR"><i class="fas fa-qrcode"></i></a>{% endif %}</td>
             </tr>
             {% endfor %}
           </tbody>

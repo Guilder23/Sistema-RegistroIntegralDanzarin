@@ -15,7 +15,11 @@ import csv
 from io import BytesIO, TextIOWrapper
 from django.contrib.auth.models import User
 from django.http import HttpResponse
+from django.core import signing
+from django.contrib.staticfiles import finders
+from django.urls import reverse
 import openpyxl
+import qrcode
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -24,7 +28,10 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Image, SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from PIL import Image as PILImage
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
@@ -123,14 +130,6 @@ def descargar_danzarin_pdf(request, danzarin_id):
         ),
         pk=danzarin_id,
     )
-    buffer = BytesIO()
-    documento = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=0.55 * inch, leftMargin=0.55 * inch)
-    estilos = getSampleStyleSheet()
-    elementos = [
-        Paragraph('Ficha completa del Danzarín', estilos['Title']),
-        Spacer(1, 10),
-    ]
-
     nombre = f'{danzarin.nombre} {danzarin.apellido_paterno} {danzarin.apellido_materno}'.strip()
     membresia_visible = next(
         (
@@ -139,68 +138,37 @@ def descargar_danzarin_pdf(request, danzarin_id):
         ),
         danzarin.membresias.all()[0] if danzarin.membresias.all() else None,
     )
-    datos_personales = [
-        ['Código', danzarin.codigo_danzarin or '-'],
-        ['Nombre completo', nombre],
-        ['Usuario', danzarin.user.username],
-        ['Correo', danzarin.email or danzarin.user.email or '-'],
-        ['Teléfono', danzarin.telefono or '-'],
-        ['Ciudad', danzarin.ciudad or '-'],
-        ['Dirección', danzarin.direccion or '-'],
-        ['CI / Carnet', f'{danzarin.carnet_ci} {danzarin.carnet_complemento}'.strip() or '-'],
-        ['Fecha de nacimiento', danzarin.fecha_nacimiento.strftime('%d/%m/%Y') if danzarin.fecha_nacimiento else '-'],
-        ['Sexo', danzarin.get_sexo_display() or '-'],
-        ['Fecha de ingreso', danzarin.fecha_ingreso.strftime('%d/%m/%Y')],
-        ['Estado', membresia_visible.get_estado_display() if membresia_visible else 'Sin membresía'],
-        ['Souvenir', 'Entregado' if danzarin.recibio_souvenir else 'Pendiente'],
-        ['Observación', danzarin.observacion or '-'],
-    ]
-    elementos.append(Paragraph('Datos personales', estilos['Heading2']))
-    elementos.append(Table(datos_personales, colWidths=[1.55 * inch, 5.9 * inch], style=TableStyle([
-        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f3f1')),
-        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-        ('PADDING', (0, 0), (-1, -1), 6),
-    ])))
-    elementos.append(Spacer(1, 14))
-
-    elementos.append(Paragraph('Membresías', estilos['Heading2']))
-    membresias = [['Asociación', 'Conjunto', 'Bloque', 'Estado', 'Pago']]
-    for membresia in danzarin.membresias.all():
-        membresias.append([
-            membresia.asociacion.nombre,
-            membresia.conjunto.nombre,
-            membresia.bloque.nombre if membresia.bloque else '-',
-            membresia.get_estado_display(),
-            membresia.get_estado_pago_display(),
-        ])
-    elementos.append(Table(membresias, repeatRows=1, colWidths=[1.55 * inch, 1.6 * inch, 1.35 * inch, 1.2 * inch, 1.2 * inch], style=TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#05413f')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
-        ('PADDING', (0, 0), (-1, -1), 5),
-    ])))
-    elementos.append(Spacer(1, 14))
-
-    elementos.append(Paragraph('Entregas de souvenirs', estilos['Heading2']))
-    entregas = [['Fecha', 'Evento', 'Souvenir', 'Entregado por', 'Observación']]
-    for entrega in danzarin.entregas_souvenir.all():
-        entregas.append([
-            entrega.fecha_entrega.strftime('%d/%m/%Y'),
-            entrega.evento.nombre if entrega.evento else '-',
-            entrega.souvenir.nombre if entrega.souvenir else '-',
-            entrega.entregado_por.get_username() if entrega.entregado_por else 'Sistema',
-            entrega.observacion or '-',
-        ])
-    elementos.append(Table(entregas, repeatRows=1, colWidths=[0.85 * inch, 1.55 * inch, 1.35 * inch, 1.35 * inch, 2.1 * inch], style=TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#05413f')),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
-        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        ('PADDING', (0, 0), (-1, -1), 5),
-    ])))
-    documento.build(elementos)
+    certificado_token = signing.dumps(danzarin.pk, salt='danzarin-certificado')
+    certificado_url = request.build_absolute_uri(
+        reverse('danzarines:certificado_publico', args=[certificado_token])
+    )
+    plantilla = finders.find('img/PlantillaCertificado.png')
+    if not plantilla:
+        return HttpResponse('No se encontró la plantilla del certificado.', status=404)
+    with PILImage.open(plantilla) as imagen:
+        imagen_width, imagen_height = imagen.size
+    page_width = 842
+    page_height = page_width * imagen_height / imagen_width
+    buffer = BytesIO()
+    documento = canvas.Canvas(buffer, pagesize=(page_width, page_height))
+    documento.drawImage(ImageReader(plantilla), 0, 0, width=page_width, height=page_height)
+    qr_buffer = BytesIO()
+    qrcode.make(certificado_url).save(qr_buffer, format='PNG')
+    qr_buffer.seek(0)
+    documento.drawImage(ImageReader(qr_buffer), page_width - 120, page_height - 120, width=80, height=80)
+    documento.setFillColor(colors.HexColor('#102644'))
+    documento.setFont('Helvetica-Bold', 23)
+    documento.drawCentredString(page_width / 2, page_height * 0.56, nombre)
+    documento.setFont('Helvetica', 13)
+    documento.drawCentredString(page_width / 2, page_height * 0.505, 'Se certifica su registro como danzarín.')
+    if membresia_visible:
+        documento.setFont('Helvetica', 12)
+        documento.drawCentredString(page_width / 2, page_height * 0.46, f'Asociación: {membresia_visible.asociacion.nombre}')
+        documento.drawCentredString(page_width / 2, page_height * 0.42, f'Conjunto: {membresia_visible.conjunto.nombre}')
+        documento.drawCentredString(page_width / 2, page_height * 0.38, f'Bloque: {membresia_visible.bloque.nombre if membresia_visible.bloque else "No asignado"}')
+    documento.setFont('Helvetica-Bold', 11)
+    documento.drawCentredString(page_width / 2, page_height * 0.33, f'Código: {danzarin.codigo_danzarin or "No asignado"}')
+    documento.save()
     nombre_archivo = f'danzarin_{danzarin.codigo_danzarin or danzarin.pk}.pdf'
     return HttpResponse(
         buffer.getvalue(),
@@ -315,6 +283,13 @@ def perfil_danzarin(request):
             if entrega.evento else None
         )
     membresia_principal = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if danzarin else None
+    certificado_url = None
+    qr_url = None
+    if danzarin:
+        certificado_token = signing.dumps(danzarin.pk, salt='danzarin-certificado')
+        certificado_path = reverse('danzarines:certificado_publico', args=[certificado_token])
+        certificado_url = request.build_absolute_uri(certificado_path)
+        qr_url = reverse('danzarines:certificado_qr', args=[certificado_token])
     paginator = Paginator(entregas, 10)
     page_obj = paginator.get_page(request.GET.get('page'))
 
@@ -324,7 +299,45 @@ def perfil_danzarin(request):
         'is_admin': request.user.is_staff,
         'user_profile': profile,
         'membresia_principal': membresia_principal,
+        'certificado_url': certificado_url,
+        'certificado_qr_url': qr_url,
     })
+
+
+def _obtener_danzarin_certificado(token):
+    try:
+        danzarin_id = signing.loads(token, salt='danzarin-certificado')
+    except signing.BadSignature:
+        return None
+    return Danzarin.objects.prefetch_related(
+        'membresias__asociacion', 'membresias__conjunto', 'membresias__bloque'
+    ).filter(pk=danzarin_id).first()
+
+
+def certificado_publico(request, token):
+    danzarin = _obtener_danzarin_certificado(token)
+    if not danzarin:
+        return render(request, 'danzarines/certificado_invalido.html', status=404)
+    membresia = danzarin.membresias.filter(
+        estado__in=['activo', 'suspendido', 'castigado']
+    ).first()
+    certificado_qr_url = reverse('danzarines:certificado_qr', args=[token])
+    return render(request, 'danzarines/certificado_publico.html', {
+        'danzarin': danzarin,
+        'membresia': membresia,
+        'certificado_qr_url': certificado_qr_url,
+    })
+
+
+def certificado_qr(request, token):
+    if not _obtener_danzarin_certificado(token):
+        return HttpResponse('QR no válido.', status=404, content_type='text/plain')
+    certificado_path = reverse('danzarines:certificado_publico', args=[token])
+    certificado_url = request.build_absolute_uri(certificado_path)
+    imagen = qrcode.make(certificado_url)
+    buffer = BytesIO()
+    imagen.save(buffer, format='PNG')
+    return HttpResponse(buffer.getvalue(), content_type='image/png')
 
 
 @login_required

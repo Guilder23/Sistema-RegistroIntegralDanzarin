@@ -55,4 +55,5 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     bloqueSelect?.addEventListener('change', scheduleSubmit);
     actualizarConjuntos();
+
 });

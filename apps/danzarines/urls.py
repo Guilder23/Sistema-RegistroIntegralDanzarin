@@ -4,7 +4,7 @@ from .views import subir_foto
 from .views import crear_admin, importar_danzarines, importar_danzarines_masivo, importar_danzarines_xlsx_preview, importar_danzarines_xlsx_confirm
 from .views import descargar_plantilla_excel, importar_danzarines_xlsx, descargar_danzarin_pdf
 from .views import listar_admins, ver_admin, editar_admin, eliminar_admin, mis_souvenirs
-from .views import editar_perfil, cambiar_contrasena
+from .views import editar_perfil, cambiar_contrasena, certificado_publico, certificado_qr
 
 app_name = 'danzarines'
 
@@ -18,6 +18,10 @@ urlpatterns = [
     path('<int:danzarin_id>/desactivar/', desactivar_danzarin, name='desactivar_danzarin'),
     path('<int:danzarin_id>/eliminar/', eliminar_danzarin, name='eliminar_danzarin'),
     path('perfil/', perfil_danzarin, name='perfil_danzarin'),
+    path('certificado/<str:token>/', certificado_publico, name='certificado_publico'),
+    path('certificado/<str:token>', certificado_publico, name='certificado_publico_sin_barra'),
+    path('certificado/<str:token>/qr/', certificado_qr, name='certificado_qr'),
+    path('certificado/<str:token>/qr', certificado_qr, name='certificado_qr_sin_barra'),
     path('perfil/editar/', editar_perfil, name='editar_perfil'),
     path('perfil/cambiar_contrasena/', cambiar_contrasena, name='cambiar_contrasena'),
     path('subir_foto/', subir_foto, name='subir_foto'),
