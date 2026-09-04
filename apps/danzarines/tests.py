@@ -158,3 +158,54 @@ class PlantillaDanzarinesExcelTests(TestCase):
             'Nombre exacto de bloque',
         ])
         self.assertEqual(worksheet.column_dimensions['P'].width, 28)
+
+
+class GestionDanzarinesTests(TestCase):
+    def setUp(self):
+        self.asociacion = Asociacion.objects.create(nombre='Asociacion Filtros')
+        self.conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto Filtros')
+        self.bloque = Bloque.objects.create(conjunto=self.conjunto, nombre='Bloque Filtros')
+        self.admin = User.objects.create_superuser(
+            username='admin-pdf', email='admin@example.com', password='secret123'
+        )
+        self.danzarin = Danzarin.objects.create(
+            user=User.objects.create_user('danzarin-pdf', password='secret123'),
+            nombre='Ana', apellido_paterno='Prueba', email='ana@example.com',
+        )
+        Membresia.objects.create(
+            danzarin=self.danzarin, asociacion=self.asociacion,
+            conjunto=self.conjunto, bloque=self.bloque,
+        )
+
+    def test_descarga_pdf_completo_del_danzarin(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(
+            reverse('danzarines:descargar_danzarin_pdf', args=[self.danzarin.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertTrue(response.content.startswith(b'%PDF'))
+        self.assertIn('danzarin_', response['Content-Disposition'])
+
+    def test_filtros_de_asociacion_conjunto_y_bloque(self):
+        otro_danzarin = Danzarin.objects.create(
+            user=User.objects.create_user('danzarin-otro', password='secret123'),
+            nombre='Luis', email='luis@example.com',
+        )
+        otra_asociacion = Asociacion.objects.create(nombre='Otra Asociacion')
+        otro_conjunto = Conjunto.objects.create(asociacion=otra_asociacion, nombre='Otro Conjunto')
+        Membresia.objects.create(
+            danzarin=otro_danzarin, asociacion=otra_asociacion, conjunto=otro_conjunto,
+        )
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse('danzarines:listar_danzarines'), {
+            'asociacion_id': self.asociacion.pk,
+            'conjunto_id': self.conjunto.pk,
+            'bloque_id': self.bloque.pk,
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.context['page_obj'].object_list), [self.danzarin])

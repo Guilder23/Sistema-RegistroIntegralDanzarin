@@ -12,7 +12,7 @@ from .models import UserProfile
 from .models import generar_codigo_danzarin
 from django.contrib.auth import update_session_auth_hash
 import csv
-from io import TextIOWrapper
+from io import BytesIO, TextIOWrapper
 from django.contrib.auth.models import User
 from django.http import HttpResponse
 import openpyxl
@@ -20,6 +20,11 @@ from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 from datetime import datetime, timedelta
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, get_role, registrar_auditoria, can_manage_users
 from apps.core.permissions import scope_danzarines, is_administrative, can_register_members, can_manage_member_states, get_role, registrar_auditoria, can_manage_users
 from apps.core.models import Asociacion, Conjunto
@@ -38,6 +43,9 @@ XLSX_DANZARIN_HEADERS = [
 def listar_danzarines(request):
     q = request.GET.get('q', '').strip()
     estado = request.GET.get('estado', '').strip()
+    asociacion_id = request.GET.get('asociacion_id', '').strip()
+    conjunto_id = request.GET.get('conjunto_id', '').strip()
+    bloque_id = request.GET.get('bloque_id', '').strip()
 
     danzarines = scope_danzarines(Danzarin.objects.select_related('user'), request.user)
     if q:
@@ -51,6 +59,12 @@ def listar_danzarines(request):
         )
     if estado:
         danzarines = danzarines.filter(membresias__estado=estado).distinct()
+    if asociacion_id:
+        danzarines = danzarines.filter(membresias__asociacion_id=asociacion_id).distinct()
+    if conjunto_id:
+        danzarines = danzarines.filter(membresias__conjunto_id=conjunto_id).distinct()
+    if bloque_id:
+        danzarines = danzarines.filter(membresias__bloque_id=bloque_id).distinct()
 
     paginator = Paginator(danzarines.order_by('-fecha_ingreso'), 10)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -80,6 +94,9 @@ def listar_danzarines(request):
         'page_obj': page_obj,
         'q': q,
         'estado': estado,
+        'asociacion_id': asociacion_id,
+        'conjunto_id': conjunto_id,
+        'bloque_id': bloque_id,
         'is_admin': can_register_members(request.user),
         'asociaciones': asociaciones,
         'conjuntos': conjuntos,
@@ -87,6 +104,109 @@ def listar_danzarines(request):
         'role': role,
         'can_manage_states': can_manage_member_states(request.user),
     })
+
+
+@login_required
+@user_passes_test(is_administrative, login_url='/login/')
+def descargar_danzarin_pdf(request, danzarin_id):
+    danzarin = get_object_or_404(
+        scope_danzarines(
+            Danzarin.objects.select_related('user').prefetch_related(
+                'membresias__asociacion',
+                'membresias__conjunto',
+                'membresias__bloque',
+                'entregas_souvenir__evento',
+                'entregas_souvenir__souvenir',
+                'entregas_souvenir__entregado_por',
+            ),
+            request.user,
+        ),
+        pk=danzarin_id,
+    )
+    buffer = BytesIO()
+    documento = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=0.55 * inch, leftMargin=0.55 * inch)
+    estilos = getSampleStyleSheet()
+    elementos = [
+        Paragraph('Ficha completa del Danzarín', estilos['Title']),
+        Spacer(1, 10),
+    ]
+
+    nombre = f'{danzarin.nombre} {danzarin.apellido_paterno} {danzarin.apellido_materno}'.strip()
+    membresia_visible = next(
+        (
+            membresia for membresia in danzarin.membresias.all()
+            if membresia.estado in ['activo', 'suspendido', 'castigado']
+        ),
+        danzarin.membresias.all()[0] if danzarin.membresias.all() else None,
+    )
+    datos_personales = [
+        ['Código', danzarin.codigo_danzarin or '-'],
+        ['Nombre completo', nombre],
+        ['Usuario', danzarin.user.username],
+        ['Correo', danzarin.email or danzarin.user.email or '-'],
+        ['Teléfono', danzarin.telefono or '-'],
+        ['Ciudad', danzarin.ciudad or '-'],
+        ['Dirección', danzarin.direccion or '-'],
+        ['CI / Carnet', f'{danzarin.carnet_ci} {danzarin.carnet_complemento}'.strip() or '-'],
+        ['Fecha de nacimiento', danzarin.fecha_nacimiento.strftime('%d/%m/%Y') if danzarin.fecha_nacimiento else '-'],
+        ['Sexo', danzarin.get_sexo_display() or '-'],
+        ['Fecha de ingreso', danzarin.fecha_ingreso.strftime('%d/%m/%Y')],
+        ['Estado', membresia_visible.get_estado_display() if membresia_visible else 'Sin membresía'],
+        ['Souvenir', 'Entregado' if danzarin.recibio_souvenir else 'Pendiente'],
+        ['Observación', danzarin.observacion or '-'],
+    ]
+    elementos.append(Paragraph('Datos personales', estilos['Heading2']))
+    elementos.append(Table(datos_personales, colWidths=[1.55 * inch, 5.9 * inch], style=TableStyle([
+        ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#e8f3f1')),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+        ('PADDING', (0, 0), (-1, -1), 6),
+    ])))
+    elementos.append(Spacer(1, 14))
+
+    elementos.append(Paragraph('Membresías', estilos['Heading2']))
+    membresias = [['Asociación', 'Conjunto', 'Bloque', 'Estado', 'Pago']]
+    for membresia in danzarin.membresias.all():
+        membresias.append([
+            membresia.asociacion.nombre,
+            membresia.conjunto.nombre,
+            membresia.bloque.nombre if membresia.bloque else '-',
+            membresia.get_estado_display(),
+            membresia.get_estado_pago_display(),
+        ])
+    elementos.append(Table(membresias, repeatRows=1, colWidths=[1.55 * inch, 1.6 * inch, 1.35 * inch, 1.2 * inch, 1.2 * inch], style=TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#05413f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
+        ('PADDING', (0, 0), (-1, -1), 5),
+    ])))
+    elementos.append(Spacer(1, 14))
+
+    elementos.append(Paragraph('Entregas de souvenirs', estilos['Heading2']))
+    entregas = [['Fecha', 'Evento', 'Souvenir', 'Entregado por', 'Observación']]
+    for entrega in danzarin.entregas_souvenir.all():
+        entregas.append([
+            entrega.fecha_entrega.strftime('%d/%m/%Y'),
+            entrega.evento.nombre if entrega.evento else '-',
+            entrega.souvenir.nombre if entrega.souvenir else '-',
+            entrega.entregado_por.get_username() if entrega.entregado_por else 'Sistema',
+            entrega.observacion or '-',
+        ])
+    elementos.append(Table(entregas, repeatRows=1, colWidths=[0.85 * inch, 1.55 * inch, 1.35 * inch, 1.35 * inch, 2.1 * inch], style=TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#05413f')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('GRID', (0, 0), (-1, -1), 0.4, colors.HexColor('#b9d8d3')),
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('PADDING', (0, 0), (-1, -1), 5),
+    ])))
+    documento.build(elementos)
+    nombre_archivo = f'danzarin_{danzarin.codigo_danzarin or danzarin.pk}.pdf'
+    return HttpResponse(
+        buffer.getvalue(),
+        content_type='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename="{nombre_archivo}"'},
+    )
 
 
 @login_required

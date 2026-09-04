@@ -2,7 +2,7 @@ from django.urls import path
 from .views import listar_danzarines, crear_danzarin, editar_danzarin, activar_danzarin, desactivar_danzarin, eliminar_danzarin, perfil_danzarin, historial_souvenirs
 from .views import subir_foto
 from .views import crear_admin, importar_danzarines, importar_danzarines_masivo, importar_danzarines_xlsx_preview, importar_danzarines_xlsx_confirm
-from .views import descargar_plantilla_excel, importar_danzarines_xlsx
+from .views import descargar_plantilla_excel, importar_danzarines_xlsx, descargar_danzarin_pdf
 from .views import listar_admins, ver_admin, editar_admin, eliminar_admin, mis_souvenirs
 from .views import editar_perfil, cambiar_contrasena
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('nuevo/', crear_danzarin, name='crear_danzarin'),
     path('<int:danzarin_id>/editar/', editar_danzarin, name='editar_danzarin'),
     path('<int:danzarin_id>/historial_souvenirs/', historial_souvenirs, name='historial_souvenirs'),
+    path('<int:danzarin_id>/pdf/', descargar_danzarin_pdf, name='descargar_danzarin_pdf'),
     path('<int:danzarin_id>/activar/', activar_danzarin, name='activar_danzarin'),
     path('<int:danzarin_id>/desactivar/', desactivar_danzarin, name='desactivar_danzarin'),
     path('<int:danzarin_id>/eliminar/', eliminar_danzarin, name='eliminar_danzarin'),
