@@ -33,7 +33,7 @@ class EntregaSouvenirScopeTests(TestCase):
         )
         socio_user = User.objects.create_user('socio-entrega', password='secret123')
         self.socio = Socio.objects.create(
-            user=socio_user, nombre='Socio', apellido='Entrega',
+            user=socio_user, nombre='Socio', apellido_paterno='Entrega',
             email='socio@example.com',
         )
         Membresia.objects.create(
@@ -95,7 +95,7 @@ class EntregaSouvenirScopeTests(TestCase):
     def test_miembro_no_descarga_certificado_de_otro_socio(self):
         otro_usuario = User.objects.create_user('otro-socio', password='secret123')
         otro_socio = Socio.objects.create(
-            user=otro_usuario, nombre='Otro', apellido='Socio',
+            user=otro_usuario, nombre='Otro', apellido_paterno='Socio',
             email='otro@example.com',
         )
         entrega = SouvenirEntrega.objects.create(

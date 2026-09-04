@@ -18,8 +18,6 @@ class Socio(models.Model):
     nombre = models.CharField(max_length=150, verbose_name='Nombres')
     apellido_paterno = models.CharField(max_length=150, blank=True, default='', verbose_name='Apellido paterno')
     apellido_materno = models.CharField(max_length=150, blank=True, default='', verbose_name='Apellido materno')
-    # Mantener campo legado para compatibilidad
-    apellido = models.CharField(max_length=150, blank=True, default='', verbose_name='Apellidos')
     email = models.EmailField(verbose_name='Correo electrónico')
     carnet_ci = models.CharField(max_length=30, blank=True, default='', verbose_name='CI / Carnet')
     carnet_complemento = models.CharField(max_length=20, blank=True, default='', verbose_name='Complemento CI')
@@ -28,8 +26,6 @@ class Socio(models.Model):
     direccion = models.CharField(max_length=250, blank=True, default='', verbose_name='Dirección')
     fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
     sexo = models.CharField(max_length=10, choices=SEXO_CHOICES, blank=True, default='')
-    modalidad = models.CharField(max_length=100, blank=True, default='', verbose_name='Categoría o modalidad')
-    razon = models.TextField(blank=True, default='', verbose_name='Razón de ingreso')
     fecha_ingreso = models.DateField(auto_now_add=True, verbose_name='Fecha de ingreso')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')
     recibio_souvenir = models.BooleanField(default=False, verbose_name='Recibió souvenir')
@@ -39,12 +35,12 @@ class Socio(models.Model):
     class Meta:
         verbose_name = 'Socio'
         verbose_name_plural = 'Socios'
-        ordering = ['-fecha_ingreso', 'apellido', 'nombre']
+        ordering = ['-fecha_ingreso', 'apellido_paterno', 'apellido_materno', 'nombre']
 
     def __str__(self):
         if self.apellido_paterno or self.apellido_materno:
             return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}".strip()
-        return f'{self.nombre} {self.apellido}'
+        return self.nombre
 
 
 class Membresia(models.Model):

@@ -143,14 +143,7 @@ def dashboard(request):
         'mayores': socios_qs.filter(fecha_nacimiento__year__lte=current_year - 60).count(),
     }
 
-    # 5. Distribución por Modalidades / Categorías
-    modalidades_data = socios_qs.values('modalidad').annotate(
-        total=Count('id', distinct=True)
-    ).order_by('-total')[:8]
-    modalidades_labels = [m['modalidad'] if m['modalidad'] else 'General' for m in modalidades_data]
-    modalidades_counts = [m['total'] for m in modalidades_data]
-
-    # 6. Distribución por Asociaciones y Conjuntos
+    # 5. Distribución por Asociaciones y Conjuntos
     distribucion_asociaciones = socios_qs.filter(membresias__estado='activo').values(
         'membresias__asociacion__nombre', 'membresias__conjunto__nombre'
     ).annotate(total=Count('id', distinct=True)).order_by(
@@ -215,11 +208,6 @@ def dashboard(request):
                 for fila in distribucion_lista
             ] if distribucion_lista else ['Sin integrantes'],
             'data': [fila['total'] for fila in distribucion_lista] if distribucion_lista else [0],
-        },
-        # Área Polar (Polar Area Chart): Modalidades
-        'modalidades': {
-            'labels': modalidades_labels if modalidades_labels else ['General'],
-            'data': modalidades_counts if modalidades_counts else [0],
         },
         # Línea con Relleno Gradiente (Line Chart): Tendencia de Inscripciones
         'tendencia': {

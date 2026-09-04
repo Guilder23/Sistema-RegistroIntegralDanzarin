@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('verCarnetCi', button.getAttribute('data-carnet-ci') || '');
         setText('verCarnetComplemento', button.getAttribute('data-carnet-complemento') || '');
         setText('verFechaNacimiento', button.getAttribute('data-fecha-nacimiento') || '');
-        setText('verRazon', button.getAttribute('data-razon') || '');
         setText('verEstado', button.getAttribute('data-estado') || '');
         setText('verSouvenir', button.getAttribute('data-souvenir') || '');
         setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');
@@ -43,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
             setText('verCarnetCi', button.getAttribute('data-carnet-ci') || '');
             setText('verCarnetComplemento', button.getAttribute('data-carnet-complemento') || '');
             setText('verFechaNacimiento', button.getAttribute('data-fecha-nacimiento') || '');
-            setText('verRazon', button.getAttribute('data-razon') || '');
             setText('verEstado', button.getAttribute('data-estado') || '');
             setText('verSouvenir', button.getAttribute('data-souvenir') || '');
             setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');

@@ -1,7 +1,9 @@
 from django.contrib.auth.models import User
+from io import BytesIO
 from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
+from openpyxl import load_workbook
 
 from apps.core.models import Asociacion, Conjunto
 from apps.bloques.models import Bloque
@@ -14,7 +16,7 @@ class MembresiaTests(TestCase):
         self.socio = Socio.objects.create(
             user=self.usuario,
             nombre='Ana',
-            apellido='Perez',
+            apellido_paterno='Perez',
             email='ana@example.com',
         )
         self.asociacion = Asociacion.objects.create(nombre='Asociacion A')
@@ -103,7 +105,7 @@ class RolesSociosTests(TestCase):
 
     def test_no_permite_dos_conjuntos_activos_en_la_misma_asociacion(self):
         socio_user = User.objects.create_user('persona-activa', password='secret123')
-        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido='Activa', email='activa@example.com', carnet_ci='54321', carnet_complemento='B')
+        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido_paterno='Activa', email='activa@example.com', carnet_ci='54321', carnet_complemento='B')
         Membresia.objects.create(socio=socio, asociacion=self.asociacion, conjunto=self.conjunto, bloque=self.bloque)
         otro_conjunto = Conjunto.objects.create(asociacion=self.asociacion, nombre='Conjunto Dos')
         otro_bloque = Bloque.objects.create(conjunto=otro_conjunto, nombre='Bloque Dos')
@@ -120,7 +122,7 @@ class RolesSociosTests(TestCase):
 
     def test_deuda_suspendida_y_pago_al_dia_activa_con_update_fields(self):
         socio_user = User.objects.create_user('persona-pago', password='secret123')
-        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido='Pago', email='pago@example.com')
+        socio = Socio.objects.create(user=socio_user, nombre='Persona', apellido_paterno='Pago', email='pago@example.com')
         membresia = Membresia.objects.create(socio=socio, asociacion=self.asociacion, conjunto=self.conjunto, bloque=self.bloque)
 
         membresia.estado_pago = 'con_deuda'
@@ -130,3 +132,29 @@ class RolesSociosTests(TestCase):
         membresia.estado_pago = 'al_dia'
         membresia.save(update_fields=['estado_pago'])
         self.assertEqual(membresia.estado, 'activo')
+
+
+class PlantillaSociosExcelTests(TestCase):
+    def test_plantilla_tiene_encabezados_y_ejemplo_alineados(self):
+        administrador = User.objects.create_superuser(
+            username='admin-plantilla', email='admin@example.com', password='secret123'
+        )
+        self.client.force_login(administrador)
+
+        response = self.client.get(reverse('socios:descargar_plantilla_excel'))
+
+        self.assertEqual(response.status_code, 200)
+        workbook = load_workbook(BytesIO(response.content))
+        worksheet = workbook.active
+        headers = [cell.value for cell in worksheet[1]]
+        example = [cell.value for cell in worksheet[2]]
+        self.assertEqual(len(headers), 16)
+        self.assertEqual(len(example), 16)
+        self.assertEqual(headers[4:7], ['sexo', 'email', 'password'])
+        self.assertEqual(example[4:7], ['M', 'jdoe@example.com', 'Passw0rd!'])
+        self.assertEqual(example[13:], [
+            'Nombre exacto de asociación',
+            'Nombre exacto de conjunto',
+            'Nombre exacto de bloque',
+        ])
+        self.assertEqual(worksheet.column_dimensions['P'].width, 28)

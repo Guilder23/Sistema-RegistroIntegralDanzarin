@@ -12,4 +12,4 @@ class SouvenirAdmin(admin.ModelAdmin):
 @admin.register(SouvenirEntrega)
 class SouvenirEntregaAdmin(admin.ModelAdmin):
     list_display = ('socio', 'evento', 'fecha_entrega', 'entregado_por')
-    search_fields = ('socio__nombre', 'socio__apellido', 'evento__nombre')
+    search_fields = ('socio__nombre', 'socio__apellido_paterno', 'socio__apellido_materno', 'evento__nombre')

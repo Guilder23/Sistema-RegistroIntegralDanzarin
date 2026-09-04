@@ -164,7 +164,7 @@ def registrar_usuario(request):
 				user=user,
 				codigo_socio=generar_codigo_socio(),
 				nombre=first_name or username,
-				apellido=last_name,
+				apellido_paterno=last_name,
 				email=email,
 			)
 			Membresia.inscribir(socio, asociacion, conjunto, estado_pago='al_dia')

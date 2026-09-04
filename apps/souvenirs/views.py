@@ -107,7 +107,7 @@ def registrar_entrega(request):
 
     role = get_role(request.user)
     asociaciones, conjuntos, eventos = opciones_souvenirs(request.user)
-    socios = Socio.objects.filter(membresias__estado='activo').prefetch_related('membresias').distinct().order_by('apellido', 'nombre')
+    socios = Socio.objects.filter(membresias__estado='activo').prefetch_related('membresias').distinct().order_by('apellido_paterno', 'apellido_materno', 'nombre')
     if role == 'administrador_asociacion':
         socios = socios.filter(membresias__asociacion_id=request.user.userprofile.asociacion_id)
     elif role == 'administrador_conjunto':

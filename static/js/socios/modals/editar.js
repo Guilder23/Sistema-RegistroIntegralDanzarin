@@ -29,8 +29,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setValOr('editarNombre', 'data-nombre', '');
         setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
         setValOr('editarApellidoMaterno', 'data-apellido-materno', '');
-        const editarApellidoLegacy = document.getElementById('editarApellido');
-        if (editarApellidoLegacy) editarApellidoLegacy.value = button.getAttribute('data-apellido') || `${button.getAttribute('data-apellido-paterno') || ''} ${button.getAttribute('data-apellido-materno') || ''}`.trim();
         setValOr('editarEmail', 'data-email', '');
         setValOr('editarTelefono', 'data-telefono', '');
         setValOr('editarCiudad', 'data-ciudad', '');
@@ -39,7 +37,6 @@ document.addEventListener('DOMContentLoaded', function () {
         setValOr('editarCarnetCi', 'data-carnet-ci', '');
         setValOr('editarCarnetComplemento', 'data-carnet-complemento', '');
         setValOr('editarFechaNacimiento', 'data-fecha-nacimiento', '');
-        setValOr('editarRazon', 'data-razon', '');
         const formEl = document.getElementById('formEditarSocio');
         if (formEl) formEl.action = `/socios/${id}/editar/`;
         setVal('editarSocioAsociacionNombre', button.getAttribute('data-asociacion') || '');
@@ -60,8 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
             setValOr('editarNombre', 'data-nombre', '');
             setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
             setValOr('editarApellidoMaterno', 'data-apellido-materno', '');
-            const editarApellidoLegacy = document.getElementById('editarApellido');
-            if (editarApellidoLegacy) editarApellidoLegacy.value = button.getAttribute('data-apellido') || `${button.getAttribute('data-apellido-paterno') || ''} ${button.getAttribute('data-apellido-materno') || ''}`.trim();
             setValOr('editarEmail', 'data-email', '');
             setValOr('editarTelefono', 'data-telefono', '');
             setValOr('editarCiudad', 'data-ciudad', '');
@@ -70,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
             setValOr('editarCarnetCi', 'data-carnet-ci', '');
             setValOr('editarCarnetComplemento', 'data-carnet-complemento', '');
             setValOr('editarFechaNacimiento', 'data-fecha-nacimiento', '');
-            setValOr('editarRazon', 'data-razon', '');
             const formEl = document.getElementById('formEditarSocio');
             if (formEl) formEl.action = `/socios/${id}/editar/`;
             setVal('editarSocioAsociacionNombre', button.getAttribute('data-asociacion') || '');
