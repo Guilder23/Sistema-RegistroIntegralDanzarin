@@ -39,9 +39,13 @@ def listar_auditoria(request):
         asociacion_id = profile.asociacion_id if profile else None
         if asociacion_id:
             registros = registros.filter(
+                ~Q(usuario__is_superuser=True),
+                ~Q(usuario__userprofile__rol='superadministrador'),
+            ).filter(
                 Q(usuario_id=request.user.id)
                 | Q(usuario__userprofile__asociacion_id=asociacion_id)
                 | Q(asociacion_id=asociacion_id)
+                | Q(conjunto__asociacion_id=asociacion_id)
             )
             asociaciones = Asociacion.objects.filter(pk=asociacion_id)
             conjuntos = Conjunto.objects.filter(asociacion_id=asociacion_id, activo=True)
@@ -138,6 +142,7 @@ def listar_auditoria(request):
     registros_hoy = registros.filter(fecha_hora__date=hoy).count()
 
     # Paginación
+    registros = registros.order_by('fecha_hora', 'pk')
     paginator = Paginator(registros, 20)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
