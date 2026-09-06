@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
+    const formulario = document.querySelector('#modalCrearDanzarin form');
+    const apellidoPaterno = formulario?.querySelector('[name="apellido_paterno"]');
+    const carnetCi = formulario?.querySelector('[name="carnet_ci"]');
+    const username = formulario?.querySelector('[name="username"]');
+    const password = formulario?.querySelector('[name="password"]');
+    const actualizarCredenciales = function () {
+        if (username) username.value = apellidoPaterno?.value.trim() || '';
+        if (password) password.value = carnetCi?.value.trim() || '';
+    };
+    apellidoPaterno?.addEventListener('input', actualizarCredenciales);
+    carnetCi?.addEventListener('input', actualizarCredenciales);
+
     const asociacion = document.getElementById('crearDanzarinAsociacion');
     const conjunto = document.getElementById('crearDanzarinConjunto');
     const bloque = document.getElementById('crearDanzarinBloque');
