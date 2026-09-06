@@ -22,7 +22,7 @@
                     <p id="rud-title">Registro Único de Danzarines</p>
                 </div>
                 <h2>Acceso a sistema RUD</h2>
-                <form method="post" autocomplete="on" class="login-form">
+                <form method="post" action="{% url 'core:login' %}" autocomplete="on" class="login-form">
                     {% csrf_token %}
                     <div class="login-field">
                         <label for="id_username" class="login-field-label">Usuario</label>
