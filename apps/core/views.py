@@ -20,13 +20,9 @@ def get_home_redirect(user):
 
 
 def inicio(request):
-    if request.user.is_authenticated:
-        return redirect(get_home_redirect(request.user))
-    return render(request, 'core/inicio.html')
-
-
-def faq(request):
-    return render(request, 'core/faq.html')
+	if request.user.is_authenticated:
+		return redirect(get_home_redirect(request.user))
+	return render(request, 'auth/login.html')
 
 
 def robots_txt(request):
@@ -48,11 +44,10 @@ def robots_txt(request):
 def sitemap_xml(request):
 	public_urls = [
 		f'{settings.PUBLIC_SITE_URL}{reverse("core:inicio")}',
-		f'{settings.PUBLIC_SITE_URL}{reverse("core:faq")}',
 	]
 	url_entries = ''.join(
 		f'<url><loc>{escape(url)}</loc><changefreq>weekly</changefreq><priority>{priority}</priority></url>'
-		for url, priority in ((public_urls[0], '1.0'), (public_urls[1], '0.7'))
+		for url, priority in ((public_urls[0], '1.0'),)
 	)
 	content = (
 		'<?xml version="1.0" encoding="UTF-8"?>'
@@ -86,8 +81,7 @@ def iniciar_sesion(request):
 				pass
 
 		if login_error:
-			return render(request, 'core/inicio.html', {
-				'show_login_modal': True,
+			return render(request, 'auth/login.html', {
 				'login_username': username,
 				'login_error': login_error,
 			})
@@ -98,7 +92,7 @@ def iniciar_sesion(request):
 			return redirect(next_url)
 		return redirect(get_home_redirect(user))
 
-	return redirect(f"{reverse('core:inicio')}#modalLogin")
+	return redirect('core:inicio')
 
 
 @login_required
