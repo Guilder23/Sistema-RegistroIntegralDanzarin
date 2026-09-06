@@ -45,6 +45,10 @@ XLSX_DANZARIN_HEADERS = [
 ]
 
 
+def credenciales_danzarin(apellido_paterno, carnet_ci):
+    return apellido_paterno.strip(), carnet_ci.strip()
+
+
 @login_required
 @user_passes_test(is_administrative, login_url='/login/')
 def listar_danzarines(request):
@@ -183,7 +187,6 @@ def crear_danzarin(request):
     if request.method != 'POST':
         return redirect('danzarines:listar_danzarines')
 
-    username = request.POST.get('username', '').strip()
     nombre = request.POST.get('nombre', '').strip()
     apellido_paterno = request.POST.get('apellido_paterno', '').strip()
     apellido_materno = request.POST.get('apellido_materno', '').strip()
@@ -191,18 +194,18 @@ def crear_danzarin(request):
     telefono = request.POST.get('telefono', '').strip()
     ciudad = request.POST.get('ciudad', '').strip()
     direccion = request.POST.get('direccion', '').strip()
-    password = request.POST.get('password', '')
     fecha_nacimiento = request.POST.get('fecha_nacimiento', '').strip() or None
     carnet_ci = request.POST.get('carnet_ci', '').strip()
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
     sexo = request.POST.get('sexo', '').strip()
+    username, password = credenciales_danzarin(apellido_paterno, carnet_ci)
 
     carnet_existente = Danzarin.objects.filter(
         carnet_ci=carnet_ci,
         carnet_complemento=carnet_complemento,
     ).first() if carnet_ci else None
-    if not carnet_existente and (not username or not nombre or not apellido_paterno or not email or not password):
+    if not carnet_existente and (not username or not nombre or not email or not carnet_ci):
         messages.error(request, 'Completa los campos obligatorios.')
         return redirect('danzarines:listar_danzarines')
 
@@ -475,18 +478,17 @@ def importar_danzarines(request):
             reader = csv.DictReader(text)
             created = 0
             for row in reader:
-                username = row.get('username') or row.get('usuario') or ''
                 nombre = row.get('nombre') or ''
                 apellido_paterno = row.get('apellido_paterno') or ''
                 apellido_materno = row.get('apellido_materno') or ''
                 email = row.get('email') or ''
-                password = row.get('password') or User.objects.make_random_password()
                 telefono = row.get('telefono') or ''
                 ciudad = row.get('ciudad') or ''
                 direccion = row.get('direccion') or ''
                 fecha_nacimiento = row.get('fecha_nacimiento') or None
                 carnet_ci = row.get('carnet_ci') or ''
                 carnet_complemento = row.get('carnet_complemento') or ''
+                username, password = credenciales_danzarin(apellido_paterno, carnet_ci)
                 if not username or User.objects.filter(username=username).exists():
                     continue
                 user = User.objects.create_user(username=username, email=email, password=password)
@@ -512,7 +514,10 @@ def validar_filas_importacion(rows, user):
     errores = []
     for fila, row in enumerate(rows, start=2):
         valores = list(row) + [''] * max(0, 16 - len(row))
-        username, nombre = str(valores[0]).strip(), str(valores[1]).strip()
+        nombre = str(valores[1]).strip()
+        apellido_paterno = str(valores[2]).strip()
+        carnet_ci = str(valores[11]).strip()
+        username, _ = credenciales_danzarin(apellido_paterno, carnet_ci)
         asociacion_nombre = str(valores[13]).strip()
         conjunto_nombre = str(valores[14]).strip()
         bloque_nombre = str(valores[15]).strip()
@@ -520,8 +525,9 @@ def validar_filas_importacion(rows, user):
         conjunto = Conjunto.objects.filter(nombre__iexact=conjunto_nombre, asociacion=asociacion, activo=True).first() if asociacion else None
         bloque = Bloque.objects.filter(nombre__iexact=bloque_nombre, conjunto=conjunto, activo=True).first() if conjunto else None
         fila_errores = []
-        if not username: fila_errores.append('falta username')
+        if not apellido_paterno: fila_errores.append('falta apellido_paterno')
         if not nombre: fila_errores.append('falta nombre')
+        if not carnet_ci: fila_errores.append('falta carnet_ci')
         if not asociacion: fila_errores.append(f'asociación "{asociacion_nombre}" no encontrada')
         elif role == 'administrador_asociacion' and asociacion.pk != user.userprofile.asociacion_id: fila_errores.append('asociación fuera de tu ámbito')
         if not conjunto: fila_errores.append(f'conjunto "{conjunto_nombre}" no pertenece a la asociación')
@@ -551,7 +557,7 @@ def importar_danzarines_xlsx_preview(request):
             return redirect('danzarines:importar_danzarines_masivo')
 
         headers = [str(cell or '').strip() for cell in rows[0]]
-        required_headers = ['username', 'nombre', 'apellido_paterno', 'email', 'asociacion', 'conjunto', 'bloque']
+        required_headers = ['nombre', 'apellido_paterno', 'email', 'carnet_ci', 'asociacion', 'conjunto', 'bloque']
         missing_headers = [header for header in required_headers if header not in headers]
         if missing_headers:
             messages.error(request, f'Faltan columnas obligatorias: {", ".join(missing_headers)}.')
@@ -565,11 +571,14 @@ def importar_danzarines_xlsx_preview(request):
                 return cell.strftime('%Y-%m-%d') if cell.time() == datetime.min.time() else cell.strftime('%Y-%m-%d %H:%M:%S')
             return str(cell)
         
-        preview_data = [
-            [convert_cell_value(cell) for cell in row[:16]]
-            for row in rows[1:]
-            if any(cell is not None for cell in row[:16])
-        ]
+        preview_data = []
+        for row in rows[1:]:
+            if not any(cell is not None for cell in row[:16]):
+                continue
+            preview_row = [convert_cell_value(cell) for cell in row[:16]]
+            preview_row += [''] * max(0, 16 - len(preview_row))
+            preview_row[0], preview_row[6] = credenciales_danzarin(preview_row[2], preview_row[11])
+            preview_data.append(preview_row[:16])
 
         request.session['danzarines_import_preview'] = preview_data
 
@@ -601,30 +610,30 @@ def importar_danzarines_xlsx_confirm(request):
     errors = []
     for row in preview_data:
         vals = [(c or '') for c in (list(row) + [''] * max(0, 16 - len(row)))[:16]]
-        username = vals[0]
         nombre = vals[1]
         apellido_paterno = vals[2]
         apellido_materno = vals[3]
         sexo = vals[4]
         email = vals[5]
-        password = vals[6]
         telefono = vals[7]
         ciudad = vals[8]
         direccion = vals[9]
         fecha_nacimiento = vals[10] or None
         carnet_ci = vals[11]
         carnet_complemento = vals[12]
+        username, password = credenciales_danzarin(apellido_paterno, carnet_ci)
         asociacion = Asociacion.objects.get(nombre__iexact=str(vals[13]).strip(), activo=True)
         conjunto = Conjunto.objects.get(nombre__iexact=str(vals[14]).strip(), asociacion=asociacion, activo=True)
         bloque = Bloque.objects.get(nombre__iexact=str(vals[15]).strip(), conjunto=conjunto, activo=True)
         
-        if not username:
+        if not apellido_paterno:
             skipped += 1
-            errors.append(f"Fila sin username: {nombre}")
+            errors.append(f"Fila sin apellido paterno: {nombre}")
             continue
-        
-        if not password:
-            password = User.objects.make_random_password()
+        if not carnet_ci:
+            skipped += 1
+            errors.append(f"Fila sin carnet_ci: {nombre}")
+            continue
         
         try:
             if User.objects.filter(username=username).exists():
@@ -736,7 +745,7 @@ def descargar_plantilla_excel(request):
     )
     
     # Ejemplo de fila con estilo
-    example_row = ['jdoe', 'Juan', 'Perez', 'Gomez', 'M', 'jdoe@example.com', 'Passw0rd!', '71234567', 'Oruro', 'Dirección 123', '1990-01-01', '1234567', '-1A', 'Nombre exacto de asociación', 'Nombre exacto de conjunto', 'Nombre exacto de bloque']
+    example_row = ['Perez', 'Juan', 'Perez', 'Gomez', 'M', 'jdoe@example.com', '1234567', '71234567', 'Oruro', 'Dirección 123', '1990-01-01', '1234567', '-1A', 'Nombre exacto de asociación', 'Nombre exacto de conjunto', 'Nombre exacto de bloque']
     ws.append(example_row)
     
     # Aplicar bordes y colores alternados a las filas de datos
@@ -780,23 +789,20 @@ def importar_danzarines_xlsx(request):
                 if i == 0:
                     continue
                 vals = [ (c or '') for c in row[:16] ]
-                username = vals[0]
                 nombre = vals[1]
                 apellido_paterno = vals[2]
                 apellido_materno = vals[3]
                 sexo = vals[4]
                 email = vals[5]
-                password = vals[6]
                 telefono = vals[7]
                 ciudad = vals[8]
                 direccion = vals[9]
                 fecha_nacimiento = vals[10] or None
                 carnet_ci = vals[11]
                 carnet_complemento = vals[12]
-                if not username or User.objects.filter(username=username).exists():
+                username, password = credenciales_danzarin(apellido_paterno, carnet_ci)
+                if not apellido_paterno or not carnet_ci or User.objects.filter(username=username).exists():
                     continue
-                if not password:
-                    password = User.objects.make_random_password()
                 user = User.objects.create_user(username=username, email=email, password=password)
                 user.first_name = nombre
                 user.last_name = apellido_paterno

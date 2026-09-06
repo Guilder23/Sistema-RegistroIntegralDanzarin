@@ -62,16 +62,20 @@ class RolesDanzarinesTests(TestCase):
         response = self.client.post(reverse('danzarines:crear_danzarin'), {
             'username': 'danzarin-asociacion', 'password': 'secret123', 'nombre': 'Ana',
             'apellido_paterno': 'Lopez', 'email': 'ana@example.com',
+            'carnet_ci': '10001',
             'conjunto_id': self.conjunto.pk, 'bloque_id': self.bloque.pk,
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(Danzarin.objects.filter(nombre='Ana').exists())
+        danzarin = Danzarin.objects.get(nombre='Ana')
+        self.assertEqual(danzarin.user.username, 'Lopez')
+        self.assertTrue(danzarin.user.check_password('10001'))
 
     def test_administrador_conjunto_puede_registrar_danzarin_con_membresia(self):
         self.client.force_login(self.crear_usuario('admin-conjunto', 'administrador_conjunto'))
         response = self.client.post(reverse('danzarines:crear_danzarin'), {
             'username': 'nuevo-danzarin', 'password': 'secret123', 'nombre': 'Luis',
             'apellido_paterno': 'Gomez', 'email': 'luis@example.com',
+            'carnet_ci': '10002',
             'bloque_id': self.bloque.pk,
         })
         self.assertEqual(response.status_code, 302)
@@ -152,7 +156,7 @@ class PlantillaDanzarinesExcelTests(TestCase):
         self.assertEqual(len(headers), 16)
         self.assertEqual(len(example), 16)
         self.assertEqual(headers[4:7], ['sexo', 'email', 'password'])
-        self.assertEqual(example[4:7], ['M', 'jdoe@example.com', 'Passw0rd!'])
+        self.assertEqual(example[4:7], ['M', 'jdoe@example.com', '1234567'])
         self.assertEqual(example[13:], [
             'Nombre exacto de asociación',
             'Nombre exacto de conjunto',
