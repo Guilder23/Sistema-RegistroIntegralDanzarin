@@ -86,12 +86,18 @@
                             <input type="text" name="carnet_complemento" class="form-control">
                         </div>
                         <div class="col-md-6 form-group">
-                            <!-- espacio en blanco para mantener dos columnas -->
+                            <label>Ingreso al grupo</label>
+                            <input type="date" name="fecha_ingreso_grupo" class="form-control">
+                            <small class="form-text text-muted">Puede ser una fecha aproximada para danzarines antiguos.</small>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Observación / Nota</label>
                         <textarea name="observacion" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Observación de antigüedad</label>
+                        <input type="text" name="antiguedad_observacion" class="form-control" maxlength="200" placeholder="Ej.: Pertenece al grupo desde aproximadamente 2012">
                     </div>
                 </div>
                 <div class="modal-footer">

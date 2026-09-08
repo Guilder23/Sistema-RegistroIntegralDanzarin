@@ -76,12 +76,18 @@
                             <input type="text" name="carnet_complemento" id="editarCarnetComplemento" class="form-control">
                         </div>
                         <div class="col-md-6 form-group">
-                            <!-- espacio en blanco para mantener dos columnas -->
+                            <label>Ingreso al grupo</label>
+                            <input type="date" name="fecha_ingreso_grupo" id="editarFechaIngresoGrupo" class="form-control">
+                            <small class="form-text text-muted">Usa una fecha aproximada si no se conoce el día exacto.</small>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Observación</label>
                         <textarea name="observacion" id="editarObservacion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Observación de antigüedad</label>
+                        <input type="text" name="antiguedad_observacion" id="editarAntiguedadObservacion" class="form-control" maxlength="200">
                     </div>
                 </div>
                 <div class="modal-footer">

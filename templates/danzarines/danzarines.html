@@ -71,7 +71,9 @@
                         <th>Correo</th>
                         <th>Teléfono</th>
                         <th>Estado</th>
-                        <th>Ingreso</th>
+                        <th>Ingreso al grupo</th>
+                        <th>Antigüedad</th>
+                        <th>Registro sistema</th>
                         <th>Souvenir</th>
                         <th class="text-center acciones-col-head">Acciones</th>
                     </tr>
@@ -96,6 +98,8 @@
                                 {{ danzarin.membresia_visible.get_estado_display|default:'Sin membresía' }}
                             </span>
                         </td>
+                        <td>{% if danzarin.fecha_ingreso_grupo %}{{ danzarin.fecha_ingreso_grupo|date:'d/m/Y' }}{% else %}No registrada{% endif %}</td>
+                        <td>{{ danzarin.antiguedad_grupo }}</td>
                         <td>{{ danzarin.fecha_ingreso|date:'d/m/Y' }}</td>
                         <td>
                             <span class="badge-estado {% if danzarin.recibio_souvenir %}badge-estado-activo{% else %}badge-estado-inactivo{% endif %}">
@@ -118,6 +122,10 @@
                                 data-estado="{{ danzarin.membresia_visible.get_estado_display|default:'Sin membresía' }}"
                                 data-souvenir="{% if danzarin.recibio_souvenir %}Sí{% else %}No{% endif %}"
                                 data-fecha-ingreso="{{ danzarin.fecha_ingreso|date:'d/m/Y' }}"
+                                data-fecha-ingreso-grupo="{% if danzarin.fecha_ingreso_grupo %}{{ danzarin.fecha_ingreso_grupo|date:'d/m/Y' }}{% else %}No registrada{% endif %}"
+                                data-antiguedad-grupo="{{ danzarin.antiguedad_grupo }}"
+                                data-antiguedad-observacion="{{ danzarin.antiguedad_observacion|escapejs }}"
+                                data-observacion="{{ danzarin.observacion|escapejs }}"
                                 data-asociacion="{{ danzarin.membresia_visible.asociacion.nombre|escapejs }}"
                                 data-conjunto="{{ danzarin.membresia_visible.conjunto.nombre|escapejs }}"
                                 data-bloque="{{ danzarin.membresia_visible.bloque.nombre|default:'No asignado'|escapejs }}"
@@ -141,8 +149,12 @@
                                 data-carnet-complemento="{{ danzarin.carnet_complemento }}"
                                 data-fecha-nacimiento="{{ danzarin.fecha_nacimiento|date:'Y-m-d' }}"
                                 data-observacion="{{ danzarin.observacion }}"
+                                data-fecha-ingreso-grupo="{{ danzarin.fecha_ingreso_grupo|date:'Y-m-d' }}"
+                                data-antiguedad-observacion="{{ danzarin.antiguedad_observacion|escapejs }}"
                                 data-asociacion="{{ danzarin.membresia_visible.asociacion.nombre|escapejs }}"
                                 data-conjunto="{{ danzarin.membresia_visible.conjunto.nombre|escapejs }}"
+                                data-asociacion-id="{{ danzarin.membresia_visible.asociacion_id|default:'' }}"
+                                data-conjunto-id="{{ danzarin.membresia_visible.conjunto_id|default:'' }}"
                                 data-bloque-id="{{ danzarin.membresia_visible.bloque_id|default:'' }}"
                                 ><i class="fas fa-edit"></i></button>
                             <button class="btn btn-danger btn-sm btn-eliminar-danzarin" data-toggle="modal" data-target="#modalEliminarDanzarin"
@@ -166,7 +178,7 @@
                         </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="10" class="text-center py-4">No hay danzarines registrados.</td></tr>
+                    <tr><td colspan="13" class="text-center py-4">No hay danzarines registrados.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>

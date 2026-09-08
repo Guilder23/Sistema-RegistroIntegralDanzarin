@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
         setValOr('editarCarnetCi', 'data-carnet-ci', '');
         setValOr('editarCarnetComplemento', 'data-carnet-complemento', '');
         setValOr('editarFechaNacimiento', 'data-fecha-nacimiento', '');
+        setValOr('editarFechaIngresoGrupo', 'data-fecha-ingreso-grupo', '');
+        setValOr('editarAntiguedadObservacion', 'data-antiguedad-observacion', '');
         const formEl = document.getElementById('formEditarDanzarin');
         if (formEl) formEl.action = `/danzarines/${id}/editar/`;
         setVal('editarDanzarinAsociacionNombre', button.getAttribute('data-asociacion') || '');
@@ -65,6 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
             setValOr('editarCarnetCi', 'data-carnet-ci', '');
             setValOr('editarCarnetComplemento', 'data-carnet-complemento', '');
             setValOr('editarFechaNacimiento', 'data-fecha-nacimiento', '');
+            setValOr('editarFechaIngresoGrupo', 'data-fecha-ingreso-grupo', '');
+            setValOr('editarAntiguedadObservacion', 'data-antiguedad-observacion', '');
             const formEl = document.getElementById('formEditarDanzarin');
             if (formEl) formEl.action = `/danzarines/${id}/editar/`;
             setVal('editarDanzarinAsociacionNombre', button.getAttribute('data-asociacion') || '');
