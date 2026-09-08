@@ -19,6 +19,9 @@ document.addEventListener('DOMContentLoaded', function () {
         setText('verEstado', button.getAttribute('data-estado') || '');
         setText('verSouvenir', button.getAttribute('data-souvenir') || '');
         setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');
+        setText('verFechaIngresoGrupo', button.getAttribute('data-fecha-ingreso-grupo') || 'No registrada');
+        setText('verAntiguedadGrupo', button.getAttribute('data-antiguedad-grupo') || 'No registrada');
+        setText('verAntiguedadObservacion', button.getAttribute('data-antiguedad-observacion') || '');
         setText('verObservacion', button.getAttribute('data-observacion') || '');
         setText('verAsociacion', button.getAttribute('data-asociacion') || 'No asignada');
         setText('verConjunto', button.getAttribute('data-conjunto') || 'No asignado');
@@ -45,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function () {
             setText('verEstado', button.getAttribute('data-estado') || '');
             setText('verSouvenir', button.getAttribute('data-souvenir') || '');
             setText('verFechaIngreso', button.getAttribute('data-fecha-ingreso') || '');
+            setText('verFechaIngresoGrupo', button.getAttribute('data-fecha-ingreso-grupo') || 'No registrada');
+            setText('verAntiguedadGrupo', button.getAttribute('data-antiguedad-grupo') || 'No registrada');
+            setText('verAntiguedadObservacion', button.getAttribute('data-antiguedad-observacion') || '');
             setText('verObservacion', button.getAttribute('data-observacion') || '');
             setText('verAsociacion', button.getAttribute('data-asociacion') || 'No asignada');
             setText('verConjunto', button.getAttribute('data-conjunto') || 'No asignado');

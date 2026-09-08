@@ -142,36 +142,113 @@ def descargar_danzarin_pdf(request, danzarin_id):
         ),
         danzarin.membresias.all()[0] if danzarin.membresias.all() else None,
     )
-    certificado_token = signing.dumps(danzarin.pk, salt='danzarin-certificado')
-    certificado_url = request.build_absolute_uri(
-        reverse('danzarines:certificado_publico', args=[certificado_token])
-    )
-    plantilla = finders.find('img/PlantillaCertificado.png')
-    if not plantilla:
-        return HttpResponse('No se encontró la plantilla del certificado.', status=404)
-    with PILImage.open(plantilla) as imagen:
-        imagen_width, imagen_height = imagen.size
-    page_width = 842
-    page_height = page_width * imagen_height / imagen_width
+    page_width, page_height = letter
     buffer = BytesIO()
     documento = canvas.Canvas(buffer, pagesize=(page_width, page_height))
-    documento.drawImage(ImageReader(plantilla), 0, 0, width=page_width, height=page_height)
-    qr_buffer = BytesIO()
-    qrcode.make(certificado_url).save(qr_buffer, format='PNG')
-    qr_buffer.seek(0)
-    documento.drawImage(ImageReader(qr_buffer), page_width - 120, page_height - 120, width=80, height=80)
-    documento.setFillColor(colors.HexColor('#102644'))
-    documento.setFont('Helvetica-Bold', 23)
-    documento.drawCentredString(page_width / 2, page_height * 0.56, nombre)
-    documento.setFont('Helvetica', 13)
-    documento.drawCentredString(page_width / 2, page_height * 0.505, 'Se certifica su registro como danzarín.')
-    if membresia_visible:
-        documento.setFont('Helvetica', 12)
-        documento.drawCentredString(page_width / 2, page_height * 0.46, f'Asociación: {membresia_visible.asociacion.nombre}')
-        documento.drawCentredString(page_width / 2, page_height * 0.42, f'Conjunto: {membresia_visible.conjunto.nombre}')
-        documento.drawCentredString(page_width / 2, page_height * 0.38, f'Bloque: {membresia_visible.bloque.nombre if membresia_visible.bloque else "No asignado"}')
-    documento.setFont('Helvetica-Bold', 11)
-    documento.drawCentredString(page_width / 2, page_height * 0.33, f'Código: {danzarin.codigo_danzarin or "No asignado"}')
+    margen = 36
+    color_principal = colors.HexColor('#064f4b')
+    color_celda = colors.HexColor('#b8cce8')
+    documento.setStrokeColor(colors.HexColor('#263238'))
+    documento.setLineWidth(0.8)
+    documento.setFillColor(color_principal)
+    documento.roundRect(margen, page_height - 92, page_width - 2 * margen, 56, 8, fill=1, stroke=0)
+    logo = finders.find('img/LogoCarnavalOruroClub.png')
+    if logo:
+        documento.drawImage(ImageReader(logo), margen + 10, page_height - 83, width=42, height=38, preserveAspectRatio=True, anchor='c', mask='auto')
+    documento.setFillColor(colors.white)
+    documento.setFont('Helvetica-Bold', 16)
+    documento.drawString(margen + 62, page_height - 61, 'FICHA DEL DANZARÍN')
+    documento.setFont('Helvetica', 9)
+    documento.drawString(margen + 62, page_height - 76, 'Registro Único del Danzarín')
+    documento.setFont('Helvetica-Bold', 10)
+    documento.drawRightString(page_width - margen - 12, page_height - 61, f'Código: {danzarin.codigo_danzarin or "No asignado"}')
+
+    foto = None
+    try:
+        foto = danzarin.user.userprofile.foto
+    except UserProfile.DoesNotExist:
+        pass
+    foto_x, foto_y, foto_w, foto_h = page_width - margen - 82, page_height - 210, 82, 92
+    documento.setFillColor(colors.HexColor('#f3f6f8'))
+    documento.rect(foto_x, foto_y, foto_w, foto_h, fill=1, stroke=1)
+    if foto:
+        try:
+            foto.open('rb')
+            foto_buffer = BytesIO(foto.read())
+            foto.close()
+            documento.drawImage(ImageReader(foto_buffer), foto_x + 5, foto_y + 5, width=foto_w - 10, height=foto_h - 10, preserveAspectRatio=True, anchor='c', mask='auto')
+        except Exception:
+            pass
+    else:
+        documento.setFillColor(colors.HexColor('#607d8b'))
+        documento.setFont('Helvetica-Bold', 10)
+        documento.drawCentredString(foto_x + foto_w / 2, foto_y + foto_h / 2, 'SIN FOTO')
+
+    documento.setFillColor(colors.black)
+    documento.setFont('Helvetica-Bold', 14)
+    documento.drawString(margen, page_height - 120, nombre.upper())
+    documento.setFont('Helvetica', 9)
+    documento.setFillColor(colors.HexColor('#455a64'))
+    documento.drawString(margen, page_height - 136, 'Ficha personal y administrativa')
+
+    def campo(etiqueta, valor, x, y, ancho):
+        documento.setFillColor(color_celda)
+        documento.rect(x, y - 14, ancho, 14, fill=1, stroke=1)
+        documento.setFillColor(colors.black)
+        documento.setFont('Helvetica-Bold', 7.5)
+        documento.drawString(x + 5, y - 10, etiqueta.upper())
+        documento.setFont('Helvetica', 9)
+        documento.drawString(x + 5, y - 28, str(valor or 'No registrado')[:64])
+        documento.line(x, y - 34, x + ancho, y - 34)
+
+    izquierda, derecha, ancho = margen, margen + 260, 250
+    y = page_height - 245
+    fecha_nacimiento = danzarin.fecha_nacimiento.strftime('%d/%m/%Y') if danzarin.fecha_nacimiento else None
+    ingreso_grupo = danzarin.fecha_ingreso_grupo.strftime('%d/%m/%Y') if danzarin.fecha_ingreso_grupo else None
+    registro_sistema = danzarin.fecha_ingreso.strftime('%d/%m/%Y') if danzarin.fecha_ingreso else None
+    campo('CI / Carnet', f'{danzarin.carnet_ci} {danzarin.carnet_complemento}'.strip(), izquierda, y, ancho)
+    campo('Fecha de nacimiento', fecha_nacimiento, derecha, y, ancho)
+    y -= 43
+    campo('Correo electrónico', danzarin.email, izquierda, y, ancho)
+    campo('Teléfono', danzarin.telefono, derecha, y, ancho)
+    y -= 43
+    campo('Ciudad', danzarin.ciudad, izquierda, y, ancho)
+    campo('Dirección', danzarin.direccion, derecha, y, ancho)
+
+    y -= 55
+    documento.setFillColor(color_principal)
+    documento.rect(margen, y, page_width - 2 * margen, 22, fill=1, stroke=0)
+    documento.setFillColor(colors.white)
+    documento.setFont('Helvetica-Bold', 10)
+    documento.drawString(margen + 8, y + 7, 'DATOS ADMINISTRATIVOS')
+    y -= 10
+    campo('Ingreso al grupo', ingreso_grupo, izquierda, y, ancho)
+    campo('Antigüedad', danzarin.antiguedad_grupo, derecha, y, ancho)
+    y -= 43
+    campo('Registro en el sistema', registro_sistema, izquierda, y, ancho)
+    campo('Estado', danzarin.get_estado_display(), derecha, y, ancho)
+    y -= 43
+    campo('Asociación', membresia_visible.asociacion.nombre if membresia_visible else None, izquierda, y, ancho)
+    campo('Conjunto', membresia_visible.conjunto.nombre if membresia_visible else None, derecha, y, ancho)
+    y -= 43
+    campo('Bloque', membresia_visible.bloque.nombre if membresia_visible and membresia_visible.bloque else None, izquierda, y, ancho)
+    campo('Estado de membresía', membresia_visible.get_estado_display() if membresia_visible else None, derecha, y, ancho)
+
+    y -= 54
+    documento.setFillColor(color_celda)
+    documento.rect(margen, y, page_width - 2 * margen, 18, fill=1, stroke=1)
+    documento.setFillColor(colors.black)
+    documento.setFont('Helvetica-Bold', 8)
+    documento.drawString(margen + 6, y + 6, 'OBSERVACIONES Y ANTIGÜEDAD HISTÓRICA')
+    documento.setFont('Helvetica', 9)
+    observaciones = danzarin.antiguedad_observacion or danzarin.observacion or 'Sin observaciones'
+    documento.drawString(margen + 8, y - 15, observaciones[:115])
+    documento.setStrokeColor(colors.HexColor('#b0bec5'))
+    documento.line(margen, 42, page_width - margen, 42)
+    documento.setFillColor(colors.HexColor('#607d8b'))
+    documento.setFont('Helvetica', 7.5)
+    documento.drawString(margen, 29, 'Documento generado por el Registro Único del Danzarín')
+    documento.drawRightString(page_width - margen, 29, f'Fecha de emisión: {timezone.localdate().strftime("%d/%m/%Y")}')
     documento.save()
     nombre_archivo = f'danzarin_{danzarin.codigo_danzarin or danzarin.pk}.pdf'
     return HttpResponse(
@@ -195,6 +272,8 @@ def crear_danzarin(request):
     ciudad = request.POST.get('ciudad', '').strip()
     direccion = request.POST.get('direccion', '').strip()
     fecha_nacimiento = request.POST.get('fecha_nacimiento', '').strip() or None
+    fecha_ingreso_grupo = request.POST.get('fecha_ingreso_grupo', '').strip() or None
+    antiguedad_observacion = request.POST.get('antiguedad_observacion', '').strip()
     carnet_ci = request.POST.get('carnet_ci', '').strip()
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
@@ -232,6 +311,15 @@ def crear_danzarin(request):
     with transaction.atomic():
         if carnet_existente:
             danzarin = carnet_existente
+            campos_antiguedad = []
+            if fecha_ingreso_grupo:
+                danzarin.fecha_ingreso_grupo = fecha_ingreso_grupo
+                campos_antiguedad.append('fecha_ingreso_grupo')
+            if antiguedad_observacion:
+                danzarin.antiguedad_observacion = antiguedad_observacion
+                campos_antiguedad.append('antiguedad_observacion')
+            if campos_antiguedad:
+                danzarin.save(update_fields=campos_antiguedad)
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
             user.first_name = nombre
@@ -248,6 +336,8 @@ def crear_danzarin(request):
                 ciudad=ciudad,
                 direccion=direccion,
                 fecha_nacimiento=fecha_nacimiento,
+                fecha_ingreso_grupo=fecha_ingreso_grupo,
+                antiguedad_observacion=antiguedad_observacion,
                 carnet_ci=carnet_ci,
                 carnet_complemento=carnet_complemento,
                 observacion=observacion,
@@ -935,6 +1025,8 @@ def editar_danzarin(request, danzarin_id):
     danzarin.carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     danzarin.observacion = request.POST.get('observacion', '').strip()
     danzarin.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
+    danzarin.fecha_ingreso_grupo = request.POST.get('fecha_ingreso_grupo') or None
+    danzarin.antiguedad_observacion = request.POST.get('antiguedad_observacion', '').strip()
     danzarin.sexo = request.POST.get('sexo', '').strip()
     if membresia:
         role = get_role(request.user)

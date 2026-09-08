@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
+from django.utils import timezone
 
 
 class Danzarin(models.Model):
@@ -27,6 +28,8 @@ class Danzarin(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True, verbose_name='Fecha de nacimiento')
     sexo = models.CharField(max_length=10, choices=SEXO_CHOICES, blank=True, default='')
     fecha_ingreso = models.DateField(auto_now_add=True, verbose_name='Fecha de ingreso')
+    fecha_ingreso_grupo = models.DateField(null=True, blank=True, verbose_name='Fecha de ingreso al grupo')
+    antiguedad_observacion = models.CharField(max_length=200, blank=True, default='', verbose_name='Observación de antigüedad')
     estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='activo')
     recibio_souvenir = models.BooleanField(default=False, verbose_name='Recibió souvenir')
     observacion = models.TextField(blank=True, default='', verbose_name='Observación')
@@ -41,6 +44,27 @@ class Danzarin(models.Model):
         if self.apellido_paterno or self.apellido_materno:
             return f"{self.nombre} {self.apellido_paterno} {self.apellido_materno}".strip()
         return self.nombre
+
+    @property
+    def antiguedad_grupo(self):
+        if not self.fecha_ingreso_grupo:
+            return 'No registrada'
+        hoy = timezone.localdate()
+        if self.fecha_ingreso_grupo > hoy:
+            return 'Fecha inválida'
+        anos = hoy.year - self.fecha_ingreso_grupo.year
+        meses = hoy.month - self.fecha_ingreso_grupo.month
+        if hoy.day < self.fecha_ingreso_grupo.day:
+            meses -= 1
+        if meses < 0:
+            anos -= 1
+            meses += 12
+        partes = []
+        if anos:
+            partes.append(f'{anos} año' if anos == 1 else f'{anos} años')
+        if meses:
+            partes.append(f'{meses} mes' if meses == 1 else f'{meses} meses')
+        return ', '.join(partes) or 'Menos de un mes'
 
 
 class Membresia(models.Model):
