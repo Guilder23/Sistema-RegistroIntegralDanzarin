@@ -5,12 +5,16 @@ from django.db.models import Q
 from django.shortcuts import redirect, render, get_object_or_404
 from django.db.models import Prefetch
 from django.http import Http404, HttpResponse
+from django.core import signing
+from django.urls import reverse
 from django.utils import timezone
 from django.contrib.staticfiles import finders
+from reportlab.lib import colors
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from PIL import Image
 from io import BytesIO
+import qrcode
 
 from apps.eventos.models import Evento
 from apps.danzarines.models import Danzarin
@@ -155,17 +159,26 @@ def descargar_certificado_entrega(request, pk):
     documento.drawImage(ImageReader(plantilla), 0, 0, width=page_width, height=page_height)
 
     nombre = str(entrega.danzarin)
-    evento = entrega.evento.nombre if entrega.evento else 'la actividad registrada'
-    fecha = entrega.fecha_entrega.strftime('%d/%m/%Y')
-    texto = f'Se reconoce a {nombre} por su participación en {evento}.'
-    documento.setFillColorRGB(0.04, 0.12, 0.23)
-    documento.setFont('Helvetica-Bold', 24)
-    documento.drawCentredString(page_width / 2, page_height * 0.60, nombre)
-    documento.setFont('Helvetica', 14)
-    documento.drawCentredString(page_width / 2, page_height * 0.53, texto[:110])
-    documento.setFont('Helvetica', 12)
-    documento.drawCentredString(page_width / 2, page_height * 0.47, f'Souvenir entregado: {entrega.souvenir.nombre}')
-    documento.drawCentredString(page_width / 2, page_height * 0.42, f'Fecha de entrega: {fecha}')
+    evento = entrega.evento.nombre if entrega.evento else 'LA ACTIVIDAD REGISTRADA'
+    asociacion = entrega.evento.asociacion.nombre if entrega.evento and entrega.evento.asociacion else 'ASOCIACIÓN REGISTRADA'
+    documento.setFillColor(colors.black)
+    documento.setFont('Helvetica-Bold', 25)
+    documento.drawCentredString(page_width / 2, page_height * 0.54, nombre[:70])
+    documento.setFont('Helvetica-Bold', 14)
+    documento.drawCentredString(page_width / 2, page_height * 0.39, evento[:90].upper())
+    documento.setFont('Helvetica-Bold', 11)
+    documento.drawString(page_width * 0.145, page_height * 0.155, asociacion[:75].upper())
+
+    token = signing.dumps({'danzarin_id': entrega.danzarin_id, 'evento_id': entrega.evento_id}, salt='danzarin-certificado')
+    certificado_url = request.build_absolute_uri(reverse('danzarines:certificado_publico', args=[token]))
+    generador_qr = qrcode.QRCode(box_size=10, border=4)
+    generador_qr.add_data(certificado_url)
+    generador_qr.make(fit=True)
+    codigo_qr = generador_qr.make_image(fill_color='black', back_color='white')
+    qr_buffer = BytesIO()
+    codigo_qr.save(qr_buffer, format='PNG')
+    qr_buffer.seek(0)
+    documento.drawImage(ImageReader(qr_buffer), page_width * 0.765, page_height * 0.095, width=68, height=68, mask='auto')
     documento.save()
     buffer.seek(0)
 

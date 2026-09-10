@@ -5,9 +5,12 @@ from django.test import TestCase
 from django.urls import reverse
 from django.core import signing
 from openpyxl import load_workbook
+from datetime import date, timedelta
 
 from apps.core.models import Asociacion, Conjunto
 from apps.bloques.models import Bloque
+from apps.eventos.models import Evento
+from apps.souvenirs.models import Souvenir, SouvenirEntrega
 from .models import Membresia, Danzarin
 
 
@@ -193,6 +196,37 @@ class GestionDanzarinesTests(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertTrue(response.content.startswith(b'%PDF'))
         self.assertIn('danzarin_', response['Content-Disposition'])
+
+    def test_enlace_de_certificado_muestra_su_evento(self):
+        evento = Evento.objects.create(
+            nombre='Entrada del Carnaval',
+            fecha_inicio=date.today() - timedelta(days=10),
+            fecha_fin=date.today() - timedelta(days=5),
+            asociacion=self.asociacion,
+            conjunto=self.conjunto,
+        )
+        souvenir = Souvenir.objects.create(
+            nombre='Reconocimiento', evento=evento,
+        )
+        SouvenirEntrega.objects.create(
+            danzarin=self.danzarin, evento=evento, souvenir=souvenir,
+        )
+        self.client.force_login(self.danzarin.user)
+
+        perfil = self.client.get(reverse('danzarines:perfil_danzarin'))
+        entrega = perfil.context['page_obj'].object_list[0]
+        datos_token = signing.loads(
+            entrega.certificado_url.rstrip('/').split('/')[-1],
+            salt='danzarin-certificado',
+        )
+        certificado = self.client.get(
+            reverse('danzarines:certificado_publico', args=[
+                entrega.certificado_url.rstrip('/').split('/')[-1],
+            ])
+        )
+
+        self.assertEqual(datos_token['evento_id'], evento.pk)
+        self.assertContains(certificado, 'Entrada del Carnaval')
 
     def test_filtros_de_asociacion_conjunto_y_bloque(self):
         otro_danzarin = Danzarin.objects.create(

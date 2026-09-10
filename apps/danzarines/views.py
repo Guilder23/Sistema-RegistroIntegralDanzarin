@@ -129,6 +129,8 @@ def descargar_danzarin_pdf(request, danzarin_id):
                 'entregas_souvenir__evento',
                 'entregas_souvenir__souvenir',
                 'entregas_souvenir__entregado_por',
+                'participaciones__evento__asociacion',
+                'participaciones__evento__conjunto',
             ),
             request.user,
         ),
@@ -147,7 +149,7 @@ def descargar_danzarin_pdf(request, danzarin_id):
     documento = canvas.Canvas(buffer, pagesize=(page_width, page_height))
     margen = 36
     color_principal = colors.HexColor('#064f4b')
-    color_celda = colors.HexColor('#b8cce8')
+    color_celda = colors.HexColor('#f4f5f6')
     documento.setStrokeColor(colors.HexColor('#263238'))
     documento.setLineWidth(0.8)
     documento.setFillColor(color_principal)
@@ -193,13 +195,12 @@ def descargar_danzarin_pdf(request, danzarin_id):
 
     def campo(etiqueta, valor, x, y, ancho):
         documento.setFillColor(color_celda)
-        documento.rect(x, y - 14, ancho, 14, fill=1, stroke=1)
+        documento.roundRect(x, y - 14, ancho, 14, 2, fill=1, stroke=0)
         documento.setFillColor(colors.black)
         documento.setFont('Helvetica-Bold', 7.5)
         documento.drawString(x + 5, y - 10, etiqueta.upper())
         documento.setFont('Helvetica', 9)
         documento.drawString(x + 5, y - 28, str(valor or 'No registrado')[:64])
-        documento.line(x, y - 34, x + ancho, y - 34)
 
     izquierda, derecha, ancho = margen, margen + 260, 250
     y = page_height - 245
@@ -236,16 +237,72 @@ def descargar_danzarin_pdf(request, danzarin_id):
 
     y -= 54
     documento.setFillColor(color_celda)
-    documento.rect(margen, y, page_width - 2 * margen, 18, fill=1, stroke=1)
+    documento.roundRect(margen, y, page_width - 2 * margen, 18, 2, fill=1, stroke=0)
     documento.setFillColor(colors.black)
     documento.setFont('Helvetica-Bold', 8)
     documento.drawString(margen + 6, y + 6, 'OBSERVACIONES Y ANTIGÜEDAD HISTÓRICA')
     documento.setFont('Helvetica', 9)
     observaciones = danzarin.antiguedad_observacion or danzarin.observacion or 'Sin observaciones'
     documento.drawString(margen + 8, y - 15, observaciones[:115])
-    documento.setStrokeColor(colors.HexColor('#b0bec5'))
-    documento.line(margen, 42, page_width - margen, 42)
-    documento.setFillColor(colors.HexColor('#607d8b'))
+    documento.setFillColor(colors.HexColor('#667078'))
+    documento.setFont('Helvetica', 7.5)
+    documento.drawString(margen, 29, 'Documento generado por el Registro Único del Danzarín')
+    documento.drawRightString(page_width - margen, 29, f'Fecha de emisión: {timezone.localdate().strftime("%d/%m/%Y")}')
+    documento.showPage()
+
+    documento.setFillColor(color_principal)
+    documento.roundRect(margen, page_height - 82, page_width - 2 * margen, 42, 5, fill=1, stroke=0)
+    documento.setFillColor(colors.white)
+    documento.setFont('Helvetica-Bold', 13)
+    documento.drawString(margen + 12, page_height - 57, 'HISTORIAL DE PARTICIPACIONES')
+
+    def fila_historial(y_fila, columnas, anchos):
+        x_fila = margen
+        documento.setFillColor(colors.HexColor('#f4f5f6'))
+        documento.roundRect(margen, y_fila - 17, sum(anchos), 17, 2, fill=1, stroke=0)
+        documento.setFillColor(colors.black)
+        documento.setFont('Helvetica', 8)
+        for texto, ancho_columna in zip(columnas, anchos):
+            documento.drawString(x_fila + 5, y_fila - 11, str(texto)[:42])
+            x_fila += ancho_columna
+
+    historial_membresias = list(danzarin.membresias.all())
+    participaciones = list(danzarin.participaciones.all())
+    y_historial = page_height - 112
+    documento.setFillColor(colors.HexColor('#58636b'))
+    documento.setFont('Helvetica-Bold', 9)
+    documento.drawString(margen, y_historial, 'Asociaciones, conjuntos y bloques')
+    y_historial -= 14
+    fila_historial(y_historial, ('Asociación', 'Conjunto', 'Bloque', 'Estado', 'Ingreso'), (145, 145, 105, 75, 90))
+    y_historial -= 22
+    for membresia in historial_membresias:
+        fila_historial(y_historial, (
+            membresia.asociacion.nombre,
+            membresia.conjunto.nombre,
+            membresia.bloque.nombre if membresia.bloque else 'Sin bloque',
+            membresia.get_estado_display(),
+            membresia.fecha_ingreso.strftime('%d/%m/%Y'),
+        ), (145, 145, 105, 75, 90))
+        y_historial -= 21
+
+    y_historial -= 10
+    documento.setFillColor(colors.HexColor('#58636b'))
+    documento.setFont('Helvetica-Bold', 9)
+    documento.drawString(margen, y_historial, 'Eventos en los que participó')
+    y_historial -= 14
+    fila_historial(y_historial, ('Evento', 'Asociación', 'Conjunto', 'Fecha'), (220, 145, 145, 75))
+    y_historial -= 22
+    for participacion in participaciones:
+        evento = participacion.evento
+        fila_historial(y_historial, (
+            evento.nombre,
+            evento.asociacion.nombre if evento.asociacion else 'General',
+            evento.conjunto.nombre if evento.conjunto else 'General',
+            evento.fecha_inicio.strftime('%d/%m/%Y'),
+        ), (220, 145, 145, 75))
+        y_historial -= 21
+
+    documento.setFillColor(colors.HexColor('#667078'))
     documento.setFont('Helvetica', 7.5)
     documento.drawString(margen, 29, 'Documento generado por el Registro Único del Danzarín')
     documento.drawRightString(page_width - margen, 29, f'Fecha de emisión: {timezone.localdate().strftime("%d/%m/%Y")}')
@@ -375,6 +432,20 @@ def perfil_danzarin(request):
             entrega.evento.fecha_fin + timedelta(days=1)
             if entrega.evento else None
         )
+        if entrega.evento:
+            certificado_token_evento = signing.dumps(
+                {'danzarin_id': danzarin.pk, 'evento_id': entrega.evento_id},
+                salt='danzarin-certificado',
+            )
+            certificado_path_evento = reverse(
+                'danzarines:certificado_publico',
+                args=[certificado_token_evento],
+            )
+            entrega.certificado_url = request.build_absolute_uri(certificado_path_evento)
+            entrega.certificado_qr_url = reverse(
+                'danzarines:certificado_qr',
+                args=[certificado_token_evento],
+            )
     membresia_principal = danzarin.membresias.filter(estado__in=['activo', 'suspendido', 'castigado']).select_related('asociacion', 'conjunto').first() if danzarin else None
     certificado_url = None
     qr_url = None
@@ -399,11 +470,13 @@ def perfil_danzarin(request):
 
 def _obtener_danzarin_certificado(token):
     try:
-        danzarin_id = signing.loads(token, salt='danzarin-certificado')
+        datos = signing.loads(token, salt='danzarin-certificado')
     except signing.BadSignature:
         return None
+    danzarin_id = datos.get('danzarin_id') if isinstance(datos, dict) else datos
     return Danzarin.objects.prefetch_related(
-        'membresias__asociacion', 'membresias__conjunto', 'membresias__bloque'
+        'membresias__asociacion', 'membresias__conjunto', 'membresias__bloque',
+        'participaciones__evento__asociacion', 'participaciones__evento__conjunto',
     ).filter(pk=danzarin_id).first()
 
 
@@ -411,6 +484,12 @@ def certificado_publico(request, token):
     danzarin = _obtener_danzarin_certificado(token)
     if not danzarin:
         return render(request, 'danzarines/certificado_invalido.html', status=404)
+    datos = signing.loads(token, salt='danzarin-certificado')
+    evento_id = datos.get('evento_id') if isinstance(datos, dict) else None
+    evento = None
+    if evento_id:
+        from apps.eventos.models import Evento
+        evento = Evento.objects.select_related('asociacion', 'conjunto').filter(pk=evento_id).first()
     membresia = danzarin.membresias.filter(
         estado__in=['activo', 'suspendido', 'castigado']
     ).first()
@@ -418,6 +497,7 @@ def certificado_publico(request, token):
     return render(request, 'danzarines/certificado_publico.html', {
         'danzarin': danzarin,
         'membresia': membresia,
+        'evento': evento,
         'certificado_qr_url': certificado_qr_url,
     })
 
