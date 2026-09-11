@@ -248,64 +248,6 @@ def descargar_danzarin_pdf(request, danzarin_id):
     documento.setFont('Helvetica', 7.5)
     documento.drawString(margen, 29, 'Documento generado por el Registro Único del Danzarín')
     documento.drawRightString(page_width - margen, 29, f'Fecha de emisión: {timezone.localdate().strftime("%d/%m/%Y")}')
-    documento.showPage()
-
-    documento.setFillColor(color_principal)
-    documento.roundRect(margen, page_height - 82, page_width - 2 * margen, 42, 5, fill=1, stroke=0)
-    documento.setFillColor(colors.white)
-    documento.setFont('Helvetica-Bold', 13)
-    documento.drawString(margen + 12, page_height - 57, 'HISTORIAL DE PARTICIPACIONES')
-
-    def fila_historial(y_fila, columnas, anchos):
-        x_fila = margen
-        documento.setFillColor(colors.HexColor('#f4f5f6'))
-        documento.roundRect(margen, y_fila - 17, sum(anchos), 17, 2, fill=1, stroke=0)
-        documento.setFillColor(colors.black)
-        documento.setFont('Helvetica', 8)
-        for texto, ancho_columna in zip(columnas, anchos):
-            documento.drawString(x_fila + 5, y_fila - 11, str(texto)[:42])
-            x_fila += ancho_columna
-
-    historial_membresias = list(danzarin.membresias.all())
-    participaciones = list(danzarin.participaciones.all())
-    y_historial = page_height - 112
-    documento.setFillColor(colors.HexColor('#58636b'))
-    documento.setFont('Helvetica-Bold', 9)
-    documento.drawString(margen, y_historial, 'Asociaciones, conjuntos y bloques')
-    y_historial -= 14
-    fila_historial(y_historial, ('Asociación', 'Conjunto', 'Bloque', 'Estado', 'Ingreso'), (145, 145, 105, 75, 90))
-    y_historial -= 22
-    for membresia in historial_membresias:
-        fila_historial(y_historial, (
-            membresia.asociacion.nombre,
-            membresia.conjunto.nombre,
-            membresia.bloque.nombre if membresia.bloque else 'Sin bloque',
-            membresia.get_estado_display(),
-            membresia.fecha_ingreso.strftime('%d/%m/%Y'),
-        ), (145, 145, 105, 75, 90))
-        y_historial -= 21
-
-    y_historial -= 10
-    documento.setFillColor(colors.HexColor('#58636b'))
-    documento.setFont('Helvetica-Bold', 9)
-    documento.drawString(margen, y_historial, 'Eventos en los que participó')
-    y_historial -= 14
-    fila_historial(y_historial, ('Evento', 'Asociación', 'Conjunto', 'Fecha'), (220, 145, 145, 75))
-    y_historial -= 22
-    for participacion in participaciones:
-        evento = participacion.evento
-        fila_historial(y_historial, (
-            evento.nombre,
-            evento.asociacion.nombre if evento.asociacion else 'General',
-            evento.conjunto.nombre if evento.conjunto else 'General',
-            evento.fecha_inicio.strftime('%d/%m/%Y'),
-        ), (220, 145, 145, 75))
-        y_historial -= 21
-
-    documento.setFillColor(colors.HexColor('#667078'))
-    documento.setFont('Helvetica', 7.5)
-    documento.drawString(margen, 29, 'Documento generado por el Registro Único del Danzarín')
-    documento.drawRightString(page_width - margen, 29, f'Fecha de emisión: {timezone.localdate().strftime("%d/%m/%Y")}')
     documento.save()
     nombre_archivo = f'danzarin_{danzarin.codigo_danzarin or danzarin.pk}.pdf'
     return HttpResponse(

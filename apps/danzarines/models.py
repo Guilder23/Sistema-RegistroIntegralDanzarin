@@ -121,10 +121,11 @@ class Membresia(models.Model):
 
     def save(self, *args, **kwargs):
         update_fields = kwargs.get('update_fields')
-        if self.estado_pago == 'con_deuda':
-            self.estado = 'suspendido'
-        elif self.estado == 'suspendido' and self.estado_pago == 'al_dia':
-            self.estado = 'activo'
+        if self.estado not in {'castigado', 'baja'}:
+            if self.estado_pago == 'con_deuda':
+                self.estado = 'suspendido'
+            elif self.estado == 'suspendido' and self.estado_pago == 'al_dia':
+                self.estado = 'activo'
         if update_fields is not None and 'estado' not in update_fields:
             kwargs['update_fields'] = set(update_fields) | {'estado'}
         if self.conjunto.asociacion_id != self.asociacion_id:
