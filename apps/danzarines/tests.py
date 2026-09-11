@@ -66,6 +66,7 @@ class RolesDanzarinesTests(TestCase):
             'username': 'danzarin-asociacion', 'password': 'secret123', 'nombre': 'Ana',
             'apellido_paterno': 'Lopez', 'email': 'ana@example.com',
             'carnet_ci': '10001',
+            'codigo_prefijo': 'CB', 'codigo_numero': '000001',
             'conjunto_id': self.conjunto.pk, 'bloque_id': self.bloque.pk,
         })
         self.assertEqual(response.status_code, 302)
@@ -79,6 +80,7 @@ class RolesDanzarinesTests(TestCase):
             'username': 'nuevo-danzarin', 'password': 'secret123', 'nombre': 'Luis',
             'apellido_paterno': 'Gomez', 'email': 'luis@example.com',
             'carnet_ci': '10002',
+            'codigo_prefijo': 'CB', 'codigo_numero': '000002',
             'bloque_id': self.bloque.pk,
         })
         self.assertEqual(response.status_code, 302)
@@ -96,6 +98,7 @@ class RolesDanzarinesTests(TestCase):
             'apellido_paterno': 'Prueba', 'email': 'persona@example.com',
             'conjunto_id': self.conjunto.pk, 'bloque_id': self.bloque.pk,
             'carnet_ci': '12345', 'carnet_complemento': 'A',
+            'codigo_prefijo': 'CB', 'codigo_numero': '000003',
         })
         self.assertEqual(primera.status_code, 302)
 
@@ -103,6 +106,7 @@ class RolesDanzarinesTests(TestCase):
         self.client.force_login(administrador_super)
         segunda = self.client.post(reverse('danzarines:crear_danzarin'), {
             'nombre': 'Persona', 'carnet_ci': '12345', 'carnet_complemento': 'A',
+            'codigo_prefijo': 'CB', 'codigo_numero': '000004',
             'asociacion_id': otra_asociacion.pk, 'conjunto_id': otro_conjunto.pk,
             'bloque_id': otro_bloque.pk,
         })
@@ -121,6 +125,7 @@ class RolesDanzarinesTests(TestCase):
 
         response = self.client.post(reverse('danzarines:crear_danzarin'), {
             'nombre': 'Persona', 'carnet_ci': '54321', 'carnet_complemento': 'B',
+            'codigo_prefijo': 'CB', 'codigo_numero': '000005',
             'asociacion_id': self.asociacion.pk, 'conjunto_id': otro_conjunto.pk,
             'bloque_id': otro_bloque.pk,
         })
@@ -156,16 +161,18 @@ class PlantillaDanzarinesExcelTests(TestCase):
         worksheet = workbook.active
         headers = [cell.value for cell in worksheet[1]]
         example = [cell.value for cell in worksheet[2]]
-        self.assertEqual(len(headers), 16)
-        self.assertEqual(len(example), 16)
-        self.assertEqual(headers[4:7], ['sexo', 'email', 'password'])
-        self.assertEqual(example[4:7], ['M', 'jdoe@example.com', '1234567'])
-        self.assertEqual(example[13:], [
+        self.assertEqual(len(headers), 18)
+        self.assertEqual(len(example), 18)
+        self.assertEqual(headers[1:4], ['codigo', 'numero', 'nombre'])
+        self.assertEqual(example[1:4], ['CB', '000001', 'Juan'])
+        self.assertEqual(headers[6:9], ['sexo', 'email', 'password'])
+        self.assertEqual(example[6:9], ['M', 'jdoe@example.com', '1234567'])
+        self.assertEqual(example[15:], [
             'Nombre exacto de asociación',
             'Nombre exacto de conjunto',
             'Nombre exacto de bloque',
         ])
-        self.assertEqual(worksheet.column_dimensions['P'].width, 28)
+        self.assertEqual(worksheet.column_dimensions['R'].width, 28)
 
 
 class GestionDanzarinesTests(TestCase):

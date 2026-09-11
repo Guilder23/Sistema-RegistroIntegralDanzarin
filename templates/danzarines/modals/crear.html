@@ -35,6 +35,16 @@
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
+                            <label>Prefijo del código</label>
+                            <input type="text" name="codigo_prefijo" class="form-control" maxlength="2" minlength="2" pattern="[A-Za-z]{2}" placeholder="Ej.: CB" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Número del código</label>
+                            <input type="text" name="codigo_numero" class="form-control" maxlength="6" minlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Ej.: 000001" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 form-group">
                             <label>Nombres</label>
                             <input type="text" name="nombre" class="form-control">
                         </div>

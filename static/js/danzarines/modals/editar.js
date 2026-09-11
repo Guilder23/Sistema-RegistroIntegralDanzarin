@@ -26,6 +26,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const id = button.getAttribute('data-id');
         const setVal = (idName, val) => { const el = document.getElementById(idName); if (!el) return; el.value = val; };
         const setValOr = (idName, attrName, fallback='') => setVal(idName, button.getAttribute(attrName) || fallback);
+        const codigo = button.getAttribute('data-codigo-danzarin') || '';
+        setVal('editarCodigoPrefijo', codigo.slice(0, 2));
+        setVal('editarCodigoNumero', codigo.slice(2));
         setValOr('editarNombre', 'data-nombre', '');
         setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
         setValOr('editarApellidoMaterno', 'data-apellido-materno', '');
@@ -56,6 +59,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = button.getAttribute('data-id');
             const setVal = (idName, val) => { const el = document.getElementById(idName); if (!el) return; el.value = val; };
             const setValOr = (idName, attrName, fallback='') => setVal(idName, button.getAttribute(attrName) || fallback);
+            const codigo = button.getAttribute('data-codigo-danzarin') || '';
+            setVal('editarCodigoPrefijo', codigo.slice(0, 2));
+            setVal('editarCodigoNumero', codigo.slice(2));
             setValOr('editarNombre', 'data-nombre', '');
             setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
             setValOr('editarApellidoMaterno', 'data-apellido-materno', '');

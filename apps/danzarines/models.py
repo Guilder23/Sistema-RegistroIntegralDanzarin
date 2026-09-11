@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
 from django.utils import timezone
+import re
 
 
 class Danzarin(models.Model):
@@ -15,7 +16,7 @@ class Danzarin(models.Model):
     ]
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='danzarin_profile')
-    codigo_danzarin = models.CharField(max_length=6, unique=True, blank=True, null=True, verbose_name='Código de danzarin')
+    codigo_danzarin = models.CharField(max_length=8, unique=True, blank=True, null=True, verbose_name='Código de danzarin')
     nombre = models.CharField(max_length=150, verbose_name='Nombres')
     apellido_paterno = models.CharField(max_length=150, blank=True, default='', verbose_name='Apellido paterno')
     apellido_materno = models.CharField(max_length=150, blank=True, default='', verbose_name='Apellido materno')
@@ -163,21 +164,26 @@ def ensure_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance, rol=rol)
 
 
+def construir_codigo_danzarin(prefijo, numero):
+    prefijo = str(prefijo or '').strip().upper()
+    numero = str(numero or '').strip()
+    if not re.fullmatch(r'[A-Z]{2}', prefijo) or not re.fullmatch(r'\d{6}', numero):
+        raise ValueError('El código debe tener 2 letras y 6 dígitos.')
+    return f'{prefijo}{numero}'
+
+
 def generar_codigo_danzarin():
     """
-    Genera el siguiente código de danzarin incremental.
-    El formato es 260001, 260002, 260003, etc.
+    Genera un código compatible para importaciones antiguas sin código manual.
     """
     with transaction.atomic():
         # Obtener el último código asignado
         ultimo_danzarin = Danzarin.objects.filter(codigo_danzarin__isnull=False).order_by('-codigo_danzarin').first()
         
         if ultimo_danzarin and ultimo_danzarin.codigo_danzarin:
-            # Extraer el número del código y sumar 1
-            ultimo_numero = int(ultimo_danzarin.codigo_danzarin)
-            nuevo_numero = ultimo_numero + 1
+            ultimo_numero = re.search(r'(\d{6})$', ultimo_danzarin.codigo_danzarin)
+            nuevo_numero = int(ultimo_numero.group(1)) + 1 if ultimo_numero else 1
         else:
-            # Si no hay códigos, empezar desde 260001
-            nuevo_numero = 260001
+            nuevo_numero = 1
         
-        return str(nuevo_numero)
+        return construir_codigo_danzarin('DR', f'{nuevo_numero:06d}')
