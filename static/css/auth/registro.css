@@ -51,6 +51,15 @@
     background-color: #f0fdf9;
 }
 
+.tabla-usuarios td:last-child {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 180px;
+    white-space: nowrap;
+}
+
 .badge-estado {
     display: inline-block;
     padding: 0.25rem 0.6rem;
