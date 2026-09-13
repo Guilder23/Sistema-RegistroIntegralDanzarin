@@ -22,7 +22,7 @@ def get_home_redirect(user):
 def inicio(request):
 	if request.user.is_authenticated:
 		return redirect(get_home_redirect(request.user))
-	return render(request, 'auth/login.html')
+	return redirect('core:login')
 
 
 def robots_txt(request):
@@ -92,7 +92,7 @@ def iniciar_sesion(request):
 			return redirect(next_url)
 		return redirect(get_home_redirect(user))
 
-	return redirect('core:inicio')
+	return render(request, 'auth/login.html')
 
 
 @login_required
@@ -116,8 +116,10 @@ def registrar_usuario(request):
 		if rol not in roles_validos:
 			rol = 'miembro'
 		from apps.core.models import Asociacion, Conjunto
-		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
-		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		asociacion_id = request.POST.get('asociacion_id', '').strip() or None
+		conjunto_id = request.POST.get('conjunto_id', '').strip() or None
+		asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+		conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
 		if rol == 'administrador_asociacion' and not asociacion:
 			messages.error(request, 'El Administrador de Asociación debe tener una asociación asignada.')
 			return redirect('core:registro')
@@ -223,11 +225,13 @@ def editar_usuario(request, user_id):
 		last_name = request.POST.get('last_name', '').strip()
 		rol = request.POST.get('rol', 'miembro')
 		from apps.core.models import Asociacion, Conjunto
-		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
-		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		asociacion_id = request.POST.get('asociacion_id', '').strip() or None
+		conjunto_id = request.POST.get('conjunto_id', '').strip() or None
+		asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+		conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
 		if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto', 'miembro'}:
 			rol = 'miembro'
-		if rol == 'administrador_asociacion' and not asociacion or rol == 'administrador_conjunto' and (not asociacion or not conjunto):
+		if (rol == 'administrador_asociacion' and not asociacion) or (rol == 'administrador_conjunto' and (not asociacion or not conjunto)):
 			messages.error(request, 'El rol seleccionado requiere un ámbito válido.')
 			return redirect('core:registro')
 

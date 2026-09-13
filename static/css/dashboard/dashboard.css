@@ -6,6 +6,26 @@
     animation: dashboardFadeIn 0.35s ease-out;
 }
 
+.dashboard-header {
+    gap: 1.5rem;
+}
+
+.dashboard-header > div:first-child {
+    min-width: 0;
+}
+
+.dashboard-controls {
+    flex-shrink: 0;
+}
+
+.dashboard-controls form {
+    gap: 0.5rem;
+}
+
+.dashboard-controls .input-group {
+    min-width: 235px;
+}
+
 @keyframes dashboardFadeIn {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -147,6 +167,29 @@
 
 /* Responsive tweaks */
 @media (max-width: 768px) {
+    .dashboard-header {
+        align-items: stretch !important;
+        gap: 1rem;
+    }
+
+    .dashboard-controls,
+    .dashboard-controls form,
+    .dashboard-controls .input-group {
+        width: 100%;
+    }
+
+    .dashboard-controls form {
+        align-items: stretch !important;
+    }
+
+    .dashboard-controls .input-group {
+        min-width: 0;
+    }
+
+    .dashboard-controls .input-group .form-control {
+        min-width: 0;
+    }
+
     .kpi-value {
         font-size: 1.65rem;
     }

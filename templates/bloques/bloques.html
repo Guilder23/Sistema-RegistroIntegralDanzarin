@@ -1,7 +1,13 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% block titulo %}Bloques{% endblock %}
-{% block estilos_extra %}<link rel="stylesheet" href="{% static 'css/bloques/bloques.css' %}">{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/bloques/bloques.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/eliminar.css' %}">
+{% endblock %}
 {% block contenido %}
 <div class="container-fluid gestion-page">
     <div class="page-header">
@@ -14,12 +20,42 @@
         </button>
     </div>
 
-    <div class="card card-filtros mb-3"><div class="card-body"><form method="get" class="row" id="bloquesFiltrosForm">
-        <div class="col-md-4 mb-2"><input id="inputBloqueBusqueda" class="form-control" name="q" value="{{ q }}" placeholder="Buscar bloque..."></div>
-        <div class="col-md-3 mb-2"><select id="selectBloqueAsociacion" class="form-control" name="asociacion_id"><option value="">Todas las asociaciones</option>{% for asociacion in asociaciones %}<option value="{{ asociacion.id }}" {% if asociacion_id == asociacion.id|stringformat:'s' %}selected{% endif %}>{{ asociacion.nombre }}</option>{% endfor %}</select></div>
-        <div class="col-md-3 mb-2"><select id="selectBloqueConjunto" class="form-control" name="conjunto_id"><option value="">Todos los conjuntos</option>{% for conjunto in conjuntos %}<option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}" {% if conjunto_id == conjunto.id|stringformat:'s' %}selected{% endif %}>{{ conjunto.nombre }}</option>{% endfor %}</select></div>
-        <div class="col-md-2 mb-2"><select id="selectBloqueActivo" class="form-control" name="activo"><option value="">Todos los estados</option><option value="si" {% if activo == 'si' %}selected{% endif %}>Activo</option><option value="no" {% if activo == 'no' %}selected{% endif %}>Inactivo</option></select></div>
-    </form></div></div>
+    <div class="card card-filtros mb-3">
+        <div class="card-body">
+            <form method="get" class="row" id="bloquesFiltrosForm">
+                <div class="col-md-4 mb-2">
+                    <input id="inputBloqueBusqueda" class="form-control" name="q" value="{{ q }}" placeholder="Buscar bloque...">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select id="selectBloqueAsociacion" class="form-control" name="asociacion_id">
+                        <option value="">Todas las asociaciones</option>
+                        {% for asociacion in asociaciones %}
+                        <option value="{{ asociacion.id }}" {% if asociacion_id == asociacion.id|stringformat:'s' %}selected{% endif %}>
+                            {{ asociacion.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select id="selectBloqueConjunto" class="form-control" name="conjunto_id">
+                        <option value="">Todos los conjuntos</option>
+                        {% for conjunto in conjuntos %}
+                        <option value="{{ conjunto.id }}" data-asociacion-id="{{ conjunto.asociacion_id }}" {% if conjunto_id == conjunto.id|stringformat:'s' %}selected{% endif %}>
+                            {{ conjunto.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select id="selectBloqueActivo" class="form-control" name="activo">
+                        <option value="">Todos los estados</option>
+                        <option value="si" {% if activo == 'si' %}selected{% endif %}>Activo</option>
+                        <option value="no" {% if activo == 'no' %}selected{% endif %}>Inactivo</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <div class="card card-tabla">
         <div class="table-responsive">
@@ -45,7 +81,10 @@
                             </span>
                         </td>
                         <td>
-                            <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#modalVerBloque"
+                            <button
+                                class="btn btn-info btn-sm"
+                                data-toggle="modal"
+                                data-target="#modalVerBloque"
                                 data-nombre="{{ bloque.nombre }}"
                                 data-conjunto="{{ bloque.conjunto.nombre }}"
                                 data-asociacion="{{ bloque.conjunto.asociacion.nombre }}"
@@ -53,7 +92,10 @@
                                 data-creado-por="{% if bloque.creado_por %}{{ bloque.creado_por.get_full_name|default:bloque.creado_por.username|escapejs }}{% else %}No disponible{% endif %}">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-warning btn-sm" data-toggle="modal" data-target="#modalEditarBloque"
+                            <button
+                                class="btn btn-warning btn-sm"
+                                data-toggle="modal"
+                                data-target="#modalEditarBloque"
                                 data-id="{{ bloque.id }}"
                                 data-nombre="{{ bloque.nombre }}"
                                 data-descripcion="{{ bloque.descripcion }}"
@@ -62,10 +104,30 @@
                                 data-conjunto-id="{{ bloque.conjunto.id }}">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <form class="d-inline" method="post" action="{% url 'bloques:eliminar_bloque' bloque.id %}">
+                            {% if bloque.activo %}
+                            <form class="d-inline" method="post" action="{% url 'bloques:desactivar_bloque' bloque.id %}">
                                 {% csrf_token %}
-                                <button type="button" class="btn btn-secondary btn-sm btn-eliminar-bloque" data-toggle="modal" data-target="#modalEliminarBloque" data-id="{{ bloque.id }}" data-nombre="{{ bloque.nombre|escapejs }}" title="Desactivar"><i class="fas fa-power-off"></i></button>
+                                <button type="submit" class="btn btn-secondary btn-sm" title="Desactivar"><i class="fas fa-power-off"></i></button>
                             </form>
+                            {% else %}
+                            <form class="d-inline" method="post" action="{% url 'bloques:activar_bloque' bloque.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-sm" title="Activar"><i class="fas fa-power-off"></i></button>
+                            </form>
+                            {% endif %}
+                            {% if not bloque.membresias.exists %}
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm btn-eliminar-bloque"
+                                data-toggle="modal"
+                                data-target="#modalEliminarBloque"
+                                data-id="{{ bloque.id }}"
+                                data-nombre="{{ bloque.nombre|escapejs }}"
+                                title="Eliminar"
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% empty %}
@@ -84,4 +146,10 @@
 {% include 'bloques/modals/ver.html' %}
 {% include 'bloques/modals/eliminar.html' %}
 {% endblock %}
-{% block scripts_extra %}<script src="{% static 'js/bloques/bloques.js' %}"></script>{% endblock %}
+{% block scripts_extra %}
+<script src="{% static 'js/bloques/bloques.js' %}"></script>
+<script src="{% static 'js/bloques/modals/crear.js' %}"></script>
+<script src="{% static 'js/bloques/modals/editar.js' %}"></script>
+<script src="{% static 'js/bloques/modals/ver.js' %}"></script>
+<script src="{% static 'js/bloques/modals/eliminar.js' %}"></script>
+{% endblock %}

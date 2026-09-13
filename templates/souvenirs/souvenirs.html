@@ -1,7 +1,10 @@
 {% extends 'base/base.html' %}
 {% load static %}
 {% block titulo %}Gestión de Souvenirs{% endblock %}
-{% block estilos_extra %}<link rel="stylesheet" href="{% static 'css/souvenirs/souvenirs.css' %}">{% endblock %}
+{% block estilos_extra %}
+<link rel="stylesheet" href="{% static 'css/souvenirs/souvenirs.css' %}">
+<link rel="stylesheet" href="{% static 'css/souvenirs/modals/editar.css' %}">
+{% endblock %}
 {% block contenido %}
 <div class="container-fluid py-4">
     <div class="page-header mb-4"><div class="page-header-content"><h1 class="page-title"><i class="fas fa-gifts"></i> Gestión de Souvenirs</h1><p class="page-subtitle">Revisa, edita y administra los souvenirs disponibles para entregar.</p></div><div class="page-header-actions"><button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#modalCrearSouvenir">Nuevo souvenir</button></div></div>

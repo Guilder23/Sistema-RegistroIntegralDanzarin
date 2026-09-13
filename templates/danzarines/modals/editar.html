@@ -1,7 +1,7 @@
 <div class="modal fade modal-editar-danzarin" id="modalEditarDanzarin" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-danzarin-dialog" role="document">
         <div class="modal-content">
-            <form method="post" id="formEditarDanzarin" action="">
+            <form method="post" id="formEditarDanzarin" action="" novalidate>
                 {% csrf_token %}
                 <div class="modal-header">
                     <h5 class="modal-title">Editar Danzarín</h5>
@@ -12,12 +12,12 @@
                 <div class="modal-body">
                     <div class="form-row">
                         <div class="col-md-6 form-group">
-                            <label>Prefijo del código</label>
+                            <label>Prefijo del código <span class="required-mark">*</span></label>
                             <input type="text" name="codigo_prefijo" id="editarCodigoPrefijo" class="form-control" maxlength="2" minlength="2" pattern="[A-Za-z]{2}" placeholder="Ej.: CB" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Número del código</label>
-                            <input type="text" name="codigo_numero" id="editarCodigoNumero" class="form-control" maxlength="6" minlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Ej.: 000001" required>
+                            <label>Número del código <span class="required-mark">*</span></label>
+                            <input type="text" name="codigo_numero" id="editarCodigoNumero" class="form-control numeric-only" maxlength="6" minlength="6" pattern="[0-9]{6}" inputmode="numeric" placeholder="Ej.: 000001" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -31,73 +31,73 @@
                         <div class="col-md-4 form-group"><label>Asociación</label><input id="editarDanzarinAsociacionNombre" class="form-control" disabled></div>
                         <div class="col-md-4 form-group"><label>Conjunto</label><input id="editarDanzarinConjuntoNombre" class="form-control" disabled></div>
                         {% endif %}
-                        <div class="col-md-4 form-group"><label>Bloque</label><select name="bloque_id" id="editarDanzarinBloque" class="form-control">{% for bloque in bloques %}<option value="{{ bloque.id }}" data-conjunto-id="{{ bloque.conjunto_id }}">{{ bloque.nombre }}</option>{% endfor %}</select></div>
+                        <div class="col-md-4 form-group"><label>Bloque <span class="required-mark">*</span></label><select name="bloque_id" id="editarDanzarinBloque" class="form-control" required><option value="">Selecciona</option>{% for bloque in bloques %}<option value="{{ bloque.id }}" data-conjunto-id="{{ bloque.conjunto_id }}">{{ bloque.nombre }}</option>{% endfor %}</select></div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
-                            <label>Nombres</label>
-                            <input type="text" name="nombre" id="editarNombre" class="form-control" required>
+                            <label>Nombres <span class="required-mark">*</span></label>
+                            <input type="text" name="nombre" id="editarNombre" class="form-control" placeholder="Ej.: Juan Carlos" required>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Apellido paterno</label>
-                            <input type="text" name="apellido_paterno" id="editarApellidoPaterno" class="form-control" required>
+                            <label>Apellido paterno <span class="required-mark">*</span></label>
+                            <input type="text" name="apellido_paterno" id="editarApellidoPaterno" class="form-control" placeholder="Ej.: Pérez" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Apellido materno</label>
-                            <input type="text" name="apellido_materno" id="editarApellidoMaterno" class="form-control">
+                            <input type="text" name="apellido_materno" id="editarApellidoMaterno" class="form-control" placeholder="Ej.: García">
                         </div>
-                        <div class="col-md-6 form-group"><label>Sexo</label><select name="sexo" id="editarSexo" class="form-control"><option value="">No especificado</option><option value="m">Varón</option><option value="f">Mujer</option><option value="otro">Otro</option></select></div>
+                        <div class="col-md-6 form-group"><label>Género</label><select name="sexo" id="editarSexo" class="form-control"><option value="">No especificado</option><option value="m">Varón</option><option value="f">Mujer</option><option value="otro">Otro</option></select></div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Correo</label>
-                            <input type="email" name="email" id="editarEmail" class="form-control" required>
+                            <input type="email" name="email" id="editarEmail" class="form-control" placeholder="Ej.: correo@ejemplo.com" required>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Teléfono</label>
-                            <input type="text" name="telefono" id="editarTelefono" class="form-control">
+                            <input type="text" name="telefono" id="editarTelefono" class="form-control" placeholder="Ej.: 71100714">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Fecha de nacimiento</label>
-                            <input type="date" name="fecha_nacimiento" id="editarFechaNacimiento" class="form-control">
+                            <input type="date" name="fecha_nacimiento" id="editarFechaNacimiento" class="form-control" placeholder="dd/mm/aaaa">
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Ciudad</label>
-                            <input type="text" name="ciudad" id="editarCiudad" class="form-control">
+                            <input type="text" name="ciudad" id="editarCiudad" class="form-control" placeholder="Ej.: Oruro">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Dirección</label>
-                            <input type="text" name="direccion" id="editarDireccion" class="form-control">
+                            <input type="text" name="direccion" id="editarDireccion" class="form-control" placeholder="Ej.: Av. principal #123">
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Carnet / CI</label>
-                            <input type="text" name="carnet_ci" id="editarCarnetCi" class="form-control">
+                            <label>Carnet / CI <span class="required-mark">*</span></label>
+                            <input type="text" name="carnet_ci" id="editarCarnetCi" class="form-control numeric-only" maxlength="15" pattern="[0-9]+" inputmode="numeric" placeholder="Ej.: 1234567" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="col-md-6 form-group">
                             <label>Complemento CI</label>
-                            <input type="text" name="carnet_complemento" id="editarCarnetComplemento" class="form-control">
+                            <input type="text" name="carnet_complemento" id="editarCarnetComplemento" class="form-control" placeholder="Opcional">
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Ingreso al grupo</label>
-                            <input type="date" name="fecha_ingreso_grupo" id="editarFechaIngresoGrupo" class="form-control">
+                            <input type="date" name="fecha_ingreso_grupo" id="editarFechaIngresoGrupo" class="form-control" placeholder="dd/mm/aaaa">
                             <small class="form-text text-muted">Usa una fecha aproximada si no se conoce el día exacto.</small>
                         </div>
                     </div>
                     <div class="form-group">
                         <label>Observación</label>
-                        <textarea name="observacion" id="editarObservacion" class="form-control" rows="3"></textarea>
+                        <textarea name="observacion" id="editarObservacion" class="form-control" rows="3" placeholder="Escribe una observación si corresponde"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Observación de antigüedad</label>
-                        <input type="text" name="antiguedad_observacion" id="editarAntiguedadObservacion" class="form-control" maxlength="200">
+                        <input type="text" name="antiguedad_observacion" id="editarAntiguedadObservacion" class="form-control" maxlength="200" placeholder="Ej.: Pertenece al grupo desde aproximadamente 2012">
                     </div>
                 </div>
                 <div class="modal-footer">

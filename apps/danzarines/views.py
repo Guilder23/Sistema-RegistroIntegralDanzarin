@@ -293,6 +293,9 @@ def crear_danzarin(request):
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
     sexo = request.POST.get('sexo', '').strip()
+    if carnet_ci and not carnet_ci.isdigit():
+        messages.error(request, 'El Carnet / CI solo debe contener números.')
+        return redirect('danzarines:listar_danzarines')
     try:
         codigo_danzarin = obtener_codigo_danzarin(
             request.POST.get('codigo_prefijo'), request.POST.get('codigo_numero')
@@ -1054,6 +1057,9 @@ def editar_admin(request, user_id):
 def eliminar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
+        if request.POST.get('confirmar_eliminacion') != '1':
+            messages.error(request, 'Debes confirmar la eliminación desde el modal.')
+            return redirect('danzarines:listar_admins')
         username = user.username
         user.delete()
         registrar_auditoria(request.user, 'eliminacion_admin', f'Admin {username}')

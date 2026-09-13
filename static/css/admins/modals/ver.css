@@ -2,3 +2,14 @@
     background: linear-gradient(135deg, #3d9b92 0%, #0f766e 100%);
     color: #ffffff;
 }
+
+.modal-ver-gestion .modal-content {
+    overflow: hidden;
+    border: 1px solid #d1e7e4;
+    border-radius: 16px;
+}
+
+.modal-ver-gestion .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}

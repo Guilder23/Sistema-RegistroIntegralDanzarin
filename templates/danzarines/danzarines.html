@@ -113,6 +113,7 @@
                                 data-apellido-paterno="{{ danzarin.apellido_paterno }}"
                                 data-apellido-materno="{{ danzarin.apellido_materno }}"
                                 data-email="{{ danzarin.email }}"
+                                data-sexo="{{ danzarin.sexo }}"
                                 data-telefono="{{ danzarin.telefono }}"
                                 data-ciudad="{{ danzarin.ciudad }}"
                                 data-direccion="{{ danzarin.direccion }}"
@@ -138,10 +139,12 @@
                             {% if is_admin %}
                             <button class="btn btn-warning btn-sm btn-editar-danzarin" data-toggle="modal" data-target="#modalEditarDanzarin"
                                 data-id="{{ danzarin.id }}"
+                                data-codigo-danzarin="{{ danzarin.codigo_danzarin|default:'' }}"
                                 data-nombre="{{ danzarin.nombre }}"
                                 data-apellido-paterno="{{ danzarin.apellido_paterno }}"
                                 data-apellido-materno="{{ danzarin.apellido_materno }}"
                                 data-email="{{ danzarin.email }}"
+                                data-sexo="{{ danzarin.sexo }}"
                                 data-telefono="{{ danzarin.telefono }}"
                                 data-ciudad="{{ danzarin.ciudad }}"
                                 data-direccion="{{ danzarin.direccion }}"
@@ -157,10 +160,6 @@
                                 data-conjunto-id="{{ danzarin.membresia_visible.conjunto_id|default:'' }}"
                                 data-bloque-id="{{ danzarin.membresia_visible.bloque_id|default:'' }}"
                                 ><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-danger btn-sm btn-eliminar-danzarin" data-toggle="modal" data-target="#modalEliminarDanzarin"
-                                data-id="{{ danzarin.id }}"
-                                data-nombre="{{ danzarin.nombre }} {% if danzarin.apellido_paterno %}{{ danzarin.apellido_paterno }}{% endif %} {% if danzarin.apellido_materno %}{{ danzarin.apellido_materno }}{% endif %}"
-                                ><i class="fas fa-trash"></i></button>
                             <a href="{% url 'danzarines:historial_souvenirs' danzarin.id %}" class="btn btn-secondary btn-sm" title="Historial de souvenirs"><i class="fas fa-history"></i></a>
                             <a href="{% url 'danzarines:descargar_danzarin_pdf' danzarin.id %}" class="btn btn-danger btn-sm" title="Descargar ficha PDF"><i class="fas fa-file-pdf"></i></a>
                             {% if can_manage_states and danzarin.membresia_visible.estado == 'activo' %}

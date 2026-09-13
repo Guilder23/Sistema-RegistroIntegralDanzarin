@@ -143,7 +143,26 @@ def editar_bloque(request, pk):
 
 @login_required
 @user_passes_test(can_manage_bloques, login_url='/login/')
-def eliminar_bloque(request, pk):
+def activar_bloque(request, pk):
+    bloque = get_object_or_404(scoped_bloques(request.user), pk=pk)
+    if request.method == 'POST':
+        bloque.activo = True
+        bloque.save(update_fields=['activo'])
+        registrar_auditoria(
+            request.user,
+            'activacion_bloque',
+            f'Bloque {bloque.nombre}',
+            nuevo={'activo': True},
+            asociacion=bloque.conjunto.asociacion,
+            conjunto=bloque.conjunto,
+        )
+        messages.success(request, 'Bloque activado correctamente.')
+    return redirect('bloques:listar_bloques')
+
+
+@login_required
+@user_passes_test(can_manage_bloques, login_url='/login/')
+def desactivar_bloque(request, pk):
     bloque = get_object_or_404(scoped_bloques(request.user), pk=pk)
     if request.method == 'POST':
         bloque.activo = False
@@ -157,4 +176,21 @@ def eliminar_bloque(request, pk):
             conjunto=bloque.conjunto,
         )
         messages.success(request, 'Bloque desactivado correctamente.')
+    return redirect('bloques:listar_bloques')
+
+
+@login_required
+@user_passes_test(can_manage_bloques, login_url='/login/')
+def eliminar_bloque(request, pk):
+    bloque = get_object_or_404(scoped_bloques(request.user), pk=pk)
+    if request.method == 'POST':
+        if bloque.membresias.exists():
+            messages.error(request, 'No puedes eliminar el bloque porque tiene danzarines asignados.')
+            return redirect('bloques:listar_bloques')
+        nombre = bloque.nombre
+        asociacion = bloque.conjunto.asociacion
+        conjunto = bloque.conjunto
+        bloque.delete()
+        registrar_auditoria(request.user, 'eliminacion_bloque', f'Bloque {nombre}', asociacion=asociacion, conjunto=conjunto)
+        messages.success(request, 'Bloque eliminado correctamente.')
     return redirect('bloques:listar_bloques')

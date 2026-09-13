@@ -1,1 +1,29 @@
-<div class="modal fade" id="modalEliminarConjunto"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>Desactivar conjunto</h5></div><div class="modal-body"><p>Usa el botón de desactivación de la tabla para conservar el historial.</p></div></div></div></div>
+<div class="modal fade modal-eliminar-gestion" id="modalEliminarConjunto" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <form method="post" id="formEliminarConjunto">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title">Eliminar conjunto</h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Cerrar"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>¿Deseas eliminar el conjunto <strong id="eliminarConjuntoNombre"></strong>?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

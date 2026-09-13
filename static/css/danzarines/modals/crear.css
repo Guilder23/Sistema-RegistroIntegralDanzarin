@@ -2,3 +2,20 @@
     background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
     color: #ffffff;
 }
+
+.required-mark {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.form-field-error {
+    display: block;
+    margin-top: 0.3rem;
+    color: #b91c1c;
+    font-size: 0.78rem;
+}
+
+.modal-crear-danzarin .form-control.field-invalid {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 0.15rem rgba(220, 38, 38, 0.15);
+}

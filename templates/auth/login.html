@@ -36,6 +36,9 @@
                         <div class="login-input-wrap">
                             <i class="fa-solid fa-lock" aria-hidden="true"></i>
                             <input type="password" name="password" id="id_password" class="form-control" placeholder="Ingrese su contraseña" autocomplete="current-password" required>
+                            <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña" aria-pressed="false">
+                                <i class="fa-solid fa-eye" id="eyeIcon" aria-hidden="true"></i>
+                            </button>
                         </div>
                     </div>
                     {% if login_error %}
@@ -49,15 +52,20 @@
 
         <section class="login-contact" aria-labelledby="contact-title">
             <h2 id="contact-title">Contacto</h2>
-            <a href="mailto:info@carnavaldeoruro.club">info@carnavaldeoruro.club</a>
-            <a href="https://wa.me/59171100714" target="_blank" rel="noopener noreferrer">+591 7110 0714</a>
+            <div class="login-contact-links">
+                {% comment %} <a href="mailto:info@carnavaldeoruro.club">info@carnavaldeoruro.club</a> {% endcomment %}
+                <a href="https://wa.me/59171100714" target="_blank" rel="noopener noreferrer">+591 7110 0714</a>
+            </div>
         </section>
 
         <footer class="login-footer">
             <p>© 2026 RUD — Registro Único de Danzarines</p>
-            <p>Todos los derechos reservados.</p>
-            <p>Desarrollado por <a href="https://appyaa.com" target="_blank" rel="noopener noreferrer">appyaa</a></p>
+            <div class="login-footer-legal">
+                <span>Todos los derechos reservados.</span>
+                <span>Desarrollado por <a href="https://appyaa.com" target="_blank" rel="noopener noreferrer">appyaa</a></span>
+            </div>
         </footer>
     </main>
+    <script src="{% static 'js/auth/login.js' %}"></script>
 </body>
 </html>

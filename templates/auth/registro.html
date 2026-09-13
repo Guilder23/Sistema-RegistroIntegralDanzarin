@@ -108,12 +108,18 @@
                                 </button>
                             </form>
 
-                            <form method="post" action="{% url 'core:eliminar_usuario' u.id %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger btn-sm" {% if u.id == request.user.id %}disabled{% endif %}>
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            <button
+                                type="button"
+                                class="btn btn-danger btn-sm btn-eliminar-usuario"
+                                data-toggle="modal"
+                                data-target="#modalEliminarUsuario"
+                                data-id="{{ u.id }}"
+                                data-username="{{ u.username|escapejs }}"
+                                data-action="{% url 'core:eliminar_usuario' u.id %}"
+                                {% if u.id == request.user.id %}disabled{% endif %}
+                            >
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                     {% empty %}
@@ -143,7 +149,7 @@
             <div class="modal-content">
                 <form method="post" action="{% url 'core:registro' %}">
                     {% csrf_token %}
-                    <div class="modal-header bg-primary text-white">
+                    <div class="modal-header modal-crear-gestion">
                         <h5 class="modal-title">Crear Usuario</h5>
                         <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -194,7 +200,7 @@
     <div class="modal fade" id="modalVerUsuario" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
+                <div class="modal-header modal-ver-gestion">
                     <h5 class="modal-title">Ver Usuario</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
@@ -218,7 +224,7 @@
             <div class="modal-content">
                 <form method="post" id="formEditarUsuario" action="#">
                     {% csrf_token %}
-                    <div class="modal-header bg-warning">
+                    <div class="modal-header modal-editar-gestion">
                         <h5 class="modal-title">Editar Usuario</h5>
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
@@ -251,17 +257,41 @@
                         <div class="form-row">
                             <div class="form-group col-md-6">
                                 <label>Nueva contrasena (opcional)</label>
-                                <input type="password" name="password" class="form-control">
+                                <input type="password" name="password" id="editUsuarioPassword" class="form-control">
                             </div>
                             <div class="form-group col-md-6">
                                 <label>Confirmar contrasena</label>
-                                <input type="password" name="password2" class="form-control">
+                                <input type="password" name="password2" id="editUsuarioPassword2" class="form-control">
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
                         <button type="submit" class="btn btn-warning">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade modal-eliminar-usuario" id="modalEliminarUsuario" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <form method="post" id="formEliminarUsuario" action="">
+                    {% csrf_token %}
+                    <input type="hidden" name="confirmar_eliminacion" value="1">
+                    <div class="modal-header modal-eliminar-gestion">
+                        <h5 class="modal-title">Eliminar Usuario</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>¿Estás seguro de eliminar al usuario <strong id="eliminarUsuarioUsername"></strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
                     </div>
                 </form>
             </div>

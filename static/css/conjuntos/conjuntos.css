@@ -64,3 +64,10 @@
 .gestion-page .table tbody tr:hover {
     background-color: #f0fdf9;
 }
+
+.gestion-page .card-tabla tbody td:last-child .btn-warning {
+    color: #ffffff !important;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+

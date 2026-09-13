@@ -1,0 +1,29 @@
+.modal-editar-gestion .modal-content {
+    overflow: hidden;
+    border: 1px solid #d1e7e4;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(3, 44, 42, 0.18);
+}
+
+.modal-editar-gestion .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.modal-editar-gestion .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}
+
+.modal-editar-gestion .modal-footer .btn-primary {
+    color: #212529;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
+.modal-editar-gestion .modal-footer .btn-primary:hover,
+.modal-editar-gestion .modal-footer .btn-primary:focus {
+    color: #212529;
+    background-color: #d99b00 !important;
+    border-color: #d99b00 !important;
+}

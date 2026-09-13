@@ -2,3 +2,33 @@
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     color: #ffffff;
 }
+
+.modal-editar-danzarin .modal-footer .btn-primary {
+    color: #212529;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
+.modal-editar-danzarin .modal-footer .btn-primary:hover,
+.modal-editar-danzarin .modal-footer .btn-primary:focus {
+    color: #212529;
+    background-color: #d99b00 !important;
+    border-color: #d99b00 !important;
+}
+
+.required-mark {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.form-field-error {
+    display: block;
+    margin-top: 0.3rem;
+    color: #b91c1c;
+    font-size: 0.78rem;
+}
+
+.modal-editar-danzarin .form-control.field-invalid {
+    border-color: #dc2626;
+    box-shadow: 0 0 0 0.15rem rgba(220, 38, 38, 0.15);
+}

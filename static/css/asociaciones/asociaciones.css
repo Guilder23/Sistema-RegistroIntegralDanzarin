@@ -65,14 +65,9 @@
     background-color: #f0fdf9;
 }
 
-.gestion-page .modal-content {
-    border: 1px solid #d1e7e4;
-    border-radius: 16px;
-    box-shadow: 0 20px 50px rgba(3, 44, 42, 0.18);
+.gestion-page .card-tabla tbody td:last-child .btn-warning {
+    color: #ffffff !important;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
 }
 
-.gestion-page .modal-header {
-    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
-    color: #ffffff;
-    border-bottom: 1px solid #d1e7e4;
-}

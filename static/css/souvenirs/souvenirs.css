@@ -86,6 +86,12 @@
     font-size: 0.92rem;
 }
 
+.acciones-col .btn-editar-souvenir {
+    color: #ffffff !important;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
 .card-filtros {
     margin-bottom: 1.25rem;
     border: 1px solid #d1e7e4;
