@@ -34,12 +34,14 @@ def dashboard(request):
         # Ámbito estricto: Solo su conjunto asignado
         conjunto_id = profile.conjunto_id if profile else None
         asociacion_id = profile.asociacion_id if profile else None
+        asociacion_seleccionada_id = str(asociacion_id or '')
+        conjunto_seleccionado_id = str(conjunto_id or '')
 
         if conjunto_id:
             danzarines_qs = danzarines_qs.filter(membresias__conjunto_id=conjunto_id).distinct()
             membresias_qs = membresias_qs.filter(conjunto_id=conjunto_id)
             entregas_qs = entregas_qs.filter(danzarin__membresias__conjunto_id=conjunto_id).distinct()
-            eventos_qs = eventos_qs.filter(Q(asociacion_id=asociacion_id) | Q(asociacion__isnull=True))
+            eventos_qs = eventos_qs.filter(conjunto_id=conjunto_id)
             auditorias_qs = auditorias_qs.filter(usuario_id=request.user.id)
             conjuntos_filtro = Conjunto.objects.filter(pk=conjunto_id)
             asociaciones_filtro = Asociacion.objects.filter(pk=asociacion_id) if asociacion_id else Asociacion.objects.none()
@@ -54,8 +56,12 @@ def dashboard(request):
         asociacion_id = profile.asociacion_id if profile else None
 
         if asociacion_id:
+            asociacion_seleccionada_id = str(asociacion_id)
             asociaciones_filtro = Asociacion.objects.filter(pk=asociacion_id)
             conjuntos_filtro = Conjunto.objects.filter(asociacion_id=asociacion_id, activo=True)
+
+            if conjunto_seleccionado_id and not conjuntos_filtro.filter(pk=conjunto_seleccionado_id).exists():
+                conjunto_seleccionado_id = ''
 
             # Filtro opcional por conjunto dentro de su asociación
             if conjunto_seleccionado_id and conjuntos_filtro.filter(pk=conjunto_seleccionado_id).exists():
@@ -68,11 +74,15 @@ def dashboard(request):
                 entregas_qs = entregas_qs.filter(danzarin__membresias__asociacion_id=asociacion_id).distinct()
 
             eventos_qs = eventos_qs.filter(asociacion_id=asociacion_id)
+            if conjunto_seleccionado_id:
+                eventos_qs = eventos_qs.filter(conjunto_id=conjunto_seleccionado_id)
             auditorias_qs = auditorias_qs.filter(
                 Q(usuario_id=request.user.id)
                 | Q(usuario__userprofile__asociacion_id=asociacion_id)
                 | Q(asociacion_id=asociacion_id)
             )
+            if conjunto_seleccionado_id:
+                auditorias_qs = auditorias_qs.filter(conjunto_id=conjunto_seleccionado_id)
         else:
             danzarines_qs = danzarines_qs.none()
             membresias_qs = membresias_qs.none()
@@ -84,6 +94,13 @@ def dashboard(request):
         asociaciones_filtro = Asociacion.objects.filter(activo=True).order_by('nombre')
         conjuntos_filtro = Conjunto.objects.filter(activo=True).select_related('asociacion').order_by('asociacion__nombre', 'nombre')
 
+        asociacion_valida = Asociacion.objects.filter(
+            pk=asociacion_seleccionada_id,
+            activo=True,
+        ).exists() if asociacion_seleccionada_id else False
+        if not asociacion_valida:
+            asociacion_seleccionada_id = ''
+
         if asociacion_seleccionada_id:
             danzarines_qs = danzarines_qs.filter(membresias__asociacion_id=asociacion_seleccionada_id).distinct()
             membresias_qs = membresias_qs.filter(asociacion_id=asociacion_seleccionada_id)
@@ -94,10 +111,16 @@ def dashboard(request):
             )
             conjuntos_filtro = conjuntos_filtro.filter(asociacion_id=asociacion_seleccionada_id)
 
+        conjunto_valido = bool(asociacion_seleccionada_id and conjuntos_filtro.filter(pk=conjunto_seleccionado_id).exists()) if conjunto_seleccionado_id else False
+        if not conjunto_valido:
+            conjunto_seleccionado_id = ''
+
         if conjunto_seleccionado_id:
             danzarines_qs = danzarines_qs.filter(membresias__conjunto_id=conjunto_seleccionado_id).distinct()
             membresias_qs = membresias_qs.filter(conjunto_id=conjunto_seleccionado_id)
             entregas_qs = entregas_qs.filter(danzarin__membresias__conjunto_id=conjunto_seleccionado_id).distinct()
+            eventos_qs = eventos_qs.filter(conjunto_id=conjunto_seleccionado_id)
+            auditorias_qs = auditorias_qs.filter(conjunto_id=conjunto_seleccionado_id)
 
     # 2. Métricas y KPIs Principales
     total_danzarines = danzarines_qs.count()
