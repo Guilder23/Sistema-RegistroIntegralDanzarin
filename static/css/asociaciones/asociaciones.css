@@ -76,3 +76,34 @@
     color: #ffffff;
     border-bottom: 1px solid #d1e7e4;
 }
+
+.gestion-page .modal-content {
+    overflow: hidden;
+}
+
+.modal-ver-gestion .modal-header {
+    background: linear-gradient(135deg, #3d9b92 0%, #0f766e 100%);
+}
+
+.modal-editar-gestion .modal-header {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.modal-eliminar-gestion .modal-header {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.modal-crear-gestion .modal-header,
+.modal-ver-gestion .modal-header,
+.modal-editar-gestion .modal-header,
+.modal-eliminar-gestion .modal-header {
+    color: #ffffff;
+}
+
+.modal-crear-gestion .modal-header .close,
+.modal-ver-gestion .modal-header .close,
+.modal-editar-gestion .modal-header .close,
+.modal-eliminar-gestion .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}

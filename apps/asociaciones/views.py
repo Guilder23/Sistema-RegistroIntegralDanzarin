@@ -13,10 +13,19 @@ def is_superadmin(user):
 @user_passes_test(is_superadmin, login_url='/login/')
 def listar_asociaciones(request):
     q = request.GET.get('q', '').strip()
+    activo = request.GET.get('activo', '').strip()
     asociaciones = Asociacion.objects.all()
     if q:
         asociaciones = asociaciones.filter(nombre__icontains=q)
-    return render(request, 'asociaciones/asociaciones.html', {'asociaciones': asociaciones, 'q': q})
+    if activo == 'si':
+        asociaciones = asociaciones.filter(activo=True)
+    elif activo == 'no':
+        asociaciones = asociaciones.filter(activo=False)
+    return render(request, 'asociaciones/asociaciones.html', {
+        'asociaciones': asociaciones,
+        'q': q,
+        'activo': activo,
+    })
 
 
 @login_required
@@ -63,7 +72,25 @@ def editar_asociacion(request, pk):
 
 @login_required
 @user_passes_test(is_superadmin, login_url='/login/')
-def eliminar_asociacion(request, pk):
+def activar_asociacion(request, pk):
+    asociacion = get_object_or_404(Asociacion, pk=pk)
+    if request.method == 'POST':
+        asociacion.activo = True
+        asociacion.save(update_fields=['activo'])
+        registrar_auditoria(
+            request.user,
+            'activacion_asociacion',
+            f'Asociacion {asociacion.nombre}',
+            nuevo={'activo': True},
+            asociacion=asociacion,
+        )
+        messages.success(request, 'Asociacion activada correctamente.')
+    return redirect('asociaciones:listar_asociaciones')
+
+
+@login_required
+@user_passes_test(is_superadmin, login_url='/login/')
+def desactivar_asociacion(request, pk):
     asociacion = get_object_or_404(Asociacion, pk=pk)
     if request.method == 'POST':
         asociacion.activo = False
@@ -76,5 +103,20 @@ def eliminar_asociacion(request, pk):
             asociacion=asociacion,
         )
         messages.success(request, 'Asociacion desactivada correctamente.')
+    return redirect('asociaciones:listar_asociaciones')
+
+
+@login_required
+@user_passes_test(is_superadmin, login_url='/login/')
+def eliminar_asociacion(request, pk):
+    asociacion = get_object_or_404(Asociacion, pk=pk)
+    if request.method == 'POST':
+        if asociacion.conjuntos.exists():
+            messages.error(request, 'No puedes eliminar la asociacion porque tiene conjuntos asignados.')
+            return redirect('asociaciones:listar_asociaciones')
+        nombre = asociacion.nombre
+        asociacion.delete()
+        registrar_auditoria(request.user, 'eliminacion_asociacion', f'Asociacion {nombre}')
+        messages.success(request, 'Asociacion eliminada correctamente.')
     return redirect('asociaciones:listar_asociaciones')
 
