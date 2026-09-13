@@ -284,4 +284,37 @@ function initDashboardCharts() {
 
 document.addEventListener('DOMContentLoaded', function () {
     initDashboardCharts();
+
+    const filtrosForm = document.getElementById('dashboardFilterForm');
+    const asociacionSelect = document.getElementById('dashboardAsociacion');
+    const conjuntoSelect = document.getElementById('dashboardConjunto');
+
+    if (filtrosForm && asociacionSelect && conjuntoSelect) {
+        const actualizarConjuntos = function (limpiarSeleccion) {
+            const asociacionId = asociacionSelect.value;
+            if (limpiarSeleccion) conjuntoSelect.value = '';
+            Array.from(conjuntoSelect.options).forEach(function (option) {
+                if (!option.value) return;
+                const visible = option.dataset.asociacionId === asociacionId;
+                option.hidden = !visible;
+                option.disabled = !visible;
+            });
+            if (conjuntoSelect.selectedOptions[0]?.disabled) conjuntoSelect.value = '';
+        };
+
+        if (!asociacionSelect.disabled) {
+            asociacionSelect.addEventListener('change', function () {
+                actualizarConjuntos(true);
+                filtrosForm.submit();
+            });
+        }
+
+        if (!conjuntoSelect.disabled) {
+            conjuntoSelect.addEventListener('change', function () {
+                filtrosForm.submit();
+            });
+        }
+
+        actualizarConjuntos(false);
+    }
 });

@@ -172,6 +172,13 @@
         gap: 1rem;
     }
 
+    .dashboard-header > div:first-child,
+    .dashboard-controls {
+        flex: 0 0 100%;
+        max-width: 100%;
+        min-width: 0;
+    }
+
     .dashboard-controls,
     .dashboard-controls form,
     .dashboard-controls .input-group {
@@ -179,15 +186,32 @@
     }
 
     .dashboard-controls form {
+        display: flex !important;
+        flex-direction: column;
         align-items: stretch !important;
+        width: 100%;
     }
 
     .dashboard-controls .input-group {
+        display: flex;
         min-width: 0;
+        width: 100%;
+        margin-bottom: 0.5rem;
     }
 
     .dashboard-controls .input-group .form-control {
+        flex: 1 1 auto;
         min-width: 0;
+        width: 100%;
+    }
+
+    .dashboard-controls .input-group-text {
+        flex: 0 0 42px;
+        justify-content: center;
+    }
+
+    .dashboard-controls .btn {
+        align-self: flex-start;
     }
 
     .kpi-value {

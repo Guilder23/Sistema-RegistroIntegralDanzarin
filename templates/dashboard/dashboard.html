@@ -32,15 +32,15 @@
         </div>
 
         <!-- Filtro Rápido de Ámbito (según permisos de rol) -->
-        {% if role == 'superadministrador' or role == 'administrador_asociacion' %}
+        {% if role == 'superadministrador' or role == 'administrador_asociacion' or role == 'administrador_conjunto' %}
         <div class="dashboard-controls mt-3 mt-lg-0">
             <form method="get" class="form-inline d-flex flex-wrap gap-2 align-items-center" id="dashboardFilterForm">
-                {% if role == 'superadministrador' and asociaciones_filtro %}
+            {% if asociaciones_filtro %}
                 <div class="input-group input-group-sm">
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-white"><i class="fas fa-layer-group text-primary"></i></span>
                     </div>
-                    <select class="form-control form-control-sm" name="asociacion_id" onchange="this.form.submit()">
+                    <select id="dashboardAsociacion" class="form-control form-control-sm" name="asociacion_id" {% if role != 'superadministrador' %}disabled{% endif %}>
                         <option value="">Todos los Asociaciones</option>
                         {% for g in asociaciones_filtro %}
                         <option value="{{ g.id }}" {% if asociacion_id == g.id|stringformat:"s" %}selected{% endif %}>{{ g.nombre }}</option>
@@ -54,10 +54,10 @@
                     <div class="input-group-prepend">
                         <span class="input-group-text bg-white"><i class="fas fa-sitemap text-info"></i></span>
                     </div>
-                    <select class="form-control form-control-sm" name="conjunto_id" onchange="this.form.submit()">
+                    <select id="dashboardConjunto" class="form-control form-control-sm" name="conjunto_id" {% if role == 'administrador_conjunto' %}disabled{% endif %}>
                         <option value="">Todos los Conjuntos</option>
                         {% for sg in conjuntos_filtro %}
-                        <option value="{{ sg.id }}" {% if conjunto_id == sg.id|stringformat:"s" %}selected{% endif %}>
+                        <option value="{{ sg.id }}" data-asociacion-id="{{ sg.asociacion_id }}" {% if conjunto_id == sg.id|stringformat:"s" %}selected{% endif %}>
                             {% if role == 'superadministrador' and not asociacion_id %}{{ sg.asociacion.nombre }} / {% endif %}{{ sg.nombre }}
                         </option>
                         {% endfor %}
