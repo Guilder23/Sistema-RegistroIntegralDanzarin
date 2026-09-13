@@ -22,7 +22,7 @@ def get_home_redirect(user):
 def inicio(request):
 	if request.user.is_authenticated:
 		return redirect(get_home_redirect(request.user))
-	return render(request, 'auth/login.html')
+	return redirect('core:login')
 
 
 def robots_txt(request):
@@ -92,7 +92,7 @@ def iniciar_sesion(request):
 			return redirect(next_url)
 		return redirect(get_home_redirect(user))
 
-	return redirect('core:inicio')
+	return render(request, 'auth/login.html')
 
 
 @login_required
