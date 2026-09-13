@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function () {
     conjuntoSelect?.addEventListener('change', actualizarBloques);
     const modalEditar = document.getElementById('modalEditarDanzarin');
     if (!modalEditar) return;
+    const formEditar = document.getElementById('formEditarDanzarin');
 
     modalEditar.addEventListener('show.bs.modal', function (event) {
         const button = event.relatedTarget;
@@ -33,6 +34,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
         setValOr('editarApellidoMaterno', 'data-apellido-materno', '');
         setValOr('editarEmail', 'data-email', '');
+        setValOr('editarSexo', 'data-sexo', '');
         setValOr('editarTelefono', 'data-telefono', '');
         setValOr('editarCiudad', 'data-ciudad', '');
         setValOr('editarDireccion', 'data-direccion', '');
@@ -66,6 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setValOr('editarApellidoPaterno', 'data-apellido-paterno', '');
             setValOr('editarApellidoMaterno', 'data-apellido-materno', '');
             setValOr('editarEmail', 'data-email', '');
+            setValOr('editarSexo', 'data-sexo', '');
             setValOr('editarTelefono', 'data-telefono', '');
             setValOr('editarCiudad', 'data-ciudad', '');
             setValOr('editarDireccion', 'data-direccion', '');
@@ -85,5 +88,49 @@ document.addEventListener('DOMContentLoaded', function () {
             actualizarConjuntos();
             setVal('editarDanzarinBloque', button.getAttribute('data-bloque-id') || '');
         });
+    });
+
+    const camposObligatorios = formEditar ? Array.from(formEditar.querySelectorAll('[required]')) : [];
+    const limpiarError = function (campo) {
+        campo.classList.remove('field-invalid');
+        campo.parentElement.querySelector('.form-field-error')?.remove();
+    };
+    const mostrarError = function (campo) {
+        limpiarError(campo);
+        campo.classList.add('field-invalid');
+        const error = document.createElement('small');
+        error.className = 'form-field-error';
+        error.textContent = 'Completa este campo obligatorio.';
+        campo.parentElement.appendChild(error);
+    };
+    camposObligatorios.forEach(function (campo) {
+        campo.addEventListener('input', function () { limpiarError(campo); });
+        campo.addEventListener('change', function () { limpiarError(campo); });
+        campo.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' || campo.tagName === 'TEXTAREA') return;
+            event.preventDefault();
+            const siguiente = camposObligatorios[camposObligatorios.indexOf(campo) + 1];
+            if (siguiente) siguiente.focus();
+            else formEditar?.requestSubmit();
+        });
+    });
+    formEditar?.querySelectorAll('.numeric-only').forEach(function (campo) {
+        campo.addEventListener('input', function () {
+            campo.value = campo.value.replace(/\D/g, '');
+        });
+    });
+    formEditar?.addEventListener('submit', function (event) {
+        let primerCampoInvalido = null;
+        camposObligatorios.forEach(function (campo) {
+            if (campo.disabled || campo.value.trim()) limpiarError(campo);
+            else {
+                mostrarError(campo);
+                primerCampoInvalido ||= campo;
+            }
+        });
+        if (primerCampoInvalido) {
+            event.preventDefault();
+            primerCampoInvalido.focus();
+        }
     });
 });

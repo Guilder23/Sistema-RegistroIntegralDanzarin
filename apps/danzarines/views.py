@@ -293,6 +293,9 @@ def crear_danzarin(request):
     carnet_complemento = request.POST.get('carnet_complemento', '').strip()
     observacion = request.POST.get('observacion', '').strip()
     sexo = request.POST.get('sexo', '').strip()
+    if carnet_ci and not carnet_ci.isdigit():
+        messages.error(request, 'El Carnet / CI solo debe contener números.')
+        return redirect('danzarines:listar_danzarines')
     try:
         codigo_danzarin = obtener_codigo_danzarin(
             request.POST.get('codigo_prefijo'), request.POST.get('codigo_numero')
