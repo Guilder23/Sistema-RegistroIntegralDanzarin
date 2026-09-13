@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const verButtons = document.querySelectorAll('.btn-ver-usuario');
     const editarButtons = document.querySelectorAll('.btn-editar-usuario');
     const formEditar = document.getElementById('formEditarUsuario');
+    const passwordEditar = document.getElementById('editUsuarioPassword');
+    const passwordConfirmarEditar = document.getElementById('editUsuarioPassword2');
     const formEliminar = document.getElementById('formEliminarUsuario');
     const modalEliminar = document.getElementById('modalEliminarUsuario');
 
@@ -50,6 +52,28 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('editUsuarioAsociacion').value = this.dataset.asociacion || '';
             document.getElementById('editUsuarioConjunto').value = this.dataset.conjunto || '';
         });
+    });
+
+    const validarConfirmacionPassword = function () {
+        if (!passwordEditar || !passwordConfirmarEditar) return true;
+        const quiereCambiarPassword = Boolean(passwordEditar.value);
+        passwordConfirmarEditar.required = quiereCambiarPassword;
+        if (!quiereCambiarPassword) {
+            passwordConfirmarEditar.setCustomValidity('');
+            return true;
+        }
+        const coincide = passwordEditar.value === passwordConfirmarEditar.value;
+        passwordConfirmarEditar.setCustomValidity(coincide ? '' : 'Las contraseñas no coinciden.');
+        return coincide;
+    };
+
+    passwordEditar?.addEventListener('input', validarConfirmacionPassword);
+    passwordConfirmarEditar?.addEventListener('input', validarConfirmacionPassword);
+    formEditar?.addEventListener('submit', function (event) {
+        if (!validarConfirmacionPassword()) {
+            event.preventDefault();
+            passwordConfirmarEditar.focus();
+        }
     });
 
     const abrirModalEliminar = function () {

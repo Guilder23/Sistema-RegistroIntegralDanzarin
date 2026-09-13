@@ -116,8 +116,10 @@ def registrar_usuario(request):
 		if rol not in roles_validos:
 			rol = 'miembro'
 		from apps.core.models import Asociacion, Conjunto
-		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
-		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		asociacion_id = request.POST.get('asociacion_id', '').strip() or None
+		conjunto_id = request.POST.get('conjunto_id', '').strip() or None
+		asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+		conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
 		if rol == 'administrador_asociacion' and not asociacion:
 			messages.error(request, 'El Administrador de Asociación debe tener una asociación asignada.')
 			return redirect('core:registro')
@@ -223,11 +225,13 @@ def editar_usuario(request, user_id):
 		last_name = request.POST.get('last_name', '').strip()
 		rol = request.POST.get('rol', 'miembro')
 		from apps.core.models import Asociacion, Conjunto
-		asociacion = Asociacion.objects.filter(pk=request.POST.get('asociacion_id'), activo=True).first()
-		conjunto = Conjunto.objects.filter(pk=request.POST.get('conjunto_id'), asociacion=asociacion, activo=True).first() if asociacion else None
+		asociacion_id = request.POST.get('asociacion_id', '').strip() or None
+		conjunto_id = request.POST.get('conjunto_id', '').strip() or None
+		asociacion = Asociacion.objects.filter(pk=asociacion_id, activo=True).first() if asociacion_id else None
+		conjunto = Conjunto.objects.filter(pk=conjunto_id, asociacion=asociacion, activo=True).first() if asociacion and conjunto_id else None
 		if rol not in {'superadministrador', 'administrador_asociacion', 'administrador_conjunto', 'miembro'}:
 			rol = 'miembro'
-		if rol == 'administrador_asociacion' and not asociacion or rol == 'administrador_conjunto' and (not asociacion or not conjunto):
+		if (rol == 'administrador_asociacion' and not asociacion) or (rol == 'administrador_conjunto' and (not asociacion or not conjunto)):
 			messages.error(request, 'El rol seleccionado requiere un ámbito válido.')
 			return redirect('core:registro')
 
@@ -268,9 +272,6 @@ def toggle_bloqueo_usuario(request, user_id):
 	objetivo = get_object_or_404(User, id=user_id)
 
 	if request.method == 'POST':
-		if request.POST.get('confirmar_eliminacion') != '1':
-			messages.error(request, 'Debes confirmar la eliminación desde el modal.')
-			return redirect('core:registro')
 		if objetivo == request.user:
 			messages.error(request, 'No puedes bloquear tu propio usuario.')
 			return redirect('core:registro')
