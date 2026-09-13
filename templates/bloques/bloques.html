@@ -3,6 +3,10 @@
 {% block titulo %}Bloques{% endblock %}
 {% block estilos_extra %}
 <link rel="stylesheet" href="{% static 'css/bloques/bloques.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/bloques/modals/eliminar.css' %}">
 {% endblock %}
 {% block contenido %}
 <div class="container-fluid gestion-page">
@@ -144,4 +148,8 @@
 {% endblock %}
 {% block scripts_extra %}
 <script src="{% static 'js/bloques/bloques.js' %}"></script>
+<script src="{% static 'js/bloques/modals/crear.js' %}"></script>
+<script src="{% static 'js/bloques/modals/editar.js' %}"></script>
+<script src="{% static 'js/bloques/modals/ver.js' %}"></script>
+<script src="{% static 'js/bloques/modals/eliminar.js' %}"></script>
 {% endblock %}

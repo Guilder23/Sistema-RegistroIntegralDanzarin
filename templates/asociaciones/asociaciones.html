@@ -5,6 +5,10 @@
 
 {% block estilos_extra %}
 <link rel="stylesheet" href="{% static 'css/asociaciones/asociaciones.css' %}">
+<link rel="stylesheet" href="{% static 'css/asociaciones/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/asociaciones/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/asociaciones/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/asociaciones/modals/eliminar.css' %}">
 {% endblock %}
 
 {% block contenido %}
@@ -151,4 +155,8 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/asociaciones/asociaciones.js' %}"></script>
+<script src="{% static 'js/asociaciones/modals/crear.js' %}"></script>
+<script src="{% static 'js/asociaciones/modals/editar.js' %}"></script>
+<script src="{% static 'js/asociaciones/modals/ver.js' %}"></script>
+<script src="{% static 'js/asociaciones/modals/eliminar.js' %}"></script>
 {% endblock %}

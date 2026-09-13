@@ -17,24 +17,4 @@ document.addEventListener('DOMContentLoaded', function () {
 		if (select) select.addEventListener('change', enviarFiltros);
 	});
 
-	document.querySelectorAll('[data-target="#modalEditarConjunto"]').forEach(function (button) {
-		button.addEventListener('click', function () {
-			document.getElementById('formEditarConjunto').action = '/conjuntos/' + button.dataset.id + '/editar/';
-			document.getElementById('editarConjuntoNombre').value = button.dataset.nombre;
-			document.getElementById('editarConjuntoActivo').checked = button.dataset.activo === '1';
-		});
-	});
-	document.querySelectorAll('[data-target="#modalVerConjunto"]').forEach(function (button) {
-		button.addEventListener('click', function () {
-			document.getElementById('verConjuntoNombre').textContent = button.dataset.nombre;
-			document.getElementById('verConjuntoAsociacion').textContent = button.dataset.asociacion;
-		});
-	});
-	const eliminarForm = document.getElementById('formEliminarConjunto');
-	document.querySelectorAll('.btn-eliminar-conjunto').forEach(function (button) {
-		button.addEventListener('click', function () {
-			eliminarForm.action = '/conjuntos/' + button.dataset.id + '/eliminar/';
-			document.getElementById('eliminarConjuntoNombre').textContent = button.dataset.nombre;
-		});
-	});
 });

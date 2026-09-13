@@ -5,6 +5,10 @@
 
 {% block estilos_extra %}
 <link rel="stylesheet" href="{% static 'css/conjuntos/conjuntos.css' %}">
+<link rel="stylesheet" href="{% static 'css/conjuntos/modals/crear.css' %}">
+<link rel="stylesheet" href="{% static 'css/conjuntos/modals/editar.css' %}">
+<link rel="stylesheet" href="{% static 'css/conjuntos/modals/ver.css' %}">
+<link rel="stylesheet" href="{% static 'css/conjuntos/modals/eliminar.css' %}">
 {% endblock %}
 
 {% block contenido %}
@@ -158,4 +162,8 @@
 
 {% block scripts_extra %}
 <script src="{% static 'js/conjuntos/conjuntos.js' %}"></script>
+<script src="{% static 'js/conjuntos/modals/crear.js' %}"></script>
+<script src="{% static 'js/conjuntos/modals/editar.js' %}"></script>
+<script src="{% static 'js/conjuntos/modals/ver.js' %}"></script>
+<script src="{% static 'js/conjuntos/modals/eliminar.js' %}"></script>
 {% endblock %}
