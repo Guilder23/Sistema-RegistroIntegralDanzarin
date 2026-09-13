@@ -2,3 +2,16 @@
     background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
     color: #ffffff;
 }
+
+.modal-editar-danzarin .modal-footer .btn-primary {
+    color: #212529;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
+.modal-editar-danzarin .modal-footer .btn-primary:hover,
+.modal-editar-danzarin .modal-footer .btn-primary:focus {
+    color: #212529;
+    background-color: #d99b00 !important;
+    border-color: #d99b00 !important;
+}

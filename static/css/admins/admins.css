@@ -60,6 +60,12 @@
     padding: 0.35rem 0.5rem;
 }
 
+.acciones-col .btn-editar-admin {
+    color: #ffffff !important;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
 .card-filtros {
     margin-bottom: 1.25rem;
     border: 1px solid #d1e7e4;

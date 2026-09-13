@@ -1054,6 +1054,9 @@ def editar_admin(request, user_id):
 def eliminar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
+        if request.POST.get('confirmar_eliminacion') != '1':
+            messages.error(request, 'Debes confirmar la eliminación desde el modal.')
+            return redirect('danzarines:listar_admins')
         username = user.username
         user.delete()
         registrar_auditoria(request.user, 'eliminacion_admin', f'Admin {username}')

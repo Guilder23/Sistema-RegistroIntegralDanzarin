@@ -6,9 +6,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Danzarin, Membresia
-from .models import UserProfile
-from .models import generar_codigo_danzarin
+from apps.danzarines.models import Danzarin, Membresia, UserProfile, generar_codigo_danzarin
 from django.contrib.auth import update_session_auth_hash
 import csv
 from io import TextIOWrapper
@@ -162,7 +160,6 @@ def crear_danzarin(request):
                 sexo=sexo,
                 creado_por=request.user,
             )
-        from .models import Membresia
         try:
             Membresia.inscribir(danzarin, asociacion, conjunto, bloque, estado_pago='al_dia')
         except ValueError as error:
@@ -746,6 +743,9 @@ def editar_admin(request, user_id):
 def eliminar_admin(request, user_id):
     user = get_object_or_404(User, id=user_id, is_staff=True)
     if request.method == 'POST':
+        if request.POST.get('confirmar_eliminacion') != '1':
+            messages.error(request, 'Debes confirmar la eliminación desde el modal.')
+            return redirect('danzarines:listar_admins')
         username = user.username
         user.delete()
         registrar_auditoria(request.user, 'eliminacion_admin', f'Admin {username}')

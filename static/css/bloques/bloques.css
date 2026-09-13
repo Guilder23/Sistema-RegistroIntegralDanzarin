@@ -59,6 +59,12 @@
     background-color: #f0fdf9;
 }
 
+.gestion-page .card-tabla tbody td:last-child .btn-warning {
+    color: #ffffff !important;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
 .badge-estado {
     display: inline-block;
     padding: 0.38rem 0.7rem;

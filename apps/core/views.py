@@ -268,6 +268,9 @@ def toggle_bloqueo_usuario(request, user_id):
 	objetivo = get_object_or_404(User, id=user_id)
 
 	if request.method == 'POST':
+		if request.POST.get('confirmar_eliminacion') != '1':
+			messages.error(request, 'Debes confirmar la eliminación desde el modal.')
+			return redirect('core:registro')
 		if objetivo == request.user:
 			messages.error(request, 'No puedes bloquear tu propio usuario.')
 			return redirect('core:registro')

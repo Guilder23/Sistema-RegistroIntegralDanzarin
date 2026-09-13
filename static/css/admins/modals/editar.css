@@ -3,6 +3,30 @@
     color: #ffffff;
 }
 
+.modal-editar-gestion .modal-content {
+    overflow: hidden;
+    border: 1px solid #d1e7e4;
+    border-radius: 16px;
+}
+
+.modal-editar-gestion .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}
+
+.modal-editar-gestion .modal-footer .btn-primary {
+    color: #212529;
+    background-color: #f0ad00 !important;
+    border-color: #f0ad00 !important;
+}
+
+.modal-editar-gestion .modal-footer .btn-primary:hover,
+.modal-editar-gestion .modal-footer .btn-primary:focus {
+    color: #212529;
+    background-color: #d99b00 !important;
+    border-color: #d99b00 !important;
+}
+
 .modal-body .form-group {
     margin-bottom: 1rem;
 }

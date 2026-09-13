@@ -80,3 +80,47 @@
     background: #fee2e2;
     border-color: #fca5a5;
 }
+
+.modal-crear-gestion .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #05413f 0%, #032c2a 100%);
+}
+
+.modal-ver-gestion .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #3d9b92 0%, #0f766e 100%);
+}
+
+.modal-editar-gestion .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.modal-eliminar-gestion .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.modal-crear-gestion .modal-header .close,
+.modal-ver-gestion .modal-header .close,
+.modal-editar-gestion .modal-header .close,
+.modal-eliminar-gestion .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}
+
+.modal-eliminar-usuario .modal-content {
+    overflow: hidden;
+    border: 1px solid #d1e7e4;
+    border-radius: 16px;
+}
+
+.modal-eliminar-usuario .modal-header {
+    color: #ffffff;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.modal-eliminar-usuario .modal-header .close {
+    color: #ffffff;
+    opacity: 0.85;
+}

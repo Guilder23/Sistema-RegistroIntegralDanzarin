@@ -3,6 +3,7 @@
         <div class="modal-content">
             <form id="formEliminarAdmin" method="post" action="">
                 {% csrf_token %}
+                <input type="hidden" name="confirmar_eliminacion" value="1">
                 <div class="modal-header">
                     <h5 class="modal-title">Eliminar Administrador</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
