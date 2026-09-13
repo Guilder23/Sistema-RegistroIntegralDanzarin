@@ -27,12 +27,12 @@
 .auditoria-page .page-title {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #032c2a;
+    color: #ffffff;
 }
 
 .auditoria-page .page-subtitle {
     font-size: 0.95rem;
-    color: #52706d;
+    color: rgba(255, 255, 255, 0.88) !important;
 }
 
 /* Header Scope Badge */
